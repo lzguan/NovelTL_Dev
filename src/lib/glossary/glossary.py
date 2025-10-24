@@ -4,18 +4,8 @@ import os
 import numpy as np
 import statistics
 
-from extractor import *
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(NumpyEncoder).default(obj)
+from .extractor import *
+from .utils import NumpyEncoder
 
 class GlossaryBuilder:
     """Object that builds a glossary given a list of chapters in a dictionary format

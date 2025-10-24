@@ -1,0 +1,32 @@
+from typing import List
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy import String, Text, ForeignKey, UniqueConstraint
+from . import Base
+from .novel import Novel
+from .user import User
+from ...config import *
+
+class LabelGroup(Base):
+    """
+    Class for grouping labels for each chapter for a given novel and user
+    
+    Attributes:
+        user_id     user that owns this label group
+        novel_id    novel this label group is referring to
+    """
+    __tablename__ = 'label_groups'
+    label_group_id : Mapped[int] = mapped_column(primary_key=True)
+    label_group_name : Mapped[str] = mapped_column(String(MAX_LABEL_GROUP_NAME_LEN))
+    
+    user_id : Mapped[int] = mapped_column(ForeignKey('users.user_id'), nullable=False)
+    user_of_label_group : Mapped[User] = relationship(back_populates='label_groups_with_user')
+
+    novel_id : Mapped[int] = mapped_column(ForeignKey('novels.novel_id'), nullable=False)
+    novel_of_label_group : Mapped[Novel] = relationship(back_populates='label_groups_with_novel')
+
+    label_datas_with_label_group : Mapped[List["LabelData"]] = relationship(back_populates='label_group_of_label_data')
+
+    __table_args__ = (
+        UniqueConstraint('label_group_name', 'user_id', 'novel_id', name="one_label_group_with_name_per_user_novel"),
+    )

@@ -1,0 +1,20 @@
+import os
+
+DB_HOST : str = os.getenv('DB_HOST')
+DB_PORT : str = os.getenv('DB_PORT')
+DB_USER : str = os.getenv('DB_USER')
+DB_PASSWORD : str = os.getenv('DB_PASSWORD')
+DB_NAME : str = os.getenv('DB_NAME')
+
+DB_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+
+ADMIN_USERNAME : str = os.getenv('ADMIN_USERNAME')
+
+MAX_NOVEL_TITLE_LEN = 255
+MAX_CHAPTER_TITLE_LEN = 255
+MAX_LANG_NAME_LEN=31
+MAX_LANG_CODE_LEN=2
+MAX_USER_NAME_LEN = 31
+MAX_LABEL_GROUP_NAME_LEN = 31
+MAX_AUTHOR_LENGTH = 31

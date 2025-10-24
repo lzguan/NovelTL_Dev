@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools >= 72.1.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noveltl_dev"
+version = "0.0.0"
+dependencies = ["sqlalchemy"]
+requires-python = ">= 3.12"
+authors = [
+    {name = "Leo Guan", email = "leo.ziqi@gmail.com"}
+]
+maintainers = [
+    {name = "Leo Guan", email = "leo.ziqi@gmail.com"}
+]
+description = "Novel translation backend"
+readme = "README.md"
+
+[tool.setuptools.packages]
+find = {where = ["src2"]}

@@ -1,0 +1,2 @@
+If on windows (with wsl 2) and getting password authentication issues with docker, there is a possibility that postgres is running in windows background on the same port as docker. Can fix by either closing that process or changing ```DB_PORT``` env var.
+Check that alembic.ini has right variables, or that env.py is loading the right values from config.

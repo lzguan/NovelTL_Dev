@@ -119,3 +119,6 @@ class HuggingFaceModel:
 
     def get_tokenizer(self) -> Tokenizer:
         return HuggingFaceTokenizer(self.pipeline.tokenizer)
+
+if __name__ == "__main__":
+    print("a")

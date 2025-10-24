@@ -1,0 +1,1 @@
+MAX_USER_NAME_LEN = 31
