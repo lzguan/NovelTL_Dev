@@ -1,3 +1,7 @@
+"""
+Pydantic models for novels and chapters.
+"""
+
 from pydantic import BaseModel
 
 class Novel(BaseModel):
@@ -38,6 +42,14 @@ class RawChapterRevision(BaseModel):
     raw_chapter_id : int
     raw_chapter_revision_text : str
 
+class RawChapterRevisionMeta(BaseModel):
+    raw_chapter_revision_id : int
+    raw_chapter_revision_title : str
+    raw_chapter_revision_is_primary : bool
+    raw_chapter_revision_is_public : bool
+
+    raw_chapter_id : int
+
 class CreateRawChapterRevision(BaseModel):
     raw_chapter_revision_title : str
     raw_chapter_revision_text : str | None = None
@@ -46,6 +58,6 @@ class UpdateRawChapterRevision(BaseModel):
     raw_chapter_revision_title : str | None = None
     raw_chapter_revision_text : str | None = None
 
-class DeleteRawChapterRevision(BaseModel):
+class DeleteRawChapterRevisionStatus(BaseModel):
     status : int
     detail : str | None = None

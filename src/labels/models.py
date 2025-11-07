@@ -35,13 +35,22 @@ class LabelData(Base):
     Class for storing label data for a given chapter
     
     Attributes:
-        label_group_id      label group that label_data belongs to
+        label_group_id          label group that label_data belongs to
+        label_data_entities     list of entities, each in the form
+            {
+                'entity_group' : str
+                'score' : float
+                'word' : str
+                'start' : int
+                'end' : int
+                'dirty' : bool
+            }
 
     """
     __tablename__ = 'label_datas'
 
     label_data_id : Mapped[int] = mapped_column(primary_key=True)
-    label_data_entities : Mapped[dict] = mapped_column(JSONB)
+    label_data_entities : Mapped[List[dict]] = mapped_column(JSONB, nullable=False)
 
     label_group_id : Mapped[int] = mapped_column(ForeignKey('label_groups.label_group_id'), nullable=False)
     label_group_of_label_data : Mapped[LabelGroup] = relationship(back_populates='label_datas_with_label_group')

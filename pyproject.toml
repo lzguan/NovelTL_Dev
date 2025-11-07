@@ -17,4 +17,4 @@ description = "Novel translation backend"
 readme = "README.md"
 
 [tool.setuptools.packages]
-find = {where = ["src2"]}
+find = {where = ["src"]}

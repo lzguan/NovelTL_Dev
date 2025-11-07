@@ -1,3 +1,7 @@
+"""
+Database models for novels and chapters.
+"""
+
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy import String, UniqueConstraint, ForeignKey, Integer, Text, Boolean, Index, CheckConstraint, or_, not_
@@ -8,7 +12,14 @@ from ..models import Base
 
 class Novel(Base):
     """
-    Class for novel entry in database
+    Database model for novel.
+
+    Attributes:
+        novel_id: Integer primary key identifier.
+        novel_title: Title of novel.
+        novel_description: Description/summary of novel.
+        novel_author: Author of novel.
+        language_id: Integer foreign key for the language the novel is written in.
     """
     __tablename__ = "novels"
 
@@ -25,6 +36,14 @@ class Novel(Base):
     label_groups_with_novel : Mapped[List["LabelGroup"]] = relationship(back_populates='novel_of_label_group')
 
 class RawChapter(Base):
+    """
+    Database model for metadata for a specific chapter number in the novel.
+
+    Attributes:
+        raw_chapter_id: Integer primary key identifier.
+        raw_chapter_num: Integer chapter numbering. For example, a value of 5 would correspond to chapter 5.
+        novel_id: Integer foreign key identifier to the novel this chapter belongs to.
+    """
     __tablename__ = 'raw_chapters'
 
     raw_chapter_id : Mapped[int] = mapped_column(primary_key=True)
@@ -42,6 +61,16 @@ class RawChapter(Base):
     )
 
 class RawChapterRevision(Base):
+    """
+    Database model for a revision of a chapter of a novel. Each revision corresponds to a RawChapter and contains the text of that chapter for a specific revision. Once a revision is flagged as public, the revision should no longer be able to be made private or modified.
+
+    Attributes:
+        raw_chapter_revision_id: Integer primary key identifier.
+        raw_chapter_revision_text: Text contained in this revision of the chapter.
+        raw_chapter_revision_title: Chapter title. Different revisions of the same chapter can have different titles.
+        raw_chapter_revision_is_primary: Boolean mark for whether a chapter is the primary chapter (the 'finalized' chapter)
+        raw_chapter_revision_is_public: Boolean mark for whether a chapter is marked as public. Chapters marked as public should be immutable and available for use in other modules.
+    """
     __tablename__ = 'raw_chapter_revisions'
 
     raw_chapter_revision_id : Mapped[int] = mapped_column(primary_key=True)

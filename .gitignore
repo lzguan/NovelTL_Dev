@@ -3,3 +3,4 @@
 __pycache__
 setenv.py
 .venv/
+private_issues.md

@@ -1,6 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+"""
+This module provides modules for database connection.
+"""
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from .config import *
 
 engine = create_engine(DB_URL)
