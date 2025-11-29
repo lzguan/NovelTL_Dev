@@ -115,3 +115,4 @@ class Label(Base):
             using='gist'
         )
     )
+

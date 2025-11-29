@@ -104,6 +104,8 @@ class RawChapterRevision(Base):
 
     label_datas_with_raw_chapter_revision : Mapped[List["LabelData"]] = relationship(back_populates='raw_chapter_revision_of_label_data')
 
+    auto_labels_with_raw_chapter_revision : Mapped[List["AutoLabel"]] = relationship(back_populates='raw_chapter_revision_of_auto_label', cascade='all, delete-orphan') # type: ignore
+
     __table_args__ = (
         Index('ix_one_primary_revision_per_chapter', 'raw_chapter_id', unique=True, postgresql_where=(raw_chapter_revision_is_primary.is_(True))),
         CheckConstraint(or_(raw_chapter_revision_is_public, not_(raw_chapter_revision_is_primary)), name="primary_must_be_public_check")

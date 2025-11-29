@@ -1,7 +1,7 @@
 """This module provides global config variables."""
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field # type: ignore
+from pydantic_settings import BaseSettings, SettingsConfigDict # type: ignore
 
 class BaseConfig(BaseSettings):
     """Base config class."""

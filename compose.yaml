@@ -24,6 +24,8 @@ services:
       TEST_URL: postgresql+psycopg2://${TEST_USER}:${TEST_PASSWORD}@test_db:${CONTAINER_PORT}/${TEST_NAME}
     depends_on:
       - db
+    volumes:
+      - .:/app
   db:
     image: postgres
     container_name: chapter_db_server

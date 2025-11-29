@@ -22,7 +22,7 @@ from psycopg2 import errorcodes, Error as PgError
 
 def query_novels_by_title(
         db : Session, 
-        current_user : User | None, 
+        current_user : User, 
         novel_title : str | None
     ) -> Sequence[models.Novel]:
     """
@@ -45,7 +45,7 @@ def query_novels_by_title(
 
 def query_novel_by_id(
         db : Session, 
-        current_user : User | None, 
+        current_user : User, 
         novel_id : int
     ) -> models.Novel:
     """
@@ -72,7 +72,7 @@ def query_novel_by_id(
 
 def query_raw_chapters_by_novel(
         db : Session, 
-        current_user : User | None, 
+        current_user : User, 
         novel_id : int, 
         start : int | None, 
         end : int | None
@@ -102,7 +102,7 @@ def query_raw_chapters_by_novel(
 
 def query_raw_chapter_by_id(
         db : Session, 
-        current_user : User | None, 
+        current_user : User, 
         raw_chapter_id : int
     ) -> models.RawChapter:
     """
@@ -127,7 +127,7 @@ def query_raw_chapter_by_id(
 
 def query_raw_chapter_revision_by_id(
         db : Session, 
-        current_user : User | None,
+        current_user : User,
         raw_chapter_revision_id : int
     ) -> models.RawChapterRevision:
     """
@@ -152,7 +152,7 @@ def query_raw_chapter_revision_by_id(
 
 def query_raw_chapter_revisions_by_raw_chapter(
         db : Session,
-        current_user : User | None,
+        current_user : User,
         raw_chapter_id : int,
         is_public : bool | None,
         is_primary : bool | None
@@ -186,7 +186,7 @@ def query_raw_chapter_revisions_by_raw_chapter(
 
 def query_raw_chapter_revisions_by_novel(
         db : Session, 
-        current_user : User | None,
+        current_user : User,
         novel_id : int, 
         start : int | None, 
         end : int | None, 

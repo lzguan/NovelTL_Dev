@@ -147,3 +147,4 @@ def apply_operation(db : Session, label_data_id : int, text : str, entities : Di
         _apply_delete(db, text, entities, op)
     else:
         raise UnknownError(f"Unknown operation type: {type(op)}")
+    
