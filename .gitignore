@@ -3,7 +3,7 @@
 __pycache__
 setenv.py
 .venv/
-.devcontainer/
+devcontainer/
 private_issues.md
 .dockerignore
 .vscode/

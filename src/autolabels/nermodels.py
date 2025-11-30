@@ -67,6 +67,13 @@ class Tokenizer(Protocol):
         
         Raises:
             ChunkTooLargeException: In the case that force_chunk == False, there is a chunk of text between two separators that has more tokens than max_chunk_size. In the case that force_chunk == True, only raise when there is a word that has more tokens than max_chunk_size.
+
+        Todo:
+            Points of failure to consider:
+                - Odd behavior around end of text (no separator at end, massive last chunk)
+                - Test invariants more thoroughly
+                - Account for odd behavior from tokenizer (e.g. normalization changing length, etc.)
+            Test extensively.
         """
         priority_buffers : Dict[Priority, Tuple[int, int, int]] = { priority : (0, 0, 0) for priority in Priority} # priority : (index in all_buffer, size in tokens of buffer, end pos of buffer)
         all_buffer : List[str] = [] # buffer of lines
@@ -75,7 +82,7 @@ class Tokenizer(Protocol):
         all_buffer_end = 0
         yielded = True
         # Invariant: all_buffer contains only lines ending with separators
-
+        # Invariant: priority_buffers indexes are increasing with respect to priority (e.g. priority_buffers[Priority.HIGH][0] <= priority_buffers[Priority.MED][0] <= priority_buffers[Priority.LOW][0])
         for line, start_pos, priority in _chunk_text(text, separators):
             add_to_buffer = True
             words = self.tokenize_words(line)
