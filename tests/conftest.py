@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator, List, Dict
+from pathlib import Path
 
 from src.models import Base
 from src.languages.models import Language
@@ -63,3 +64,35 @@ def sample_novels(sample_languages : dict[str, Language], db_session : Session) 
     db_session.refresh(novel2)
     db_session.refresh(novel3)
     return [novel0, novel1, novel2, novel3]
+
+class ChapterLoader:
+    """
+    Class for a chapter loader. Callable class.
+    """
+    def __init__(self, base_path : Path):
+        self.base_path = base_path
+    
+    def _load(self, subdir: str = "", recursive: bool = False) -> Generator[str, None, None]:
+        target_dir = self.base_path / subdir
+        
+        if not target_dir.exists():
+            raise FileNotFoundError(
+                f"Test data directory not found: {target_dir}\n"
+                f"Current base path: {self.base_path}"
+            )        
+        files = target_dir.rglob("*.txt") if recursive else target_dir.glob("*.txt")
+        sorted_files = sorted(files, key=lambda p:p.name)
+        for f in sorted_files:
+            yield f.read_text(encoding='utf-8')
+    
+    def __call__(self, subdir: str = "", recursive: bool = False) -> Generator[str, None, None]:
+        return self._load(subdir, recursive)
+
+
+@pytest.fixture
+def chapter_loader():
+    """
+    Returns a chapter loader callable that takes a pathname in the `test_data/chapters/` directory (e.g. if `chapters/chinese` contains `chapter_1.txt`, `chapter_2.txt`), then calling `chapter_loader().load("chinese")` should return a sequence of strings containing the content in `chapter_1.txt` and `chapter_2.txt`. Calling with the recursive flag will return the contents of all subdirectories as well (e.g. `chapter_loader().load("", recursive=True)` will also return chapters in `chapters/korean`, if that is a folder).
+    """
+    base_path = Path(__file__).parent / 'test_data' / 'chapters'
+    return ChapterLoader(base_path)

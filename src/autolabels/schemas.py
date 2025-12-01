@@ -5,7 +5,7 @@ from .constants import *
 
 class NERModelParamsBase(BaseModel):
     """
-    Pydantic schema for base NER model parameters.
+    Pydantic schema for base NER model parameters. No attributes provided.
     """
     pass
 

@@ -62,7 +62,6 @@ class Label(BaseModel):
         label_word must have length label_end - label_start. Otherwise a ValueError will occur.
     """
     model_config = ConfigDict(from_attributes=True)
-    label_id : int
     label_entity_group : str | None = Field(max_length=MAX_LABEL_ENTITY_GROUP_NAME_LEN)
     label_score : float = Field(ge=0.0, le=1.0)
     label_word : str = Field(max_length=MAX_LABEL_WORD_LEN)
@@ -81,6 +80,9 @@ class Label(BaseModel):
         if len(self.label_word) != self.label_end - self.label_start:
             raise ValueError("Length of label word does not match label bounds")
         return self
+
+    def __repr__(self) -> str:
+        return f"{{label_word : {self.label_word},label_entity_group : {self.label_entity_group},label_start : {self.label_start},label_end : {self.label_end},label_score : {self.label_score},label_entity_group : {self.label_entity_group}}}"
     
 class LabelData(BaseModel):
     """
