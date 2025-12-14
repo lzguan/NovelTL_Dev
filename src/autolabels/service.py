@@ -2,7 +2,7 @@
 Service functions for auto labeling.
 """
 
-from typing import Sequence, List, Dict, Tuple
+from typing import List, Dict, Tuple
 from sqlalchemy.orm import Session, defer
 from sqlalchemy import select, and_
 from sqlalchemy.exc import NoResultFound, IntegrityError
@@ -30,22 +30,25 @@ def query_auto_label_by_id(db : Session, current_user : User, auto_label_id : in
     
     Raises:
         AutoLabelNotFoundException: Auto label not found in database.
+        InsufficientPermissionsException: User does not have sufficient permissions to view this autolabel.
     """
     q = select(
-        models.AutoLabel
+        models.AutoLabel, novel_models.RawChapterRevision.raw_chapter_revision_is_public
     ).join(
         novel_models.RawChapterRevision, 
         novel_models.RawChapterRevision.raw_chapter_revision_id == models.AutoLabel.raw_chapter_revision_id
     ).where(
         models.AutoLabel.auto_label_id == auto_label_id
     )
-    if current_user.user_type != UserType.ADMIN:
-        q = q.where(novel_models.RawChapterRevision.raw_chapter_revision_is_public == True)
     try:
         result = db.execute(q)
-        auto_label = result.scalar_one()
+        a, p = result.one()
+        auto_label : models.AutoLabel = a
+        is_public : bool = p
     except NoResultFound as e:
         raise AutoLabelNotFoundException(str(e))
+    if current_user.user_type != UserType.ADMIN and not is_public:
+        raise InsufficientPermissionsException
     return auto_label
 
 def query_auto_labels(
@@ -57,9 +60,9 @@ def query_auto_labels(
         start : int | None, 
         end : int | None, 
         model_names : str | None, 
-    ) -> Sequence[schemas.AutoLabelMeta]:
+    ) -> Dict[int, schemas.AutoLabelMeta]:
     """
-    Query auto-labels with filtering and return lightweight metadata.
+    Query auto-labels with filtering and return lightweight metadata. Return format is a dictionary of the form `raw_chapter_revision_id : AutoLabelMeta`.
 
     Args:
         db: Database session.
@@ -70,9 +73,6 @@ def query_auto_labels(
         start: Optional start chapter number (inclusive).
         end: Optional end chapter number (exclusive).
         model_names: Optional names of the auto-label model to filter by.
-
-    Returns:
-        Sequence[schemas.AutoLabelMeta]: List of auto-label metadata.
     """
     q = select(
         models.AutoLabel
@@ -105,7 +105,7 @@ def query_auto_labels(
     result = db.execute(q)
     result_rows = result.scalars().all()
 
-    return [schemas.AutoLabelMeta.model_validate(row) for row in result_rows]
+    return {row.raw_chapter_revision_id : schemas.AutoLabelMeta.model_validate(row) for row in result_rows}
 
 async def insert_auto_labels(db : Session, current_user : User, dispatcher : AutoLabelDispatcher, request : schemas.CreateAutoLabels) -> schemas.CreateAutoLabelsStatus:
     """
@@ -127,7 +127,7 @@ async def insert_auto_labels(db : Session, current_user : User, dispatcher : Aut
     """
     # select pairs of the form
     # (raw_chapter_revision_id, AutoLabel where revision id/model name/params match OR None if such an AutoLabel does not exist)
-    # should only return one such pair per raw_chapter_revision_id by UniqueConstraints on autolabels table
+    # should only return one such pair per raw_chapter_revision_id due to UniqueConstraints on autolabels table
     q = select(
         novel_models.RawChapterRevision, 
         models.AutoLabel

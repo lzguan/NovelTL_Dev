@@ -17,7 +17,7 @@ from typing import List, Dict, Sequence
 from sqlalchemy.exc import IntegrityError, NoResultFound, DataError, MultipleResultsFound
 from sqlalchemy import select
 from collections import defaultdict
-from ..main import logger
+from ..config import uvicorn_logger
 from psycopg2 import errorcodes, Error as PgError
 
 def query_novels_by_title(
@@ -233,8 +233,8 @@ def query_raw_chapter_revisions_by_novel(
         query_novel_by_id(db, current_user, novel_id)
     ret_dict : Dict[int, List[schemas.RawChapterRevisionMeta]] = defaultdict(list)
     for chapter_num, raw_chapter_revision in result_rows:
-        logger.info(chapter_num)
-        logger.info(raw_chapter_revision)
+        uvicorn_logger.info(chapter_num)
+        uvicorn_logger.info(raw_chapter_revision)
         ret_dict[chapter_num].append(schemas.RawChapterRevisionMeta.model_validate(raw_chapter_revision.__dict__))
     return ret_dict
 

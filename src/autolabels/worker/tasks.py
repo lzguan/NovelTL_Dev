@@ -40,9 +40,9 @@ async def autolabel_infer(ctx, job_id : str, auto_label_id: int, model_name: str
                 db.rollback()
                 return
             db.commit()
-        except Exception:
+        except Exception as e:
             db.rollback()
-            return
+            raise e
         q = select(
             RawChapterRevision.raw_chapter_revision_text
         ).join(
@@ -64,7 +64,7 @@ async def autolabel_infer(ctx, job_id : str, auto_label_id: int, model_name: str
             )
             db.execute(stmt)
             db.commit()
-            return
+            raise e
         except Exception as e:
             stmt = update(
                 AutoLabel
@@ -78,7 +78,7 @@ async def autolabel_infer(ctx, job_id : str, auto_label_id: int, model_name: str
             )
             db.execute(stmt)
             db.commit()
-            return
+            raise e
     try:
         loop = asyncio.get_running_loop()
         result, err = await loop.run_in_executor(None, ner_model.predict, text, params)
@@ -96,7 +96,7 @@ async def autolabel_infer(ctx, job_id : str, auto_label_id: int, model_name: str
             )
             db.execute(stmt)
             db.commit()
-            return
+            raise e
     with SessionLocal() as db:
         stmt = update(
             AutoLabel
@@ -105,13 +105,25 @@ async def autolabel_infer(ctx, job_id : str, auto_label_id: int, model_name: str
         ).where(
             AutoLabel.auto_label_last_job_id == job_id
         ).values(
-            auto_label_data=result,
+            auto_label_data=[l.model_dump() for l in result],
             auto_label_status=AutoLabelProgress.DONE,
             auto_label_message=str(err)
         )
         try:
             res = db.execute(stmt)
             db.commit()
-        except Exception:
+        except Exception as e:
             db.rollback()
-            return
+            stmt = update(
+                AutoLabel
+            ).where(
+                AutoLabel.auto_label_id == auto_label_id
+            ).where(
+                AutoLabel.auto_label_last_job_id == job_id
+            ).values(
+                auto_label_status=AutoLabelProgress.FAILED,
+                auto_label_message=str(e)
+            )
+            db.execute(stmt)
+            db.commit()
+            raise e

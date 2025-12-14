@@ -3,7 +3,7 @@ from typing import Dict, Protocol, Generator, Tuple, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from arq import ArqRedis
-import asyncio
+from arq.worker import Worker
 
 from src.autolabels.service import insert_auto_labels
 from src.languages.models import Language
@@ -49,7 +49,8 @@ def chinese_xianxia_small_test_chapters(chinese_xianxia_small_test_novel : Novel
     return out
 
 @pytest.mark.asyncio
-async def test_insert_auto_labels_basic(chinese_xianxia_small_test_chapters : List[Tuple[RawChapter, RawChapterRevision]], redis : ArqRedis, db_session : Session, sample_users : List[User]):
+@pytest.mark.slow
+async def test_insert_auto_labels_basic(chinese_xianxia_small_test_chapters : List[Tuple[RawChapter, RawChapterRevision]], redis : ArqRedis, db_session : Session, sample_users : List[User], worker_mock : Worker):
     ret = await insert_auto_labels(
         db_session, 
         sample_users[0], 
@@ -65,7 +66,7 @@ async def test_insert_auto_labels_basic(chinese_xianxia_small_test_chapters : Li
     assert len(ret.exists) == 0
     print(ret.exists)
 
-    await asyncio.sleep(20)
+    await worker_mock.main()
     q = select(AutoLabel).where(AutoLabel.auto_label_id.in_([ret.inserts[a][0].auto_label_id for a in ret.inserts]))
     rows = db_session.execute(q).scalars().all()
     for row in rows:

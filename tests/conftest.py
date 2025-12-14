@@ -2,10 +2,11 @@ import pytest
 import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
-from typing import Generator, List, Dict
+from typing import Generator, List, Dict, cast
 from pathlib import Path
 from arq import create_pool, ArqRedis
 from arq.connections import RedisSettings
+from arq.worker import Worker
 from pwdlib import PasswordHash
 
 from src.models import Base
@@ -13,6 +14,8 @@ from src.languages.models import Language
 from src.novels.models import Novel
 from src.auth.models import User
 from src.auth.constants import UserType
+import src.autolabels.worker.tasks as worker_cfg
+from src.autolabels.worker.worker import WorkerSettings
 
 
 TEST_URL = os.getenv("TEST_URL")
@@ -114,5 +117,21 @@ def chapter_loader() -> ChapterLoader:
     return ChapterLoader(base_path)
 
 @pytest.fixture
-async def redis() -> ArqRedis:
-    return await create_pool(RedisSettings(host='redis', port=6379))
+async def redis():
+    pool = await create_pool(RedisSettings(host='redis', port=6379, database=1))
+    yield pool
+    await pool.aclose()
+
+
+@pytest.fixture
+async def worker_mock(monkeypatch : pytest.MonkeyPatch, redis : ArqRedis) -> Worker:
+    # infer_autolabels uses worker_cfg.SessionLocal to configure its database connection
+    monkeypatch.setattr(worker_cfg, 'SessionLocal', sessionmaker(create_engine(cast(str, TEST_URL))))
+
+    return Worker(
+        functions=WorkerSettings.functions,
+        redis_pool=redis,
+        on_startup=WorkerSettings.on_startup,
+        burst=True,
+        poll_delay=0
+    )
