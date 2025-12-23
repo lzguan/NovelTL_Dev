@@ -1,7 +1,5 @@
 # Design document
 
-## v1
-
 The goal with this project is to create a platform for a trusted group of users to assist in translations. Specifically, we aim to create tooling to assist in the following tasks:
 - Store and organize documents to be translated.
 - Provide a framework to be able to use Named Entity Recognition (NER) models to label data from documents automatically.
@@ -27,7 +25,20 @@ We will divide this applications into distinct services.
 - This service will store metadata about novels, along with the actual text for chapters. 
 - The service will store a database of _novels_, which in turn will be associated with a list of _raw chapters_.
 - In order to ensure that editing chapters does not affect labeling, we associate each chapter with a list of _raw chapter revisions_. Revisions can be marked as final to mark them as immutable. 
-- Both users and guests are able to access all novels and chapters. Chapter revisions can be marked as either public or private. Chapter revisions marked as private can only be accessed to admins, while chapter revisions marked as public can be accessed by all users.
+- (Removed 12/22/2025) ~~Both users and guests are able to access all novels and chapters. Chapter revisions can be marked as either public or private. Chapter revisions marked as private can only be accessed to admins, while chapter revisions marked as public can be accessed by all users.~~
+- (Update 12/22/2025) Permissions update
+    - We assign each novel a _visibility level_, which will determine which users can see it and through what requests. Specifically, there are 3 types of requests we need to distinguish between: 
+        1. **Search/filter queries**, where a user searches for a novel by name/some properties
+        2. **ID queries**, where a user queries a novel based on its unique id
+        3. **On create**, where a user wishes to create a novel but may potentially create a novel with a duplicate name/source content as another novel. This point is especially important for the webnovel space as source material will almost not be from this application.
+    - We will fine grain permissions based on these three request types. Our four permission types will be as follows:
+        1. **Private** - only the owner of the novel and corresponding contributors can see this novel through any request.
+        2. **Restricted** - when a request to create a novel has some property that matches an 'alias' (a term that will be defined later, TBD) for this novel, the user creating the novel will have an option to send an anonymous request to all owners working on a matching novel. Otherwise this category has the same visibility as private.
+        3. **Unlisted** - any user can query the id of this novel and be able to view it. However, the novel will not show up in search queries.
+        4. **Public** - this novel is accessible to requests.
+    - Each novel will have a list of contributors, along with an owner. These will be stored in an associative array with entries of the form (user, novel, contributor_type).
+    - Each chapter revision will be either public or not public. Public chapter revisions will be visible to all user requests so long as the user has the permissions to view the novel. Otherwise, only contributors to the novel will have permissions to view the chapter.
+
 #### Labels
 - This service will store information about the labeling for novels. 
 - Labels are associated with _label groups_, which can be further subdivided into _label datas_, each associated with a single chapter revision (not just chapter). Specific _labels_ are then associated to Label Datas. 
