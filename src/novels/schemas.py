@@ -40,7 +40,6 @@ class CreateNovel(BaseModel):
         novel_author: Author of novel we are creating.
         novel_visibility: Visibility level of novel we are creating.
         novel_type: Type of novel we are creating.
-        novel_parent_id: Integer id of parent novel, if this novel is a translation of another.
         language_id: id of language of novel we are creating.
     """
     novel_title : str
@@ -48,7 +47,6 @@ class CreateNovel(BaseModel):
     novel_author : str | None = None
     novel_visibility : Visibility
     novel_type : NovelType
-    novel_parent_id : int | None = None
 
     language_id : int
 

@@ -23,6 +23,7 @@ class EnumAsInteger(TypeDecorator):
     https://stackoverflow.com/questions/32287299/sqlalchemy-database-int-to-python-enum
     """
     impl = Integer
+    cache_ok = True
 
     def __init__(self, enum_type):
         super(EnumAsInteger, self).__init__()
