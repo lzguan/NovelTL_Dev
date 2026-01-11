@@ -26,12 +26,17 @@ export const get_chapters_by_novel = async (novel_id : number, start? : number, 
     return result.data
 }
 
-export const get_chapter_revision_by_id = async (chapter_revision_id : number) : Promise<NovelType.RawChapterRevision> => {
-    const result = await client.get(`/chapter-revisions/${chapter_revision_id}`)
+export const get_chapter_by_id = async (chapter_id : number) : Promise<NovelType.RawChapter> => {
+    const result = await client.get(`/chapters/${chapter_id}`)
     return result.data
 }
 
-export const get_chapter_revisions = async (
+export const get_chapter_revision_by_id = async (chapter_revision_id : number) : Promise<NovelType.RawChapterRevision> => {
+    const result = await client.get(`/revisions/${chapter_revision_id}`)
+    return result.data
+}
+
+export const get_chapter_revisions_by_novel = async (
     novel_id : number,
     start? : number,
     end? : number,
@@ -39,14 +44,27 @@ export const get_chapter_revisions = async (
     is_primary? : boolean,
     is_final? : boolean
 ) : Promise<NovelType.RawChapterRevisionMeta[]> => {
-    const result = await client.get(`/chapter-revisions`, {
+    const result = await client.get(`novels/${novel_id}/revisions`, {
         params : {
-            novel_id,
             start,
             end,
             is_public,
             is_primary,
             is_final
+        }
+    })
+    return result.data
+}
+
+export const get_chapter_revisions_by_chapter = async (
+    chapter_id : number,
+    is_public? : boolean,
+    is_primary? : boolean
+) : Promise<NovelType.RawChapterRevisionMeta[]> => {
+    const result = await client.get(`chapters/${chapter_id}/revisions`, {
+        params : {
+            is_public,
+            is_primary
         }
     })
     return result.data

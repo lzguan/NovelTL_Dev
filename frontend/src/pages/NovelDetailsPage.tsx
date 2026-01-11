@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { get_novel_by_id, get_chapters_by_novel, get_chapter_revisions } from "../api/novels";
+import { get_novel_by_id, get_chapters_by_novel, get_chapter_revisions_by_novel } from "../api/novels";
 import { type Novel, type RawChapter, type RawChapterRevisionMeta } from '../types/novel';
+import { AppRoutes, routeTo } from "../routes";
 
 export const NovelDetailsPage = () => {
     const { novel_id } = useParams<{ novel_id: string }>();
@@ -12,7 +13,7 @@ export const NovelDetailsPage = () => {
     const [chapterRevisions, setChapterRevisions] = useState<Map<number, RawChapterRevisionMeta[]>>(new Map());
 
     useEffect(() => {
-        if (!novel_id) return;
+        if (typeof novel_id === "undefined") return;
         const novelId = Number(novel_id);
 
         // 1. Fetch the Novel
@@ -23,7 +24,7 @@ export const NovelDetailsPage = () => {
             // We can run these two in parallel
             Promise.all([
                 get_chapters_by_novel(novelId),
-                get_chapter_revisions(novelId)
+                get_chapter_revisions_by_novel(novelId)
             ]).then(([fetchedChapters, fetchedRevisions]) => {
                 
                 setChapters(fetchedChapters);
@@ -47,7 +48,7 @@ export const NovelDetailsPage = () => {
             
             {/* Header Section */}
             <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '20px', marginBottom: '20px' }}>
-                <Link to="/view/novels" style={{ textDecoration: 'none', color: '#666' }}>&larr; Back to Library</Link>
+                <Link to={AppRoutes.VIEW.NOVELS} style={{ textDecoration: 'none', color: '#666' }}>&larr; Back to Library</Link>
                 <h1>{novel.novel_title}</h1>
                 <p style={{ color: '#555' }}>Author: {novel.novel_author || 'Unknown'}</p>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -98,7 +99,7 @@ export const NovelDetailsPage = () => {
                                     <ul style={{ margin: 0, paddingLeft: '20px' }}>
                                         {revs.map(rev => (
                                             <li key={rev.raw_chapter_revision_id} style={{ marginBottom: '4px' }}>
-                                                <Link to={`/revisions/${rev.raw_chapter_revision_id}`} style={{ color: rev.raw_chapter_revision_is_primary ? 'green' : 'blue' }}>
+                                                <Link to={routeTo.view.chapter(rev.raw_chapter_id, rev.raw_chapter_revision_id)} style={{ color: rev.raw_chapter_revision_is_primary ? 'green' : 'blue' }}>
                                                     {rev.raw_chapter_revision_title || 'Untitled Revision'}
                                                 </Link>
                                                 {rev.raw_chapter_revision_is_primary && 

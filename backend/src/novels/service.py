@@ -184,7 +184,7 @@ def query_raw_chapter_revisions_by_raw_chapter(
         raw_chapter_id : int,
         is_public : bool | None,
         is_primary : bool | None
-    ) -> Sequence[models.RawChapterRevision]:
+    ) -> List[schemas.RawChapterRevisionMeta]:
     """
     Query all chapter revisions from a raw_chapter_id satisfying certain requirements.
 
@@ -200,13 +200,23 @@ def query_raw_chapter_revisions_by_raw_chapter(
     Notes:
         The caller should be responsible for converting to the best pydantic model for the use case.
     """
-    q = select(models.RawChapterRevision).where(models.RawChapterRevision.raw_chapter_id == raw_chapter_id).join(
+    q = select(
+        models.RawChapterRevision
+    ).options(
+        defer(models.RawChapterRevision.raw_chapter_revision_text)
+    ).where(
+        models.RawChapterRevision.raw_chapter_id == raw_chapter_id
+    ).join(
         models.RawChapter,
         models.RawChapter.raw_chapter_id == models.RawChapterRevision.raw_chapter_id
     ).join(
         models.Novel,
         models.Novel.novel_id == models.RawChapter.novel_id
-    ).order_by(models.RawChapter.raw_chapter_num.asc())
+    ).order_by(
+        models.RawChapterRevision.raw_chapter_revision_is_primary.desc(),
+        models.RawChapterRevision.raw_chapter_revision_is_public.desc(),
+        models.RawChapterRevision.updated_at.desc()
+    )
     if is_public is not None:
         q = q.where(models.RawChapterRevision.raw_chapter_revision_is_public == is_public)
     if is_primary is not None:
@@ -216,7 +226,7 @@ def query_raw_chapter_revisions_by_raw_chapter(
     result_rows = result.scalars().all()
     if len(result_rows) == 0:
         query_raw_chapter_by_id(db, current_user, raw_chapter_id)
-    return result_rows
+    return [schemas.RawChapterRevisionMeta.model_validate(row) for row in result_rows]
 
 def query_raw_chapter_revisions_by_novel(
         db : Session, 
@@ -256,6 +266,11 @@ def query_raw_chapter_revisions_by_novel(
         models.Novel.novel_id == models.RawChapter.novel_id
     ).where(
         models.Novel.novel_id == novel_id
+    ).order_by(
+        models.RawChapter.raw_chapter_num.asc(),
+        models.RawChapterRevision.raw_chapter_revision_is_primary.desc(),
+        models.RawChapterRevision.raw_chapter_revision_is_public.desc(),
+        models.RawChapterRevision.updated_at.desc()
     )
     if start is not None:
         q = q.where(models.RawChapter.raw_chapter_num >= start)
@@ -267,7 +282,7 @@ def query_raw_chapter_revisions_by_novel(
         q = q.where(models.RawChapterRevision.raw_chapter_revision_is_primary == is_primary)
     if is_final is not None:
         q = q.where(models.RawChapterRevision.raw_chapter_revision_is_final == is_final)
-    q = novel_mod_access_select(q, current_user)
+    q = raw_chapter_revision_mod_access_select(q, current_user)
     result = db.execute(q)
     result_rows  = result.scalars().all()
     if len(result_rows) == 0:

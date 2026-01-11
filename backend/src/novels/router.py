@@ -88,7 +88,33 @@ async def read_chapters_by_novel(
     return chapters
 
 @router.get(
-    '/chapter-revisions/{chapter_revision_id}',
+    '/chapters/{chapter_id}',
+    response_model=schemas.RawChapter
+)
+async def read_chapter_by_id(
+    chapter_id : int,
+    db : Annotated[Session, Depends(get_db)],
+    current_user : Annotated[User | None, Depends(get_optional_user)]
+):
+    """
+    Endpoint for retrieving raw chapter by id.
+
+    Args:
+        chapter_id: id of chapter to query.
+        db: Database dependency.
+        current_user: Optional current user dependency.
+    """
+    try:
+        chapter = query_raw_chapter_by_id(db, current_user, chapter_id)
+    except RawChapterNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter with id {chapter_id} not found."
+        )
+    return chapter
+
+@router.get(
+    '/revisions/{chapter_revision_id}',
     response_model=schemas.RawChapterRevision
 )
 async def read_chapter_revision(chapter_revision_id : int, db : Annotated[Session, Depends(get_db)], current_user : Annotated[User | None, Depends(get_optional_user)]):
@@ -97,7 +123,7 @@ async def read_chapter_revision(chapter_revision_id : int, db : Annotated[Sessio
     except RawChapterRevisionNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter revision with {chapter_revision_id} not found."
+            detail=f"Chapter revision with id {chapter_revision_id} not found."
         )
     except InsufficientPermissionsException:
         raise HTTPException(
@@ -107,7 +133,7 @@ async def read_chapter_revision(chapter_revision_id : int, db : Annotated[Sessio
     return revision
 
 @router.get(
-    '/chapter-revisions', 
+    '/novels/{novel_id}/revisions', 
     response_model=List[schemas.RawChapterRevisionMeta]
 )
 async def read_chapter_revisions_by_novel(
@@ -133,13 +159,43 @@ async def read_chapter_revisions_by_novel(
         is_primary: Filter only primary novels.
     """
     try:
-        chapters = query_raw_chapter_revisions_by_novel(db, current_user, novel_id, start, end, is_public, is_primary, is_final)
+        revisions = query_raw_chapter_revisions_by_novel(db, current_user, novel_id, start, end, is_public, is_primary, is_final)
     except NovelNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Novel with id {novel_id} not found."
         )
-    return chapters
+    return revisions
+
+@router.get(
+    '/chapters/{chapter_id}/revisions', 
+    response_model=List[schemas.RawChapterRevisionMeta]
+)
+async def read_chapter_revision_by_chapter(
+    chapter_id : int,
+    db : Annotated[Session, Depends(get_db)],
+    current_user : Annotated[User | None, Depends(get_optional_user)],
+    is_public : bool | None = None,
+    is_primary : bool | None = None
+):
+    """
+    Endpoint for retrieving chapter revisions in bulk from a raw chapter.
+
+    Args:
+        raw_chapter_id: id of novel to retrieve chapters from.
+        db: Database dependency.
+        current_user: Optional current user dependency.
+        is_public: Filter only public novels.
+        is_primary: Filter only primary novels.
+    """
+    try:
+        revisions = query_raw_chapter_revisions_by_raw_chapter(db, current_user, chapter_id, is_public, is_primary)
+    except RawChapterNotFoundException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter with id {chapter_id} not found."
+        )
+    return revisions
 
 @router.post(
     '/novels', 

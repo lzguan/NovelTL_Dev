@@ -1,3 +1,4 @@
+import { routeTo } from '../../routes';
 import { type Novel, Visibility } from '../../types/novel';
 import { Link } from 'react-router-dom';
 
@@ -55,7 +56,7 @@ export const NovelCard = ({ novel }: NovelCardProps) => {
             </p>
 
             {/* Action Button (Placeholder) */}
-            <Link to={`/view/novels/${novel.novel_id}`}>
+            <Link to={routeTo.view.novel(novel.novel_id)}>
                 <button style={{
                     marginTop: '10px',
                     padding: '8px',

@@ -3,7 +3,7 @@ import { getToken } from './token'
 
 const client = axios.create({
     baseURL: '/api',
-    timeout: 1000,
+    timeout: 10000,
     headers: {}
 })
 
