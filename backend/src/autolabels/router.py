@@ -4,7 +4,7 @@ from ..auth.dependencies import get_current_user
 from .service import *
 from . import schemas
 from typing import Annotated, Dict
-from ..redis import get_redis
+from ..redis import get_redis_for_app
 from .utils import *
 
 router = APIRouter()
@@ -61,14 +61,9 @@ async def read_autolabels(
 async def create_autolabels(
         request : schemas.CreateAutoLabels, 
         db : Annotated[Session, Depends(get_db)], 
+        redis : Annotated[ArqRedis, Depends(get_redis_for_app)],
         current_user : Annotated[User, Depends(get_current_user)]
     ):
-    redis = get_redis()
-    if redis is None:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Request queueing down."
-        )
     dispatcher = ArqDispatcher(redis)
     try:
         insert_status = await insert_auto_labels(db, current_user, dispatcher, request)

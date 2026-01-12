@@ -41,6 +41,11 @@ class DuplicateException(Exception):
 
 class UnknownError(Exception):
     """
-    Exception for undetermined errors
+    Exception for undetermined errors.
     """
     pass
+
+class RedisNotInitializedError(Exception):
+    """
+    Self-explanatory.
+    """

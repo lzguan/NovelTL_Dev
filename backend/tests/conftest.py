@@ -7,10 +7,14 @@ from pathlib import Path
 from arq import create_pool, ArqRedis
 from arq.connections import RedisSettings
 from arq.worker import Worker
+from fastapi.testclient import TestClient
 
 from src.models import Base
-import src.autolabels.worker.tasks as worker_cfg
 from src.autolabels.worker.worker import WorkerSettings
+from src.main import app
+from src.database import get_db
+from src.redis import get_redis_for_app
+
 
 pytest_plugins = [
     "tests.fixtures.populators.sample",
@@ -59,6 +63,7 @@ async def redis():
 
 @pytest.fixture
 async def worker_mock(test_url : str, monkeypatch : pytest.MonkeyPatch, redis : ArqRedis) -> Worker:
+    import src.autolabels.worker.tasks as worker_cfg
     # infer_autolabels uses worker_cfg.SessionLocal to configure its database connection
     monkeypatch.setattr(worker_cfg, 'SessionLocal', sessionmaker(create_engine(test_url)))
 
@@ -69,6 +74,18 @@ async def worker_mock(test_url : str, monkeypatch : pytest.MonkeyPatch, redis : 
         burst=True,
         poll_delay=0
     )
+
+@pytest.fixture
+def client(test_db : Session, redis : ArqRedis):
+    def override_get_db():
+        yield test_db
+    def override_get_redis_for_app():
+        return redis
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis_for_app] = override_get_redis_for_app
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
 
 class DataLoader:
     """

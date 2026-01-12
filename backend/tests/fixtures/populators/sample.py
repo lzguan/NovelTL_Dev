@@ -6,8 +6,10 @@ from typing import Dict, List, Protocol
 from src.languages.models import Language
 from src.auth.constants import UserType
 from src.auth.models import User
-from src.novels.models import Novel
-from src.novels.constants import NovelType, Visibility
+from src.novels.models import Novel, Contributor, RawChapter, RawChapterRevision
+from src.novels.constants import NovelType, Visibility, Role
+from src.labels.models import LabelGroup, LabelData, Label, LabelContributor
+from src.labels.constants import LabelRole
 
 class Hash(Protocol):
     def hash(self, password : str | bytes, *args, **kwargs) -> str:
@@ -54,3 +56,108 @@ def sample_novels(sample_languages : Dict[str, Language], test_db : Session) -> 
     test_db.refresh(novel2)
     test_db.refresh(novel3)
     return [novel0, novel1, novel2, novel3]
+
+@pytest.fixture
+def sample_contributors(test_db: Session, sample_novels: List[Novel], sample_users: List[User]) -> List[Contributor]:
+    # Assign the regular user as the OWNER of Novel 1 and EDITOR of Novel 2
+    c1 = Contributor(novel_id=sample_novels[1].novel_id, user_id=sample_users[1].user_id, contributor_role=Role.OWNER)
+    c2 = Contributor(novel_id=sample_novels[2].novel_id, user_id=sample_users[1].user_id, contributor_role=Role.EDITOR)
+    
+    test_db.add_all([c1, c2])
+    test_db.commit()
+    return [c1, c2]
+
+@pytest.fixture
+def sample_chapters(test_db: Session, sample_novels: List[Novel]) -> List[RawChapter]:
+    # Add chapters to Novel 1
+    ch1 = RawChapter(novel_id=sample_novels[0].novel_id, raw_chapter_num=1)
+    ch2 = RawChapter(novel_id=sample_novels[0].novel_id, raw_chapter_num=2)
+    
+    test_db.add_all([ch1, ch2])
+    test_db.commit()
+    test_db.refresh(ch1)
+    test_db.refresh(ch2)
+    return [ch1, ch2]
+
+@pytest.fixture
+def sample_chapter_revisions(test_db: Session, sample_chapters: List[RawChapter]) -> List[RawChapterRevision]:
+    # Create revisions for Chapter 1
+    # We use specific text here so we can create a valid Label for it later.
+    rev1 = RawChapterRevision(
+        raw_chapter_id=sample_chapters[0].raw_chapter_id,
+        raw_chapter_revision_title="Chapter 1: The Beginning",
+        raw_chapter_revision_text="Alice went to the market.",
+        raw_chapter_revision_is_primary=True,
+        raw_chapter_revision_is_public=True,
+        raw_chapter_revision_is_final=False
+    )
+    # Create a non-primary, non-public draft
+    rev2 = RawChapterRevision(
+        raw_chapter_id=sample_chapters[0].raw_chapter_id,
+        raw_chapter_revision_title="Chapter 1: Draft",
+        raw_chapter_revision_text="This is a draft text.",
+        raw_chapter_revision_is_primary=False,
+        raw_chapter_revision_is_public=False,
+        raw_chapter_revision_is_final=False
+    )
+    
+    test_db.add_all([rev1, rev2])
+    test_db.commit()
+    test_db.refresh(rev1)
+    test_db.refresh(rev2)
+    return [rev1, rev2]
+
+@pytest.fixture
+def sample_label_groups(test_db: Session, sample_novels: List[Novel], sample_users: List[User]) -> List[LabelGroup]:
+    # Create a label group for Novel 1 owned by the Admin
+    lg1 = LabelGroup(
+        label_group_name="Official Labels",
+        novel_id=sample_novels[0].novel_id,
+    )
+    test_db.add(lg1)
+    test_db.commit()
+    test_db.refresh(lg1)
+    return [lg1]
+
+@pytest.fixture
+def sample_label_contributors(test_db: Session, sample_label_groups: List[LabelGroup], sample_users: List[User]) -> List[LabelContributor]:
+    # Assign Admin as OWNER of the label group
+    lc1 = LabelContributor(
+        label_group_id=sample_label_groups[0].label_group_id,
+        user_id=sample_users[0].user_id,
+        label_contributor_role=LabelRole.OWNER
+    )
+    test_db.add(lc1)
+    test_db.commit()
+    return [lc1]
+
+@pytest.fixture
+def sample_label_datas(test_db: Session, sample_label_groups: List[LabelGroup], sample_chapter_revisions: List[RawChapterRevision]) -> List[LabelData]:
+    # Link the Label Data to the Primary Revision of Chapter 1
+    ld1 = LabelData(
+        label_group_id=sample_label_groups[0].label_group_id,
+        raw_chapter_revision_id=sample_chapter_revisions[0].raw_chapter_revision_id
+    )
+    test_db.add(ld1)
+    test_db.commit()
+    test_db.refresh(ld1)
+    return [ld1]
+
+@pytest.fixture
+def sample_labels(test_db: Session, sample_label_datas: List[LabelData]) -> List[Label]:
+    # Add a label to the Label Data
+    # Text: "Alice went to the market."
+    #        012345
+    # Word: "Alice" (indices 0-5)
+    l1 = Label(
+        label_data_id=sample_label_datas[0].label_data_id,
+        label_entity_group="PER",
+        label_word="Alice",
+        label_start=0,
+        label_end=5,
+        label_score=1.0,
+        label_dirty=False
+    )
+    test_db.add(l1)
+    test_db.commit()
+    return [l1]

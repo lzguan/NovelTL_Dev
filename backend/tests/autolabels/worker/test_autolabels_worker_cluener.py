@@ -1,16 +1,20 @@
 import pytest
 import logging
 from typing import Generator, Protocol
-
-from src.autolabels.worker.inference import Cluener, CluenerModelParams
-
+from src.autolabels.schemas import CluenerModelParams
+from src.autolabels.worker.interfaces import NERModel
 
 pytestmark = pytest.mark.implementation
 
 logger = logging.getLogger(__name__)
 
+
+class ModelWrapper(Protocol):
+    model : NERModel[CluenerModelParams]
+
 @pytest.fixture(scope="session")
-def cluener():
+def cluener() -> ModelWrapper:
+    from src.autolabels.worker.inference import Cluener
     return Cluener() # <--- Runs ONCE. Caches the result.
 
 class Loader(Protocol):
@@ -18,7 +22,8 @@ class Loader(Protocol):
         ...
 
 @pytest.mark.slow
-def test_pure_chinese_fantasy_basic(cluener : Cluener, chapter_loader : Loader):
+def test_pure_chinese_fantasy_basic(cluener : ModelWrapper, chapter_loader : Loader):
+    
     chapters = chapter_loader('chinese/pure_chinese_fantasy', recursive=True)
     for chapter in chapters:
         res, err = cluener.model.predict(chapter, CluenerModelParams())
@@ -29,7 +34,7 @@ def test_pure_chinese_fantasy_basic(cluener : Cluener, chapter_loader : Loader):
             logger.info("error: %s does not match %s (normalized value %s)", label['word'], chapter[label['start']:label['end']], cluener.model.normalize(chapter[label['start']:label['end']]))
 
 @pytest.mark.slow
-def test_mixed_chinese_scifi_basic(cluener : Cluener, chapter_loader : Loader):
+def test_mixed_chinese_scifi_basic(cluener : ModelWrapper, chapter_loader : Loader):
     chapters = chapter_loader('chinese/mixed_chinese_scifi', recursive=True)
     for chapter in chapters:
         res, err = cluener.model.predict(chapter, CluenerModelParams())

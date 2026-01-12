@@ -24,7 +24,7 @@ class CluenerRawNERResult(TypedDict):
     end : int
     entity_group : str
 
-class CluenerModel(NERModel):
+class CluenerModel(NERModel[CluenerModelParams]):
     def __init__(self, pipeline):
         self.pipeline = pipeline
         self.model_name = 'uer/roberta-base-finetuned-cluener2020-chinese' # maybe change this later
@@ -73,5 +73,5 @@ class Cluener:
             model='uer/roberta-base-finetuned-cluener2020-chinese',
             aggregation_strategy="simple"
         )
-        self.model = CluenerModel(self.pipeline)
+        self.model : NERModel[CluenerModelParams] = CluenerModel(self.pipeline)
 
