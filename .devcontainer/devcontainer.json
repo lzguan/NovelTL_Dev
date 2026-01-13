@@ -45,8 +45,21 @@
 				"ms-python.debugpy",
 				"tamasfe.even-better-toml",
 				"ms-azuretools.vscode-docker",
-				"christian-kohler.npm-intellisense"
-			]
+				"christian-kohler.npm-intellisense",
+				"charliermarsh.ruff",
+				"astral-sh.ty"
+			],
+			"settings": {
+				"python.languageServer": "None",
+				"[python]": {
+					"diffEditor.ignoreTrimWhitespace": false,
+					"editor.defaultColorDecorators": "never",
+					"editor.wordBasedSuggestions": "off",
+					"editor.formatOnSave": true
+				},
+				"ty.interpreter": ["/app/bin/python"],
+				"python.defaultInterpreterPath": "/app/bin/python"
+			}
 		}
 	 }
 

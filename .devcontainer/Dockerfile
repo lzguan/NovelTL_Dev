@@ -7,4 +7,5 @@ RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
 ENV PATH="/root/.local/bin:$PATH"
 ENV UV_PROJECT_ENVIRONMENT="/app"
 COPY backend/pyproject.toml backend/uv.lock* ./
-RUN uv sync --frozen --all-groups
+RUN --mount=type=cache,target=/root/.cache/uv\
+    uv sync --frozen --all-groups --no-install-project
