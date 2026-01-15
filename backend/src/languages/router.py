@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.get('/languages/{language_code}', response_model=schemas.Language)
 def read_language_by_code(
-        db : Annotated[Session, Depends(get_db)],
-        language_code : str
+        language_code : str,
+        db : Annotated[Session, Depends(get_db)]
     ):
     """
     Retrieves a language by its code.
