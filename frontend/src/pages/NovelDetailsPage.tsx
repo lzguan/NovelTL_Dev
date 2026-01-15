@@ -83,10 +83,6 @@ export const NovelDetailsPage = () => {
                                     {/* Show title if available, otherwise fallback */}
                                     {primaryRev && `: ${primaryRev.raw_chapter_revision_title}`}
                                 </h3>
-                                
-                                <button style={{ padding: '6px 12px', cursor: 'pointer' }}>
-                                    + Add Revision
-                                </button>
                             </div>
 
                             {/* Revisions List */}
@@ -105,7 +101,7 @@ export const NovelDetailsPage = () => {
                                                 {rev.raw_chapter_revision_is_primary && 
                                                     <span style={{ fontSize: '0.7rem', marginLeft: '8px', background: '#d4edda', padding: '2px 4px', borderRadius: '4px' }}>PRIMARY</span>
                                                 }
-                                                {rev.raw_chapter_revision_is_public && 
+                                                {(rev.raw_chapter_revision_is_public && !rev.raw_chapter_revision_is_primary) && 
                                                     <span style={{ fontSize: '0.7rem', marginLeft: '4px', background: '#cce5ff', padding: '2px 4px', borderRadius: '4px' }}>PUBLIC</span>
                                                 }
                                             </li>

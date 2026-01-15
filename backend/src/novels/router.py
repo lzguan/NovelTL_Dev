@@ -31,6 +31,7 @@ from .service import (
     modify_raw_chapter_revision,
     publish_raw_chapter_revision,
     query_novel_by_id,
+    query_novels_by_current_user,
     query_novels_by_title,
     query_raw_chapter_by_id,
     query_raw_chapter_revision_by_id,
@@ -86,6 +87,26 @@ async def read_novels(
         title_contains: string to filter novel titles by.
     """
     novels = query_novels_by_title(db, current_user, title_contains)
+    return novels
+
+@router.get(
+    '/novels/mine',
+    response_model=list[schemas.Novel]
+)
+async def read_novels_mine(
+        db: Annotated[Session, Depends(get_db)],
+        current_user : Annotated[User , Depends(get_current_user)],
+        editable : bool = False
+    ):
+    """
+    Endpoint for retrieving novels that the user has special access to.
+
+    Args:
+        db: Database dependency.
+        current_user: Current user dependency.
+        editable: If True, return only novels which the user can edit (i.e. has owner or editor permissions).
+    """
+    novels = query_novels_by_current_user(db, current_user, editable)
     return novels
 
 @router.get(

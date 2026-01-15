@@ -50,7 +50,6 @@ export const ChapterReaderPage = () => {
                 </Link>
                 <h3 style={{ margin: 0 }}>Chapter {chapter.raw_chapter_num}</h3>
                 <div style={{ flex: 1 }}></div>
-                <button>+ Add Revision</button>
             </div>
 
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

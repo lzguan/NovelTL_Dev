@@ -10,7 +10,7 @@ from typing import cast
 
 from psycopg2 import Error as PgError
 from psycopg2 import errorcodes
-from sqlalchemy import CursorResult, delete, insert, literal, select, update
+from sqlalchemy import CursorResult, and_, delete, exists, insert, literal, select, update
 from sqlalchemy.exc import DataError, IntegrityError, NoResultFound
 from sqlalchemy.orm import Session, defer
 
@@ -62,6 +62,32 @@ def query_novels_by_title(
     result_scalars = result.scalars().all()
 
     return result_scalars
+
+def query_novels_by_current_user(
+        db : Session,
+        current_user : User,
+        editable : bool
+    ) -> list[models.Novel]:
+    """
+    Queries all novels that the current user has special access to.
+
+    Args:
+        db: Database from which we are querying from.
+        current_user: User that is querying.
+        editable: If True, only select novels that the user can edit. Otherwise select all such novels.
+    """
+    subq = select(models.Contributor).where(and_(
+        models.Contributor.novel_id == models.Novel.novel_id,
+        models.Contributor.user_id == current_user.user_id
+    ))
+    if editable:
+        subq = subq.where(models.Contributor.contributor_role.in_([Role.EDITOR, Role.OWNER]))
+    q = select(
+        models.Novel
+    ).where(exists(subq))
+    result = db.execute(q)
+    result_scalars = result.scalars().all()
+    return list(result_scalars)
 
 def query_novel_by_id(
         db : Session,
