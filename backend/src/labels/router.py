@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -36,7 +36,7 @@ router = APIRouter()
 
 @router.get('/label-groups', response_model=list[schemas.LabelGroup])
 def read_label_groups(
-        novel_id : int,
+        novel_id : Annotated[int, Query(alias="novel-id")],
         db: Annotated[Session, Depends(get_db)],
         current_user : Annotated[User, Depends(get_current_user)]
     ):
@@ -67,7 +67,7 @@ def read_label_group(
 
 @router.get('/label-datas', response_model=list[schemas.LabelData])
 def read_label_datas_by_group_chapters(
-        label_group_id : int,
+        label_group_id : Annotated[int, Query(alias="label-group-id")],
         db : Annotated[Session, Depends(get_db)],
         current_user : Annotated[User, Depends(get_current_user)],
         start : int | None = None,

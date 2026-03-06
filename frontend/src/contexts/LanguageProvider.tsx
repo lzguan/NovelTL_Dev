@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import type { Language } from "../types/language";
-import { get_languages } from "../api/languages";
+import { getLanguages } from "../api/languages";
 import { LanguageContext } from "./LanguageContext";
 
-export const LanguageProvider = ({ children }: {children: React.ReactNode}) => {
+interface LanguageProviderProps {
+    children: React.ReactNode;
+}
+
+export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     const [languages, setLanguages] = useState<Language[]>([]);
     useEffect(() => {
-        get_languages().then(setLanguages).catch(err => {
+        getLanguages().then(setLanguages).catch(err => {
             console.error("Failed to fetch languages:", err);
         });
     }, []);

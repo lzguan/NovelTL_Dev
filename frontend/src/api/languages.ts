@@ -1,12 +1,25 @@
 import client from './client'
 import { type Language } from '../types/language'
 
-export const get_languages = async () : Promise<Language[]> => {
+// --- Response mapper (API snake_case → frontend camelCase) ---
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const mapLanguage = (data: any): Language => ({
+    languageCode: data.language_code,
+    languageName: data.language_name,
+})
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+// --- API functions ---
+
+export const getLanguages = async () : Promise<Language[]> => {
     const result = await client.get('/languages')
-    return result.data
+    return result.data.map(mapLanguage)
 }
 
-export const get_language_by_code = async (language_code : string) : Promise<Language> => {
-    const result = await client.get(`/languages/${language_code}`)
-    return result.data
+export const getLanguageByCode = async (languageCode : string) : Promise<Language> => {
+    const result = await client.get(`/languages/${languageCode}`)
+    return mapLanguage(result.data)
 }

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..auth.models import User
 from ..database import get_db
+from . import service
 from .exceptions import (
     FilterNotFoundException,
     InstanceContextValidationException,
@@ -13,7 +14,7 @@ from .exceptions import (
     OptionsValidationException,
 )
 from .schemas import InstanceContextOptions, InstanceOptions
-from .service import SchemaInfo, apply_filter, decide_instances, flag_instances, get_contexts, query_schemas
+from .service import SchemaInfo
 
 router = APIRouter()
 
@@ -25,7 +26,7 @@ def read_filter_schemas():
     Returns:
         A dictionary mapping filter names to their schema information.
     """
-    return query_schemas()
+    return service.query_schemas()
 
 @router.post('/filters/{filter_name}/flag-instances', response_model=list[Any])
 def read_flagged_instances(
@@ -44,7 +45,7 @@ def read_flagged_instances(
         current_user: The user making the request, which may be relevant for certain filters.
     """
     try:
-        return flag_instances(db, current_user, filter_name, options)
+        return service.flag_instances(db, current_user, filter_name, options)
     except FilterNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except OptionsValidationException as e:
@@ -70,7 +71,7 @@ def read_contexts(
     instances = body.instances
     options = body.options
     try:
-        return get_contexts(db, current_user, filter_name, instances, options)
+        return service.get_contexts(db, current_user, filter_name, instances, options)
     except FilterNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except OptionsValidationException as e:
@@ -97,7 +98,7 @@ def read_decisions(
     instance_contexts = body.instance_contexts
     options = body.options
     try:
-        return decide_instances(db, current_user, filter_name, instance_contexts, options)
+        return service.decide_instances(db, current_user, filter_name, instance_contexts, options)
     except FilterNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except OptionsValidationException as e:
@@ -106,9 +107,9 @@ def read_decisions(
         raise HTTPException(status_code=400, detail=f"Instance/context validation error: {e}") from e
 
 @router.post('/filters/{filter_name}/apply', status_code=204)
-def apply_filter_to_label_group(
+def apply_filter(
         filter_name : str,
-        label_group_id : Annotated[int, Query(description="The ID of the label group to apply the filter to.", alias="labelGroupId")],
+        label_group_id : Annotated[int, Query(description="The ID of the label group to apply the filter to.", alias="label-group-id")],
         body : InstanceOptions,
         db : Annotated[Session, Depends(get_db)],
         current_user : Annotated[User, Depends(get_current_user)]
@@ -126,7 +127,7 @@ def apply_filter_to_label_group(
     instances = body.instances
     options = body.options
     try:
-        apply_filter(db, current_user, filter_name, label_group_id, instances, options)
+        service.apply_filter(db, current_user, filter_name, label_group_id, instances, options)
     except FilterNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except OptionsValidationException as e:

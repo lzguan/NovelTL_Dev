@@ -50,7 +50,7 @@ router = APIRouter()
 async def read_novels(
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User | None, Depends(get_optional_user)],
-    title_contains : str | None = None
+    title_contains : str | None = Query(default=None, alias="title-contains")
     ):
     """
     Endpoint for retrieving novels in bulk.
@@ -71,7 +71,7 @@ async def read_novels_mine(
         db: Annotated[Session, Depends(get_db)],
         current_user : Annotated[User , Depends(get_current_user)],
         editable : bool = False,
-        title_contains : str | None = Query(default=None, alias="titleContains")
+        title_contains : str | None = Query(default=None, alias="title-contains")
     ):
     """
     Endpoint for retrieving novels that the user has special access to.
@@ -115,7 +115,7 @@ async def read_novel(
     response_model=list[schemas.RawChapter]
 )
 async def read_chapters_by_novel(
-    novel_id : int,
+    novel_id : Annotated[int, Query(alias="novel-id")],
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User | None, Depends(get_optional_user)],
     start : int | None = None,
@@ -167,16 +167,16 @@ async def read_chapter_by_id(
     return chapter
 
 @router.get(
-    '/revisions/{chapter_revision_id}',
+    '/revisions/{revision_id}',
     response_model=schemas.RawChapterRevision
 )
-async def read_chapter_revision(chapter_revision_id : int, db : Annotated[Session, Depends(get_db)], current_user : Annotated[User | None, Depends(get_optional_user)]):
+async def read_chapter_revision(revision_id : int, db : Annotated[Session, Depends(get_db)], current_user : Annotated[User | None, Depends(get_optional_user)]):
     try:
-        revision = query_raw_chapter_revision_by_id(db, current_user, chapter_revision_id)
+        revision = query_raw_chapter_revision_by_id(db, current_user, revision_id)
     except RawChapterRevisionNotFoundException as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter revision with id {chapter_revision_id} not found."
+            detail=f"Chapter revision with id {revision_id} not found."
         ) from e
     return revision
 
@@ -190,9 +190,9 @@ async def read_chapter_revisions_by_novel(
     current_user : Annotated[User | None, Depends(get_optional_user)],
     start : int | None = None,
     end : int | None = None,
-    is_public : Annotated[bool | None, Query(description="Filter only public chapters.", alias="isPublic")] = None,
-    is_primary : Annotated[bool | None, Query(description="Filter only primary chapters.", alias="isPrimary")] = None,
-    is_final : Annotated[bool | None, Query(description="Filter only final chapters.", alias="isFinal")] = None
+    is_public : Annotated[bool | None, Query(description="Filter only public chapters.", alias="is-public")] = None,
+    is_primary : Annotated[bool | None, Query(description="Filter only primary chapters.", alias="is-primary")] = None,
+    is_final : Annotated[bool | None, Query(description="Filter only final chapters.", alias="is-final")] = None
     ):
     """
     Endpoint for retrieving chapter revisions in bulk.
@@ -219,12 +219,12 @@ async def read_chapter_revisions_by_novel(
     '/chapters/{chapter_id}/revisions',
     response_model=list[schemas.RawChapterRevisionMeta]
 )
-async def read_chapter_revision_by_chapter(
+async def read_chapter_revisions_by_chapter(
     chapter_id : int,
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User | None, Depends(get_optional_user)],
-    is_public : Annotated[bool | None, Query(description="Filter only public chapters.", alias="isPublic")] = None,
-    is_primary : Annotated[bool | None, Query(description="Filter only primary chapters.", alias="isPrimary")] = None
+    is_public : Annotated[bool | None, Query(description="Filter only public chapters.", alias="is-public")] = None,
+    is_primary : Annotated[bool | None, Query(description="Filter only primary chapters.", alias="is-primary")] = None
 ):
     """
     Endpoint for retrieving chapter revisions in bulk from a raw chapter.
@@ -429,11 +429,11 @@ async def update_chapter_revision(
         ) from e
     return db_revision
 
-@router.patch(
-    '/publish/revisions/{revision_id}',
+@router.post(
+    '/revisions/{revision_id}/publish',
     response_model=schemas.RawChapterRevision
 )
-async def update_publish_chapter_revision(
+async def publish_chapter_revision(
     revision_id : int,
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User, Depends(get_current_user)]
@@ -460,11 +460,11 @@ async def update_publish_chapter_revision(
         ) from e
     return db_revision
 
-@router.patch(
-    '/make-primary/revisions/{revision_id}',
+@router.post(
+    '/revisions/{revision_id}/make-primary',
     response_model=schemas.RawChapterRevision
 )
-async def update_make_primary_chapter_revision(
+async def make_primary_chapter_revision(
     revision_id : int,
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User, Depends(get_current_user)]
@@ -506,11 +506,11 @@ async def update_make_primary_chapter_revision(
         ) from e
     return db_revision
 
-@router.patch(
-    '/finalize/revisions/{revision_id}',
+@router.post(
+    '/revisions/{revision_id}/finalize',
     response_model=schemas.RawChapterRevision
 )
-async def update_make_final_chapter_revision(
+async def finalize_chapter_revision(
     revision_id : int,
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User, Depends(get_current_user)]

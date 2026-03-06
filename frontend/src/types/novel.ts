@@ -12,64 +12,64 @@ export type Role = 'owner' | 'viewer' | 'editor'
 export type NovelType = 'original' | 'translation' | 'other'
 
 export interface Novel {
-    novel_id : number
-    novel_title : string
-    novel_description? : string
-    novel_author? : string
-    novel_visibility : Visibility
-    novel_type : NovelType
-    novel_parent_id? : number
-    language_code : string
+    novelId : number
+    novelTitle : string
+    novelDescription? : string
+    novelAuthor? : string
+    novelVisibility : Visibility
+    novelType : NovelType
+    novelParentId? : number
+    languageCode : string
 }
 
 export interface CreateNovel {
-    novel_title : string
-    novel_description? : string
-    novel_author? : string
-    novel_visibility : Visibility
-    novel_type : NovelType
-    language_code : string
+    novelTitle : string
+    novelDescription? : string
+    novelAuthor? : string
+    novelVisibility : Visibility
+    novelType : NovelType
+    languageCode : string
 }
 
 export interface UpdateNovel {
-    novel_title? : string
-    novel_description? : string
-    novel_author? : string
-    novel_visibility? : Visibility
-    novel_type? : NovelType
-    novel_parent_id? : number
+    novelTitle? : string
+    novelDescription? : string
+    novelAuthor? : string
+    novelVisibility? : Visibility
+    novelType? : NovelType
+    novelParentId? : number
 }
 
 export interface RawChapter {
-    raw_chapter_id : number
-    raw_chapter_num : number
-    novel_id : number
+    rawChapterId : number
+    rawChapterNum : number
+    novelId : number
 }
 
 export interface CreateRawChapter {
-    raw_chapter_num : number
+    rawChapterNum : number
 }
 
 export interface RawChapterRevision {
-    raw_chapter_revision_id : number
-    raw_chapter_revision_title : string
-    raw_chapter_revision_is_primary : boolean
-    raw_chapter_revision_is_public : boolean
-    raw_chapter_revision_is_final : boolean
-    raw_chapter_id : number
-    raw_chapter_revision_text : string
+    rawChapterRevisionId : number
+    rawChapterRevisionTitle : string
+    rawChapterRevisionIsPrimary : boolean
+    rawChapterRevisionIsPublic : boolean
+    rawChapterRevisionIsFinal : boolean
+    rawChapterId : number
+    rawChapterRevisionText : string
 }
 
-export type RawChapterRevisionMeta = Omit<RawChapterRevision, 'raw_chapter_revision_text'>
+export type RawChapterRevisionMeta = Omit<RawChapterRevision, 'rawChapterRevisionText'>
 
 export interface CreateRawChapterRevision {
-    raw_chapter_revision_title : string
-    raw_chapter_revision_text? : string
+    rawChapterRevisionTitle : string
+    rawChapterRevisionText? : string
 }
 
 export interface UpdateRawChapterRevision {
-    raw_chapter_revision_title? : string
-    raw_chapter_revision_text? : string
+    rawChapterRevisionTitle? : string
+    rawChapterRevisionText? : string
 }
 
 export interface DeleteRawChapterRevisionStatus {

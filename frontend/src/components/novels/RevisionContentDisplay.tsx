@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { get_chapter_revision_by_id } from "../../api/novels";
+import { getChapterRevisionById } from "../../api/novels";
 import { type RawChapterRevision } from "../../types/novel";
 
-interface Props {
+interface RevisionContentDisplayProps {
     revisionId: number | null;
 }
 
-export const RevisionContentDisplay = ({ revisionId }: Props) => {
+export const RevisionContentDisplay = ({ revisionId }: RevisionContentDisplayProps) => {
     // 1. Initialize state based on props. 
     // If revisionId exists, we are loading. If null, we are not.
     const [loading, setLoading] = useState(!!revisionId);
@@ -22,7 +22,7 @@ export const RevisionContentDisplay = ({ revisionId }: Props) => {
 
         let mounted = true;
         
-        get_chapter_revision_by_id(revisionId)
+        getChapterRevisionById(revisionId)
             .then((data) => {
                 if (mounted) {
                     setRevision(data);
@@ -81,8 +81,8 @@ export const RevisionContentDisplay = ({ revisionId }: Props) => {
             boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
             borderRadius: '4px'
         }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>{revision.raw_chapter_revision_title}</h2>
-            <div style={{ whiteSpace: 'pre-wrap' }}>{revision.raw_chapter_revision_text}</div>
+            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>{revision.rawChapterRevisionTitle}</h2>
+            <div style={{ whiteSpace: 'pre-wrap' }}>{revision.rawChapterRevisionText}</div>
         </div>
     );
 };

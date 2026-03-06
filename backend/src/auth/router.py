@@ -62,7 +62,7 @@ async def login_for_access_token(
     "/register",
     response_model=schemas.User
 )
-async def create_register_user(
+async def register_user(
         request : schemas.CreateUser,
         db :  Annotated[Session, Depends(get_db)],
         current_user : Annotated[schemas.User | None, Depends(get_optional_user)]
@@ -176,7 +176,7 @@ async def read_user(
     return user
 
 @router.delete("/users/me", response_model=schemas.DeleteUserStatus)
-async def delete_users_me(
+async def delete_user_me(
         db : Annotated[Session, Depends(get_db)],
         current_user : Annotated[schemas.User, Depends(get_current_user)]
     ):

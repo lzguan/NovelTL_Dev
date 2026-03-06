@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { get_novel_by_id, get_chapters_by_novel, get_chapter_revisions_by_novel } from "../api/novels";
+import { getNovelById, getChaptersByNovel, getChapterRevisionsByNovel } from "../api/novels";
 import { type Novel, type RawChapter, type RawChapterRevisionMeta } from '../types/novel';
 import { AppRoutes, routeTo } from "../routes";
 
@@ -17,14 +17,14 @@ export const NovelDetailsPage = () => {
         const novelId = Number(novel_id);
 
         // 1. Fetch the Novel
-        get_novel_by_id(novelId).then((fetchedNovel) => {
+        getNovelById(novelId).then((fetchedNovel) => {
             setNovel(fetchedNovel);
 
             // 2. ONLY after we have the novel (or just using the ID), fetch the rest
             // We can run these two in parallel
             Promise.all([
-                get_chapters_by_novel(novelId),
-                get_chapter_revisions_by_novel(novelId)
+                getChaptersByNovel(novelId),
+                getChapterRevisionsByNovel(novelId)
             ]).then(([fetchedChapters, fetchedRevisions]) => {
                 
                 setChapters(fetchedChapters);
@@ -32,9 +32,9 @@ export const NovelDetailsPage = () => {
                 // 3. Process Revisions into the Map
                 const map = new Map<number, RawChapterRevisionMeta[]>();
                 fetchedRevisions.forEach((rev) => {
-                    const existing = map.get(rev.raw_chapter_id) || [];
+                    const existing = map.get(rev.rawChapterId) || [];
                     existing.push(rev);
-                    map.set(rev.raw_chapter_id, existing);
+                    map.set(rev.rawChapterId, existing);
                 });
                 setChapterRevisions(map);
             });
@@ -49,11 +49,11 @@ export const NovelDetailsPage = () => {
             {/* Header Section */}
             <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '20px', marginBottom: '20px' }}>
                 <Link to={AppRoutes.VIEW.NOVELS} style={{ textDecoration: 'none', color: '#666' }}>&larr; Back to Library</Link>
-                <h1>{novel.novel_title}</h1>
-                <p style={{ color: '#555' }}>Author: {novel.novel_author || 'Unknown'}</p>
+                <h1>{novel.novelTitle}</h1>
+                <p style={{ color: '#555' }}>Author: {novel.novelAuthor || 'Unknown'}</p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <span style={{ background: '#eee', padding: '4px 8px', borderRadius: '4px' }}>
-                        {novel.novel_type}
+                        {novel.novelType}
                     </span>
                     {/* Add more metadata badges here if needed */}
                 </div>
@@ -67,11 +67,11 @@ export const NovelDetailsPage = () => {
 
                 {chapters.map((chapter) => {
                     // Look up revisions for this chapter
-                    const revs = chapterRevisions.get(chapter.raw_chapter_id) || [];
-                    const primaryRev = revs.find(r => r.raw_chapter_revision_is_primary);
+                    const revs = chapterRevisions.get(chapter.rawChapterId) || [];
+                    const primaryRev = revs.find(r => r.rawChapterRevisionIsPrimary);
 
                     return (
-                        <div key={chapter.raw_chapter_id} style={{ 
+                        <div key={chapter.rawChapterId} style={{ 
                             border: '1px solid #eee', 
                             padding: '15px', 
                             borderRadius: '8px',
@@ -79,9 +79,9 @@ export const NovelDetailsPage = () => {
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
-                                    Chapter {chapter.raw_chapter_num}
+                                    Chapter {chapter.rawChapterNum}
                                     {/* Show title if available, otherwise fallback */}
-                                    {primaryRev && `: ${primaryRev.raw_chapter_revision_title}`}
+                                    {primaryRev && `: ${primaryRev.rawChapterRevisionTitle}`}
                                 </h3>
                             </div>
 
@@ -94,14 +94,14 @@ export const NovelDetailsPage = () => {
                                 ) : (
                                     <ul style={{ margin: 0, paddingLeft: '20px' }}>
                                         {revs.map(rev => (
-                                            <li key={rev.raw_chapter_revision_id} style={{ marginBottom: '4px' }}>
-                                                <Link to={routeTo.view.chapter(rev.raw_chapter_id, { revisionId: rev.raw_chapter_revision_id })} style={{ color: rev.raw_chapter_revision_is_primary ? 'green' : 'blue' }}>
-                                                    {rev.raw_chapter_revision_title || 'Untitled Revision'}
+                                            <li key={rev.rawChapterRevisionId} style={{ marginBottom: '4px' }}>
+                                                <Link to={routeTo.view.chapter(rev.rawChapterId, { revisionId: rev.rawChapterRevisionId })} style={{ color: rev.rawChapterRevisionIsPrimary ? 'green' : 'blue' }}>
+                                                    {rev.rawChapterRevisionTitle || 'Untitled Revision'}
                                                 </Link>
-                                                {rev.raw_chapter_revision_is_primary && 
+                                                {rev.rawChapterRevisionIsPrimary && 
                                                     <span style={{ fontSize: '0.7rem', marginLeft: '8px', background: '#d4edda', padding: '2px 4px', borderRadius: '4px' }}>PRIMARY</span>
                                                 }
-                                                {(rev.raw_chapter_revision_is_public && !rev.raw_chapter_revision_is_primary) && 
+                                                {(rev.rawChapterRevisionIsPublic && !rev.rawChapterRevisionIsPrimary) && 
                                                     <span style={{ fontSize: '0.7rem', marginLeft: '4px', background: '#cce5ff', padding: '2px 4px', borderRadius: '4px' }}>PUBLIC</span>
                                                 }
                                             </li>
