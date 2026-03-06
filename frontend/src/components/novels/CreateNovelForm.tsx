@@ -1,10 +1,10 @@
 import { useForm } from "react-hook-form"
 import { useLanguages } from "../../contexts/LanguageContext";
 import { type CreateNovel } from "../../types/novel";
-import { create_novel } from "../../api/novels";
+import { createNovel } from "../../api/novels";
 import type React from "react";
 
-type Props = { onClose: () => void };
+type CreateNovelFormProps = { onClose: () => void };
 
 const formStyles: React.CSSProperties = {
     display: 'flex',
@@ -65,14 +65,14 @@ const secondaryButtonStyles: React.CSSProperties = {
     cursor: 'pointer',
 };
 
-export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
+export const CreateNovelForm: React.FC<CreateNovelFormProps> = ({ onClose }) => {
     const languages = useLanguages();
     const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<CreateNovel>();
 
     const onSubmit = async (data: CreateNovel) => {
         try {
-            const newNovel = await create_novel(data);
-            alert(`Novel "${newNovel.novel_title}" created successfully!`);
+            const newNovel = await createNovel(data);
+            alert(`Novel "${newNovel.novelTitle}" created successfully!`);
             reset();
             onClose();
         } catch (error) {
@@ -86,7 +86,7 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
             <label style={labelStyles}>
                 Title *
                 <input 
-                    {...register('novel_title', { required: true, maxLength: 255 })} 
+                    {...register('novelTitle', { required: true, maxLength: 255 })} 
                     placeholder="Enter novel title"
                     style={inputStyles}
                 />
@@ -95,7 +95,7 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
             <label style={labelStyles}>
                 Description
                 <textarea 
-                    {...register('novel_description')} 
+                    {...register('novelDescription')} 
                     placeholder="Enter description (optional)"
                     rows={3}
                     style={{ ...inputStyles, resize: 'vertical' }}
@@ -106,7 +106,7 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
                 <label style={labelStyles}>
                     Author
                     <input 
-                        {...register('novel_author')} 
+                        {...register('novelAuthor')} 
                         placeholder="Author name"
                         style={inputStyles}
                     />
@@ -114,7 +114,7 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
 
                 <label style={labelStyles}>
                     Type *
-                    <select {...register('novel_type', { required: true })} style={inputStyles}>
+                    <select {...register('novelType', { required: true })} style={inputStyles}>
                         <option value="">Select type</option>
                         <option value="original">Original</option>
                         <option value="translation">Translation</option>
@@ -126,7 +126,7 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
             <div style={rowStyles}>
                 <label style={labelStyles}>
                     Visibility *
-                    <select {...register('novel_visibility', { required: true, valueAsNumber: true })} style={inputStyles}>
+                    <select {...register('novelVisibility', { required: true, valueAsNumber: true })} style={inputStyles}>
                         <option value="">Select visibility</option>
                         <option value={0}>Private</option>
                         <option value={1}>Restricted</option>
@@ -137,11 +137,11 @@ export const CreateNovelForm: React.FC<Props> = ({ onClose }) => {
 
                 <label style={labelStyles}>
                     Language *
-                    <select {...register('language_code', { required: true })} style={inputStyles}>
+                    <select {...register('languageCode', { required: true })} style={inputStyles}>
                         <option value="">Select language</option>
                         {languages.map(lang => (
-                            <option key={lang.language_code} value={lang.language_code}>
-                                {lang.language_name}
+                            <option key={lang.languageCode} value={lang.languageCode}>
+                                {lang.languageName}
                             </option>
                         ))}
                     </select>

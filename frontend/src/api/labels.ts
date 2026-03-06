@@ -1,19 +1,42 @@
 import client from "./client";
+import { type LabelGroup, type CreateLabelGroup } from "../types/label";
 
-export const getLabelGroupsByNovel = async (novel_id : number) => {
-    const result = await client.get(`/labels/groups?novelId=${novel_id}`)
-    return result.data
-}
+// --- Response mappers (API snake_case → frontend camelCase) ---
 
-export const createLabelGroup = async (novel_id : number, label_group_name : string) => {
-    const result = await client.post('/labels/groups', {
-        novel_id,
-        label_group_name
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const mapLabelGroup = (data: any): LabelGroup => ({
+    labelGroupId: data.label_group_id,
+    labelGroupName: data.label_group_name,
+    novelId: data.novel_id,
+})
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+// --- Request mappers (frontend camelCase → API snake_case) ---
+
+const mapCreateLabelGroupRequest = (data: CreateLabelGroup) => ({
+    label_group_name: data.labelGroupName,
+    novel_id: data.novelId,
+})
+
+// --- API functions ---
+
+export const getLabelGroupsByNovel = async (novelId : number) : Promise<LabelGroup[]> => {
+    const result = await client.get(`/label-groups`, {
+        params: {
+            "novel-id": novelId
+        }
     })
-    return result.data
+    return result.data.map(mapLabelGroup)
 }
 
-export const getLabelGroup = async (label_group_id : number) => {
-    const result = await client.get(`/labels/groups/${label_group_id}`)
-    return result.data
+export const createLabelGroup = async (request : CreateLabelGroup) : Promise<LabelGroup> => {
+    const result = await client.post('/label-groups', mapCreateLabelGroupRequest(request))
+    return mapLabelGroup(result.data)
+}
+
+export const getLabelGroupById = async (labelGroupId : number) : Promise<LabelGroup> => {
+    const result = await client.get(`/label-groups/${labelGroupId}`)
+    return mapLabelGroup(result.data)
 }

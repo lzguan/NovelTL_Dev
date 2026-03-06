@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { get_chapter_by_id, get_chapter_revisions_by_chapter } from "../api/novels";
+import { getChapterById, getChapterRevisionsByChapter } from "../api/novels";
 import { type RawChapter, type RawChapterRevisionMeta } from "../types/novel";
 import { RevisionSidebar } from "../components/novels/RevisionSidebar";
 import { RevisionContentDisplay } from "../components/novels/RevisionContentDisplay";
@@ -18,7 +18,7 @@ export const ChapterReaderPage = () => {
     
     // Derived State: We are "loading" if we don't have a chapter, 
     // OR if the chapter we have doesn't match the URL ID (stale data).
-    const isLoading = !chapter || chapter.raw_chapter_id !== chapterId;
+    const isLoading = !chapter || chapter.rawChapterId !== chapterId;
 
     useEffect(() => {
         if (!chapterId) return;
@@ -26,8 +26,8 @@ export const ChapterReaderPage = () => {
         // NO setLoading(true) here! The 'isLoading' derived check handles it.
 
         Promise.all([
-            get_chapter_by_id(chapterId),
-            get_chapter_revisions_by_chapter(chapterId)
+            getChapterById(chapterId),
+            getChapterRevisionsByChapter(chapterId)
         ]).then(([chapData, revList]) => {
             setChapter(chapData);
             setRevisionList(revList);
@@ -36,7 +36,7 @@ export const ChapterReaderPage = () => {
     }, [chapterId]);
 
     // Fallback active ID logic
-    const activeRevisionId = urlRevisionId ?? (revisionList.length > 0 ? revisionList[0].raw_chapter_revision_id : null);
+    const activeRevisionId = urlRevisionId ?? (revisionList.length > 0 ? revisionList[0].rawChapterRevisionId : null);
 
     if (isLoading) return <div style={{ padding: '20px' }}>Loading chapter...</div>;
     // Type guard: simple check to satisfy TS, though isLoading covers it
@@ -45,10 +45,10 @@ export const ChapterReaderPage = () => {
     return (
         <div style={{ display: 'flex', height: '100vh', flexDirection: 'column' }}>
             <div style={{ padding: '10px 20px', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', gap: '20px', backgroundColor: '#fff' }}>
-                <Link to={routeTo.view.novel(chapter.novel_id)} style={{ textDecoration: 'none', color: '#666' }}>
+                <Link to={routeTo.view.novel(chapter.novelId)} style={{ textDecoration: 'none', color: '#666' }}>
                     &larr; Back to Novel
                 </Link>
-                <h3 style={{ margin: 0 }}>Chapter {chapter.raw_chapter_num}</h3>
+                <h3 style={{ margin: 0 }}>Chapter {chapter.rawChapterNum}</h3>
                 <div style={{ flex: 1 }}></div>
             </div>
 

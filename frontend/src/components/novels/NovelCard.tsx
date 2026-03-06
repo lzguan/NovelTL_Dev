@@ -18,7 +18,7 @@ const getVisibilityLabel = (vis: number) => {
 };
 
 export const NovelCard = ({ novel }: NovelCardProps) => {
-    const badge = getVisibilityLabel(novel.novel_visibility);
+    const badge = getVisibilityLabel(novel.novelVisibility);
 
     return (
         <div style={{
@@ -33,7 +33,7 @@ export const NovelCard = ({ novel }: NovelCardProps) => {
         }}>
             {/* Header: Title + Badge */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{novel.novel_title}</h3>
+                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{novel.novelTitle}</h3>
                 <span style={{
                     fontSize: '0.75rem',
                     fontWeight: 'bold',
@@ -48,15 +48,15 @@ export const NovelCard = ({ novel }: NovelCardProps) => {
 
             {/* Meta Info */}
             <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
-                {novel.novel_author || "Unknown Author"}
+                {novel.novelAuthor || "Unknown Author"}
             </p>
             
             <p style={{ margin: 0, fontSize: '0.85rem', color: '#888' }}>
-                Type: {novel.novel_type}
+                Type: {novel.novelType}
             </p>
 
             {/* Action Button (Placeholder) */}
-            <Link to={routeTo.view.novel(novel.novel_id)}>
+            <Link to={routeTo.view.novel(novel.novelId)}>
                 <button style={{
                     marginTop: '10px',
                     padding: '8px',

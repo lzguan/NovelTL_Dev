@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { /*create_novel,*/ get_novels_mine } from '../api/novels';
+import { /*createNovel,*/ getNovelsMine } from '../api/novels';
 import { type Novel } from '../types/novel';
 import { routeTo } from '../routes';
-import { Modal } from '../components/common/modal';
+import { Modal } from '../components/common/Modal';
 import { CreateNovelForm } from '../components/novels/CreateNovelForm';
 
 // Helper for visibility badge
@@ -26,7 +26,7 @@ export const EditNovelsPage = () => {
 
     // handleNewNovel = async () => {
     //     // Navigate to the new novel creation page
-    //     novel = await create_novel()
+    //     novel = await createNovel()
     // }
 
     useEffect(() => {
@@ -35,7 +35,7 @@ export const EditNovelsPage = () => {
             setError('');
             try {
                 // Get all novels user can edit (owner/editor)
-                const data = await get_novels_mine(true);
+                const data = await getNovelsMine(true);
                 setNovels(data);
             } catch (err) {
                 console.error(err);
@@ -124,26 +124,26 @@ export const EditNovelsPage = () => {
                         </thead>
                         <tbody>
                             {novels.map((novel) => {
-                                const badge = getVisibilityBadge(novel.novel_visibility);
+                                const badge = getVisibilityBadge(novel.novelVisibility);
                                 return (
                                     <tr 
-                                        key={novel.novel_id}
+                                        key={novel.novelId}
                                         style={{ 
                                             borderTop: '1px solid #eee',
                                             cursor: 'pointer'
                                         }}
-                                        onClick={() => navigate(routeTo.edit.novel(novel.novel_id))}
+                                        onClick={() => navigate(routeTo.edit.novel(novel.novelId))}
                                     >
                                         <td style={{ padding: '14px 16px' }}>
-                                            <span style={{ fontWeight: '500' }}>{novel.novel_title}</span>
-                                            {novel.novel_author && (
+                                            <span style={{ fontWeight: '500' }}>{novel.novelTitle}</span>
+                                            {novel.novelAuthor && (
                                                 <span style={{ color: '#888', marginLeft: '8px', fontSize: '0.9rem' }}>
-                                                    by {novel.novel_author}
+                                                    by {novel.novelAuthor}
                                                 </span>
                                             )}
                                         </td>
                                         <td style={{ padding: '14px 16px', color: '#666', textTransform: 'capitalize' }}>
-                                            {novel.novel_type}
+                                            {novel.novelType}
                                         </td>
                                         <td style={{ padding: '14px 16px' }}>
                                             <span style={{
@@ -159,7 +159,7 @@ export const EditNovelsPage = () => {
                                         </td>
                                         <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                                             <Link 
-                                                to={routeTo.view.novel(novel.novel_id)}
+                                                to={routeTo.view.novel(novel.novelId)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 style={{ marginRight: '12px', color: '#3498db' }}
                                                 title="View"
@@ -167,7 +167,7 @@ export const EditNovelsPage = () => {
                                                 👁️
                                             </Link>
                                             <Link 
-                                                to={routeTo.edit.novel(novel.novel_id)}
+                                                to={routeTo.edit.novel(novel.novelId)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 style={{ color: '#f39c12' }}
                                                 title="Edit"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { get_novels, get_novels_mine } from '../api/novels';
+import { getNovels, getNovelsMine } from '../api/novels';
 import { type Novel } from '../types/novel';
 import { NovelCard } from '../components/novels/NovelCard';
 
@@ -20,8 +20,8 @@ export const NovelsPage = () => {
             setError('');
             try {
                 const data = isMine
-                    ? await get_novels_mine(false, search)
-                    : await get_novels(typeof search !== 'undefined' ? search : '');
+                    ? await getNovelsMine(false, search)
+                    : await getNovels(typeof search !== 'undefined' ? search : '');
                 setNovels(data);
             } catch (err) {
                 console.error(err);
@@ -79,7 +79,7 @@ export const NovelsPage = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                 {novels.map((novel) => (
-                    <NovelCard key={novel.novel_id} novel={novel} />
+                    <NovelCard key={novel.novelId} novel={novel} />
                 ))}
             </div>
         </div>

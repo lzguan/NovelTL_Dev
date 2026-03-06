@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { get_chapter_revisions_by_chapter } from "../../api/novels";
+import { getChapterRevisionsByChapter } from "../../api/novels";
 import { type RawChapterRevisionMeta } from "../../types/novel";
 import { routeTo } from "../../routes";
 
-interface Props {
+interface RevisionSidebarProps {
     chapterId: number;
     activeRevisionId: number | null;
 }
 
-export const RevisionSidebar = ({ chapterId, activeRevisionId }: Props) => {
+export const RevisionSidebar = ({ chapterId, activeRevisionId }: RevisionSidebarProps) => {
     // Initialize loading to true. The key prop in parent resets this on change.
     const [loading, setLoading] = useState(true);
     const [revisions, setRevisions] = useState<RawChapterRevisionMeta[]>([]);
@@ -18,7 +18,7 @@ export const RevisionSidebar = ({ chapterId, activeRevisionId }: Props) => {
         let mounted = true;
         // Do NOT call setLoading(true) here.
 
-        get_chapter_revisions_by_chapter(chapterId)
+        getChapterRevisionsByChapter(chapterId)
             .then(data => {
                 if (mounted) {
                     setRevisions(data);
@@ -43,11 +43,11 @@ export const RevisionSidebar = ({ chapterId, activeRevisionId }: Props) => {
             ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                     {revisions.map((rev) => {
-                        const isActive = rev.raw_chapter_revision_id === activeRevisionId;
+                        const isActive = rev.rawChapterRevisionId === activeRevisionId;
                         return (
-                            <li key={rev.raw_chapter_revision_id} style={{ marginBottom: '8px' }}>
+                            <li key={rev.rawChapterRevisionId} style={{ marginBottom: '8px' }}>
                                 <Link 
-                                    to={routeTo.view.chapter(chapterId, rev.raw_chapter_revision_id)}
+                                    to={routeTo.view.chapter(chapterId, { revisionId: rev.rawChapterRevisionId })}
                                     style={{ 
                                         textDecoration: 'none',
                                         display: 'block',
@@ -60,8 +60,8 @@ export const RevisionSidebar = ({ chapterId, activeRevisionId }: Props) => {
                                         transition: 'background-color 0.2s'
                                     }}
                                 >
-                                    {rev.raw_chapter_revision_title || '(Untitled)'}
-                                    {rev.raw_chapter_revision_is_primary && ' ⭐'}
+                                    {rev.rawChapterRevisionTitle || '(Untitled)'}
+                                    {rev.rawChapterRevisionIsPrimary && ' ⭐'}
                                 </Link>
                             </li>
                         );
