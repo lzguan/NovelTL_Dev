@@ -191,7 +191,7 @@ Note: The registry (`FILTER_REGISTRY`) uses a separate `RegisteredFilter` non-ge
 
 ## Examples
 
-Here are some illustrative examples about how filters are implemented in practice. Filter implementations can be found in `src/filters/fitler_name.py`.
+Here are some illustrative examples about how filters are implemented in practice. Filter implementations can be found in `backend/src/filters/filter_name.py`.
 
 ### ScoreFilter
 
