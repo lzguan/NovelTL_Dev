@@ -46,7 +46,7 @@ async def read_autolabel_by_id(
         ) from e
     return autolabel
 
-@router.get('/auto-labels', response_model=dict[int, schemas.AutoLabelMeta])
+@router.get('/auto-labels', response_model=list[schemas.AutoLabelMeta])
 async def read_autolabels(
         novel_id : Annotated[int, Query(alias="novel-id")],
         db : Annotated[Session, Depends(get_db)],

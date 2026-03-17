@@ -184,7 +184,6 @@ def insert_label_group(db : Session, current_user : User, request : schemas.Crea
         DataTooLongException: Some field data was too long.
     """
     data = list(request.model_dump().items())
-    data.append(("user_id", current_user.user_id))
     vals = select(
         *[literal(v) for _, v in data]
     )
@@ -194,12 +193,12 @@ def insert_label_group(db : Session, current_user : User, request : schemas.Crea
     stmt = insert(models.LabelGroup).from_select(
         cols, vals
     ).returning(models.LabelGroup)
-    label_group = models.LabelGroup(**request.model_dump(), user_id=current_user.user_id)
     try:
         result = db.execute(stmt)
+        label_group = result.scalar_one()
         stmt = insert(models.LabelContributor).values(
             {
-                "label_group_id" : result.scalar_one().label_group_id,
+                "label_group_id" : label_group.label_group_id,
                 "user_id" : current_user.user_id,
                 "label_contributor_role" : LabelRole.OWNER
             }
