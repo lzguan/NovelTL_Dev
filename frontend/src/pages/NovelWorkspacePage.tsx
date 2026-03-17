@@ -1,12 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { getNovelById, getChaptersByNovel, getChapterRevisionsByChapter, getChapterRevisionById } from "../api/novels";
-import { getLabelGroupsByNovel, getLabelDatas, getLabelsByLabelData } from "../api/labels";
+import { getLabelGroupsByNovel, getLabelDatas, getLabelsByLabelData, updateLabelDataStream } from "../api/labels";
 import { type Novel, type RawChapter, type RawChapterRevisionMeta } from "../types/novel";
-import { type LabelGroup, type LabelData, type Label } from "../types/label";
+import { type LabelGroup, type LabelData, type Label, type LabelOp } from "../types/label";
+import { applyOpToLabels } from "../components/workspace/labelOps";
 import { SelectorsBar } from "../components/workspace/SelectorsBar";
 import { ChapterTextViewer } from "../components/workspace/ChapterTextViewer";
 import { AnnotatedText } from "../components/workspace/AnnotatedText";
+import { LabelPopover } from "../components/workspace/LabelPopover";
+
+type ActivePopover =
+    | { type: "edit"; label: Label; rect: DOMRect }
+    | null;
 
 export const NovelWorkspacePage = () => {
     const { novel_id } = useParams<{ novel_id: string }>();
@@ -25,13 +31,26 @@ export const NovelWorkspacePage = () => {
     const [selectedLabelGroupId, setSelectedLabelGroupId] = useState<number | null>(null);
 
     // Label data
-    const [, setLabelData] = useState<LabelData | null>(null);
+    const [labelData, setLabelData] = useState<LabelData | null>(null);
     const [labels, setLabels] = useState<Label[]>([]);
+
+    // Popover state
+    const [activePopover, setActivePopover] = useState<ActivePopover>(null);
+    const [pendingOpError, setPendingOpError] = useState<string | null>(null);
 
     // Loading/error
     const [loading, setLoading] = useState(true);
     const [textLoading, setTextLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Derived: known entity groups from current labels
+    const knownEntityGroups = useMemo(() => {
+        const groups = new Set<string>();
+        for (const l of labels) {
+            if (l.labelEntityGroup) groups.add(l.labelEntityGroup);
+        }
+        return [...groups].sort();
+    }, [labels]);
 
     // Sync query params → state on mount
     const initFromParams = useCallback(() => {
@@ -123,6 +142,21 @@ export const NovelWorkspacePage = () => {
         setSearchParams(params, { replace: true });
     }, [selectedChapterId, selectedRevisionId, selectedLabelGroupId, setSearchParams]);
 
+    // Optimistic label operation handler
+    const handleLabelOp = useCallback(async (op: LabelOp) => {
+        if (!labelData) return;
+        const snapshot = labels;
+        setLabels((prev) => applyOpToLabels(prev, op));
+        setActivePopover(null);
+        setPendingOpError(null);
+        try {
+            await updateLabelDataStream(labelData.labelDataId, { ops: [op] });
+        } catch {
+            setLabels(snapshot);
+            setPendingOpError("Failed to save label change. Reverted.");
+        }
+    }, [labelData, labels]);
+
     const handleChapterChange = (chapterId: number | null) => {
         setSelectedChapterId(chapterId);
         setSelectedRevisionId(null);
@@ -142,6 +176,10 @@ export const NovelWorkspacePage = () => {
     const handleLabelGroupCreated = (labelGroup: LabelGroup) => {
         setLabelGroups((prev) => [...prev, labelGroup]);
         setSelectedLabelGroupId(labelGroup.labelGroupId);
+    };
+
+    const handleLabelClick = (label: Label, rect: DOMRect) => {
+        setActivePopover({ type: "edit", label, rect });
     };
 
     if (loading) return <div style={{ padding: "20px" }}>Loading workspace...</div>;
@@ -165,10 +203,25 @@ export const NovelWorkspacePage = () => {
                 onLabelGroupChange={handleLabelGroupChange}
                 onLabelGroupCreated={handleLabelGroupCreated}
             />
+            {pendingOpError && (
+                <div style={{ padding: "6px 16px", backgroundColor: "#fee", color: "red", fontSize: "0.85rem" }}>
+                    {pendingOpError}
+                </div>
+            )}
             {showAnnotated ? (
-                <AnnotatedText text={revisionText} labels={labels} />
+                <AnnotatedText text={revisionText} labels={labels} onLabelClick={handleLabelClick} />
             ) : (
                 <ChapterTextViewer text={revisionText} loading={textLoading} />
+            )}
+            {activePopover?.type === "edit" && (
+                <LabelPopover
+                    label={activePopover.label}
+                    anchorRect={activePopover.rect}
+                    knownEntityGroups={knownEntityGroups}
+                    onSave={(op) => void handleLabelOp(op)}
+                    onDelete={(op) => void handleLabelOp(op)}
+                    onClose={() => setActivePopover(null)}
+                />
             )}
         </div>
     );
