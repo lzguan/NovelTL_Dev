@@ -1,7 +1,8 @@
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Enum, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Enum, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,7 +31,7 @@ class AutoLabel(Base):
     """
     __tablename__ = 'auto_labels'
 
-    auto_label_id : Mapped[int] = mapped_column(primary_key=True)
+    auto_label_id : Mapped[uuid.UUID] = mapped_column(postgresql.UUID, primary_key=True, server_default=func.gen_random_uuid())
     auto_label_data : Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
     auto_label_model_name : Mapped[str] = mapped_column(String(MAX_MODEL_NAME_LEN), nullable=False)
     auto_label_model_params : Mapped[dict[Any, Any]] = mapped_column(JSONB, nullable=False)
