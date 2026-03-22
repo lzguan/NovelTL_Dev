@@ -70,7 +70,7 @@ class LabelData(Base):
     """
     __tablename__ = 'label_datas'
 
-    label_data_id : Mapped[int] = mapped_column(primary_key=True)
+    label_data_id : Mapped[uuid.UUID] = mapped_column(postgresql.UUID, primary_key=True, server_default=func.gen_random_uuid())
 
     label_group_id = mapped_column(ForeignKey('label_groups.label_group_id', name='fk_label_datas_label_group_id_label_groups'), nullable=False)
     label_group_of_label_data : Mapped[LabelGroup] = relationship(back_populates='label_datas_with_label_group')
