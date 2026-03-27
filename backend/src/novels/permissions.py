@@ -237,8 +237,17 @@ def revision_mod_access_delete[T : Delete](stmt : T, current_user : User) -> T:
     return stmt
 
 def revision_text_mod_access_insert[T : Select[tuple[Any, ...]]](stmt : T, current_user : User, revision_id : uuid.UUID) -> T:
-    subq = select(1).select_from(Revision).where(
-        Revision.revision_id == revision_id
-    )
-    subq = revision_mod_access_select(subq, current_user)
-    return stmt.where(exists(subq))
+    if current_user.user_type != UserType.ADMIN:
+        return stmt.where(exists(
+            select(1).select_from(Contributor).where(
+                Contributor.novel_id == select(Chapter.novel_id).where(
+                    Chapter.chapter_id == select(Revision.chapter_id).where(
+                        Revision.revision_id == revision_id
+                    ).scalar_subquery()).scalar_subquery()
+            ).where(
+                Contributor.user_id == current_user.user_id
+            ).where(
+                Contributor.contributor_role.in_([Role.OWNER, Role.EDITOR])
+            )
+        ))
+    return stmt

@@ -44,6 +44,7 @@ from .service import (
     query_revision_text_by_id,
     query_revision_text_by_most_recent,
     query_revision_text_ids_by_revision_id,
+    query_revision_text_status,
     query_revisions_by_chapter,
     query_revisions_by_novel,
     remove_revision,
@@ -241,7 +242,7 @@ async def read_revisions_by_chapter(
 async def read_revision_text(
     revision_id : uuid.UUID,
     db : Annotated[Session, Depends(get_db)],
-    current_user : Annotated[User, Depends(get_current_user)]
+    current_user : Annotated[User | None, Depends(get_optional_user)]
 ):
     """
     Endpoint for retrieving the most recent text of a revision.
@@ -302,6 +303,37 @@ async def read_revision_text_versions(
     """
     versions = query_revision_text_ids_by_revision_id(db, current_user, revision_id)
     return versions
+
+@router.get(
+    '/revisions/{revision_id}/text-status/{revision_text_id}',
+    response_model=OperationStatus
+)
+async def read_revision_text_status(
+    revision_id : uuid.UUID,
+    revision_text_id : uuid.UUID,
+    db : Annotated[Session, Depends(get_db)],
+    current_user : Annotated[User | None, Depends(get_optional_user)]
+):
+    """
+    Check whether a revision_text_id is the latest version for a revision.
+
+    Raises:
+        404: Revision text not found (or insufficient read permissions).
+        409: Revision text is outdated.
+    """
+    try:
+        result = query_revision_text_status(db, current_user, revision_id, revision_text_id)
+    except RevisionTextNotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Revision text not found."
+        ) from e
+    except RevisionTextOutdatedException as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Revision text is outdated. Please refresh and try again."
+        ) from e
+    return result
 
 @router.post(
     '/novels',
@@ -574,6 +606,7 @@ async def update_revision_text(
     Raises:
         404: Revision text not found.
         409: Revision text is outdated (someone else modified it).
+        401: Insufficient permissions to modify this revision.
     """
     try:
         result = modify_revision_text(db, current_user, revision_id, request.revision_text_id, request.text_ops)
@@ -586,6 +619,11 @@ async def update_revision_text(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Revision text is outdated. Please refresh and try again."
+        ) from e
+    except InsufficientPermissionsException as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Insufficient permissions to modify this revision."
         ) from e
     return result
 

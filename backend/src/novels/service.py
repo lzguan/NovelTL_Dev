@@ -343,7 +343,7 @@ def query_revisions_by_novel(
 
 def query_revision_text_by_most_recent(
         db : Session,
-        current_user : User,
+        current_user : User | None,
         revision_id : uuid.UUID
     ) -> models.RevisionText:
     """
@@ -378,7 +378,7 @@ def query_revision_text_by_most_recent(
 
 def query_revision_text_by_id(
     db : Session,
-    current_user : User,
+    current_user : User | None,
     revision_text_id : uuid.UUID
 ) -> models.RevisionText:
     """
@@ -402,6 +402,45 @@ def query_revision_text_by_id(
     except NoResultFound as e:
         raise RevisionTextNotFoundException from e
     return result_row
+
+def query_revision_text_status(
+    db : Session,
+    current_user : User | None,
+    revision_id : uuid.UUID,
+    revision_text_id : uuid.UUID,
+) -> OperationStatus:
+    """
+    Check whether a revision_text_id is the latest version for its revision.
+    Queries the most recent revision text version with read permissions applied,
+    then compares against the provided revision_text_id.
+
+    Args:
+        db: Database from which we are querying.
+        current_user: User performing the check.
+        revision_id: ID of the revision to check.
+        revision_text_id: ID of the revision text to validate as current.
+
+    Raises:
+        RevisionTextNotFoundException: No revision text found for revision_id (or insufficient read permissions).
+        RevisionTextOutdatedException: Revision text exists but revision_text_id is not the latest version.
+    """
+    q = select(models.RevisionText.revision_text_id).where(
+        models.RevisionText.revision_id == revision_id
+    ).where(
+        models.RevisionText.revision_text_version == select(func.max(
+            models.RevisionText.revision_text_version
+        )).where(
+            models.RevisionText.revision_id == revision_id
+        ).scalar_subquery()
+    )
+    q = revision_text_mod_access_select(q, current_user)
+    try:
+        latest_id = db.execute(q).scalar_one()
+    except NoResultFound as e:
+        raise RevisionTextNotFoundException from e
+    if latest_id != revision_text_id:
+        raise RevisionTextOutdatedException("Revision text is outdated. Please refresh and try again.")
+    return OperationStatus(status="success", detail="Revision text is current.")
 
 def query_revision_text_ids_by_revision_id(
     db : Session,
@@ -853,8 +892,11 @@ def modify_revision_text(
         db.commit()
     except NoResultFound as e:
         db.rollback()
-        query_revision_text_by_id(db, current_user, revision_text_id)
-        raise RevisionTextOutdatedException from e
+        # Distinguish between outdated text and insufficient write permissions.
+        # query_revision_text_status raises the appropriate exception.
+        query_revision_text_status(db, current_user, revision_id, revision_text_id)
+        # If status check passes (shouldn't happen), raise generic error.
+        raise InsufficientPermissionsException from e
     except Exception as e:
         db.rollback()
         raise UnknownError from e

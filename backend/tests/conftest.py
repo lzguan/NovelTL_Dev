@@ -36,6 +36,7 @@ pytest_plugins = [
     "tests.fixtures.populators.novel_permissions",
     "tests.fixtures.password_hash",
     "tests.fixtures.populators.score_filter_simple",
+    "tests.fixtures.populators.text_ops",
     "tests.fixtures.filters"
 ]
 
