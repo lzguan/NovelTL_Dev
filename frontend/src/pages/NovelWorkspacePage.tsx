@@ -470,12 +470,12 @@ export const NovelWorkspacePage = () => {
     };
 
     const handleLoadIntoGroup = async () => {
-        if (!nerTabGroupId || !autoLabelMeta) return;
+        if (!nerTabGroupId || !autoLabelMeta || !revisionTextId) return;
         try {
             const status = await createLabelDataByAutoLabel(nerTabGroupId, {
                 modelName: autoLabelMeta.autoLabelModelName,
                 modelParams: autoLabelMeta.autoLabelModelParams,
-                revisionIds: [selectedRevisionId!],
+                revisionIds: [revisionTextId],
             });
             setLoadStatus(status);
             // Reload NER-tab labels after loading
