@@ -390,3 +390,4 @@ The cache is cleared for a chapter when its cached revision is deleted. Using `u
 - [frontend-testing.md](frontend-testing.md) — Frontend testing standards
 - [filter-system.md](filter-system.md) — Filter pipeline (deferred in workspace)
 - [background-jobs.md](background-jobs.md) — AutoLabel worker system
+- [labeled-text-library.md](labeled-text-library.md) — Design for a standalone labeled text rendering library (planned replacement for labelOps + AnnotatedText)

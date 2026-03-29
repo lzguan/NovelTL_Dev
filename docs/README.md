@@ -31,6 +31,7 @@ This directory contains technical documentation for the NovelTL project - a coll
 - **[filter-system.md](filter-system.md)** - Filter abstraction, 4-phase pipeline, implementations
 - **[ui-requirements.md](ui-requirements.md)** - Frontend component specs, UX workflows
 - **[workspace-implementation.md](workspace-implementation.md)** - Workspace component architecture, React patterns, data flow
+- **[labeled-text-library.md](labeled-text-library.md)** - Labeled text rendering library design (style monoid, segmentation, injectable rendering)
 
 ### Development
 - **[conventions.md](conventions.md)** - Code naming conventions, API patterns
