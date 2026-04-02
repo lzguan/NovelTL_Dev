@@ -28,7 +28,7 @@ The database is organized around five main entity groups:
 4. **AutoLabels** - Cached NER inference results
 5. **Languages** - Supported language metadata
 
-All primary keys use UUID (via `postgresql.UUID` with `server_default=gen_random_uuid()`), except `languages` which uses a 2-character string code. All tables inherit `created_at` and `updated_at` timestamps from the base model.
+All base entity tables use single-column UUID primary keys (via `postgresql.UUID` with `server_default=gen_random_uuid()`); join/association tables use composite primary keys composed of UUID foreign key columns; the `languages` table uses a 2-character string code. All tables inherit `created_at` and `updated_at` timestamps from the base model.
 
 ## Entity Relationship Diagram
 
