@@ -23,6 +23,7 @@ import { LabelsPanel } from "../components/workspace/LabelsPanel";
 import { NerPanel } from "../components/workspace/NerPanel";
 import { LabelGroupSelector } from "../components/workspace/LabelGroupSelector";
 import { InlineTextEditor } from "../components/workspace/InlineTextEditor";
+import { GlossaryPanel } from "../components/workspace/GlossaryPanel";
 
 type ActivePopover =
     | { type: "edit"; label: Label; rect: DOMRect }
@@ -33,7 +34,7 @@ type WorkspaceMode = "edit" | "label";
 
 const TOP_TABS = [{ key: "novel", label: "Novel" }];
 const EDIT_TABS = [{ key: "editor", label: "Editor" }, { key: "editLabels", label: "Labels" }];
-const LABEL_TABS = [{ key: "labels", label: "Labels" }, { key: "ner", label: "NER" }, { key: "filters", label: "Filters" }];
+const LABEL_TABS = [{ key: "labels", label: "Labels" }, { key: "ner", label: "NER" }, { key: "filters", label: "Filters" }, { key: "glossary", label: "Glossary" }];
 
 export const NovelWorkspacePage = () => {
     const { novel_id } = useParams<{ novel_id: string }>();
@@ -939,6 +940,9 @@ export const NovelWorkspacePage = () => {
                                 />
                                 <div style={{ padding: "12px", color: "#888" }}>Filters panel (deferred)</div>
                             </div>
+                        )}
+                        {activeRightPanel === "glossary" && (
+                            <GlossaryPanel novelId={novel.novelId} />
                         )}
                     </RightPanel>
                 </div>

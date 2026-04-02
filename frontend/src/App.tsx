@@ -7,6 +7,7 @@ import { ChapterReaderPage } from './pages/ChapterReaderPage'
 import { EditNovelsPage } from './pages/EditNovelsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { NovelWorkspacePage } from './pages/NovelWorkspacePage'
+import { GlossaryPage } from './pages/GlossaryPage'
 import { Layout } from './components/layout/Layout'
 import { AppRoutes } from './routes'
 import { LanguageProvider } from './contexts/LanguageProvider'
@@ -28,6 +29,8 @@ function App() {
                     <Route path={AppRoutes.VIEW.NOVELS} element={<NovelsPage />} />
                     <Route path={AppRoutes.VIEW.NOVEL_DETAILS} element={<NovelDetailsPage />} />
                     <Route path={AppRoutes.VIEW.CHAPTER} element={<ChapterReaderPage />} />
+                    <Route path={AppRoutes.VIEW.NOVEL_GLOSSARIES} element={<GlossaryPage />} />
+                    <Route path={AppRoutes.VIEW.GLOSSARY_DETAIL} element={<GlossaryPage />} />
                     <Route path={AppRoutes.EDIT.NOVELS} element={<EditNovelsPage />} />
                     <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelRedirect />} />
                     <Route path={AppRoutes.WORKSPACE} element={<NovelWorkspacePage />} />

@@ -18,12 +18,8 @@ class Base(DeclarativeBase):
         updated_at: Date and time object was last updated in db.
     """
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), onupdate=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
 
 # imports for other models
@@ -32,3 +28,4 @@ from .autolabels.models import *  # noqa: E402, F403
 from .labels.models import *  # noqa: E402, F403
 from .languages.models import *  # noqa: E402, F403
 from .novels.models import *  # noqa: E402, F403
+from .glossaries.models import *  # noqa: E402, F403

@@ -5,6 +5,8 @@ export const AppRoutes = {
         NOVELS: '/view/novels',
         NOVEL_DETAILS: '/view/novels/:novel_id',
         CHAPTER: '/view/chapters/:chapter_id',
+        NOVEL_GLOSSARIES: '/view/novels/:novel_id/glossaries',
+        GLOSSARY_DETAIL: '/view/glossaries/:glossary_id',
     },
     EDIT: {
         NOVELS: '/edit/novels',
@@ -27,7 +29,9 @@ export const routeTo = {
             const base = `/view/chapters/${chapterId}`;
             if (options?.revisionId) return `${base}?revision_id=${options.revisionId}`;
             return base;
-        }
+        },
+        novelGlossaries: (novelId: string) => `/view/novels/${novelId}/glossaries`,
+        glossary: (glossaryId: string) => `/view/glossaries/${glossaryId}`,
     },
     edit: {
         novels: () => '/edit/novels',
