@@ -817,12 +817,16 @@ def create_translation_job(
     )
     entries_total: int = count_result.scalar_one()
 
+    # Generate job_id upfront so we can set job_last_job_id for optimistic locking
+    new_job_id = uuid.uuid4()
     stmt = (
         insert(models.GlossaryTranslationJob)
         .values(
+            job_id=new_job_id,
             glossary_id=glossary_id,
             status=TranslationJobStatus.PENDING,
             job_model_name=request.model_name,
+            job_last_job_id=new_job_id,
             entries_total=entries_total,
             entries_translated=0,
         )

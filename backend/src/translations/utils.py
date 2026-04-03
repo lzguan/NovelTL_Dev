@@ -16,10 +16,6 @@ class TranslationDispatcher(Protocol):
         self,
         job_id: str,
         translation_job_id: uuid.UUID,
-        source_novel_id: uuid.UUID,
-        target_language_code: str,
-        glossary_id: uuid.UUID | None,
-        model_name: str | None,
     ) -> None:
         """
         Enqueue a novel translation request.
@@ -27,10 +23,6 @@ class TranslationDispatcher(Protocol):
         Args:
             job_id: String id to queue job with (for ARQ deduplication).
             translation_job_id: UUID identifier for the NovelTranslationJob in the db.
-            source_novel_id: UUID of the source novel to translate.
-            target_language_code: ISO 639-1 code for the target language.
-            glossary_id: Optional UUID of the glossary to use for term consistency.
-            model_name: Name of the LLM model to use, or None for default.
 
         Raises:
             TranslationQueueFullException: Queue is full.
@@ -47,20 +39,12 @@ class ArqTranslationDispatcher:
         self,
         job_id: str,
         translation_job_id: uuid.UUID,
-        source_novel_id: uuid.UUID,
-        target_language_code: str,
-        glossary_id: uuid.UUID | None,
-        model_name: str | None,
     ) -> None:
         try:
             await self.redis.enqueue_job(
                 "translate_novel",
                 job_id,
                 translation_job_id,
-                source_novel_id,
-                target_language_code,
-                glossary_id,
-                model_name,
                 _job_id=job_id,
             )
         except (ConnectionError, TimeoutError, OSError) as e:

@@ -44,7 +44,7 @@ async def translate_novel(ctx: dict[str, Any], job_id: str, translation_job_id: 
     base_update = (
         update(NovelTranslationJob)
         .where(NovelTranslationJob.job_id == translation_job_id)
-        .where(NovelTranslationJob.job_last_job_id == job_id)
+        .where(NovelTranslationJob.job_last_job_id == translation_job_id)
     )
 
     # --- Validate model ---
@@ -296,7 +296,8 @@ def _translate_chapter(
         db.execute(stmt)
         db.commit()
 
-    # Fetch source chapter's latest revision text (highest version)
+    # Fetch source chapter's latest revision text
+    # Prefer primary revision; fall back to most recent revision if none is primary
     with SessionLocal() as db:
         q = (
             select(
@@ -307,8 +308,7 @@ def _translate_chapter(
             .join(Revision, Revision.revision_id == RevisionText.revision_id)
             .join(Chapter, Chapter.chapter_id == Revision.chapter_id)
             .where(Chapter.chapter_id == source_chapter_id)
-            .where(Revision.revision_is_primary.is_(True))
-            .order_by(RevisionText.revision_text_version.desc())
+            .order_by(Revision.revision_is_primary.desc(), RevisionText.revision_text_version.desc())
             .limit(1)
         )
         row = db.execute(q).one_or_none()

@@ -8,7 +8,7 @@ from .interfaces import TranslationModel
 logger = logging.getLogger(__name__)
 
 GLOSSARY_TRANSLATION_API_BASE_URL = os.environ.get("GLOSSARY_TRANSLATION_API_BASE_URL", "https://api.openai.com/v1")
-GLOSSARY_TRANSLATION_API_KEY = os.environ.get("GLOSSARY_TRANSLATION_API_KEY", "")
+GLOSSARY_TRANSLATION_API_KEY = os.environ.get("GLOSSARY_TRANSLATION_API_KEY")
 GLOSSARY_TRANSLATION_MODEL = os.environ.get("GLOSSARY_TRANSLATION_MODEL", "gpt-4o-mini")
 
 BATCH_SIZE = 50
@@ -44,6 +44,8 @@ class OpenAITranslationModel(TranslationModel):
 
         self.api_base_url = api_base_url or GLOSSARY_TRANSLATION_API_BASE_URL
         self.api_key = api_key or GLOSSARY_TRANSLATION_API_KEY
+        if not self.api_key:
+            raise ValueError("GLOSSARY_TRANSLATION_API_KEY is not set. Cannot initialize translation model.")
         self.model = model or GLOSSARY_TRANSLATION_MODEL
         self.batch_size = batch_size
         self.client: Any = OpenAI(base_url=self.api_base_url, api_key=self.api_key)

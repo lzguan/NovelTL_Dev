@@ -67,6 +67,8 @@ def insert_translation_job(
     try:
         result = db.execute(stmt)
         job = result.scalar_one()
+        # Set job_last_job_id for optimistic locking (worker uses this to claim the job)
+        job.job_last_job_id = job.job_id
     except NoResultFound as e:
         db.rollback()
         raise NovelNotFoundException from e

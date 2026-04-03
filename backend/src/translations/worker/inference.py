@@ -5,7 +5,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 NOVEL_TRANSLATION_API_BASE_URL = os.environ.get("NOVEL_TRANSLATION_API_BASE_URL", "https://api.openai.com/v1")
-NOVEL_TRANSLATION_API_KEY = os.environ.get("NOVEL_TRANSLATION_API_KEY", "")
+NOVEL_TRANSLATION_API_KEY = os.environ.get("NOVEL_TRANSLATION_API_KEY")
 NOVEL_TRANSLATION_MODEL = os.environ.get("NOVEL_TRANSLATION_MODEL", "gpt-4o-mini")
 
 SYSTEM_PROMPT = (
@@ -41,6 +41,8 @@ class OpenAIChapterTranslationModel:
 
         self.api_base_url = api_base_url or NOVEL_TRANSLATION_API_BASE_URL
         self.api_key = api_key or NOVEL_TRANSLATION_API_KEY
+        if not self.api_key:
+            raise ValueError("NOVEL_TRANSLATION_API_KEY is not set. Cannot initialize translation model.")
         self.model = model or NOVEL_TRANSLATION_MODEL
         self.client: Any = OpenAI(base_url=self.api_base_url, api_key=self.api_key)
 

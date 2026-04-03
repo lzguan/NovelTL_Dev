@@ -205,14 +205,14 @@ class TestGlossaryTranslateWorker:
         w_glossary: Glossary,
     ):
         """
-        If job_last_job_id doesn't match job_id string, the claim step returns
+        If translation_job_id doesn't match job_last_job_id, the claim step returns
         0 rows and the task is a no-op — job stays PENDING.
         """
         job = make_pending_job(test_db, w_glossary)
-        wrong_job_id_str = str(uuid.uuid4())
+        wrong_translation_job_id = uuid.uuid4()
         ctx: dict[str, Any] = {}
 
-        await glossary_translate(ctx, wrong_job_id_str, job.job_id, "mock")
+        await glossary_translate(ctx, str(wrong_translation_job_id), wrong_translation_job_id, "mock")
 
         final_job = refresh_job(test_db, job.job_id)
         assert final_job.status == TranslationJobStatus.PENDING

@@ -49,19 +49,11 @@ class MockDispatcher:
         self,
         job_id: str,
         translation_job_id: uuid.UUID,
-        source_novel_id: uuid.UUID,
-        target_language_code: str,
-        glossary_id: uuid.UUID | None,
-        model_name: str | None,
     ) -> None:
         self.calls.append(
             {
                 "job_id": job_id,
                 "translation_job_id": translation_job_id,
-                "source_novel_id": source_novel_id,
-                "target_language_code": target_language_code,
-                "glossary_id": glossary_id,
-                "model_name": model_name,
             }
         )
 

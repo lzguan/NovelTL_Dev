@@ -15,3 +15,8 @@ FROM base AS worker
 RUN uv sync --frozen --group worker
 COPY . .
 CMD ["arq", "src.worker.WorkerSettings"]
+
+FROM base AS translation-worker
+RUN uv sync --frozen --group translation-worker
+COPY . .
+CMD ["arq", "src.translation_worker.WorkerSettings"]

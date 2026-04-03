@@ -43,7 +43,7 @@ async def glossary_translate(
     base_update = (
         update(GlossaryTranslationJob)
         .where(GlossaryTranslationJob.job_id == translation_job_id)
-        .where(GlossaryTranslationJob.job_last_job_id == job_id)
+        .where(GlossaryTranslationJob.job_last_job_id == translation_job_id)
     )
 
     # Validate model

@@ -27,6 +27,8 @@ backend = [
 worker = [
     "transformers>=4.35.0,<5",
     "torch>=2.9.1",
+]
+translation-worker = [
     "openai>=1.0.0,<2",
 ]
 dev = [

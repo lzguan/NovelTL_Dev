@@ -60,10 +60,6 @@ async def create_translation_job(
         await dispatcher.enqueue(
             job_id_str,
             job.job_id,
-            request.source_novel_id,
-            request.target_language_code,
-            request.glossary_id,
-            request.model_name,
         )
     except TranslationQueueFullException as e:
         raise HTTPException(
