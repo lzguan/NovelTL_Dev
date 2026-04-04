@@ -1,9 +1,9 @@
 # SourceWork Model and Permissions
 
-**Last Updated**: April 03, 2026
+**Last Updated**: April 04, 2026
 **Status**: Draft
 
-This document defines the planned SourceWork architecture for grouping related novels while keeping novel-level ownership, permissions, and revision workflows intact. Read this if you are implementing SourceWork database changes, discovery APIs, or permission checks.
+This document defines the SourceWork architecture for grouping related novels and the current one-pass chapter/revision model restructure strategy. Read this if you are implementing SourceWork database changes, chapter content versioning changes, or permission checks.
 
 ---
 
@@ -29,13 +29,17 @@ This document defines the planned SourceWork architecture for grouping related n
 
 ## Background and Goals
 
-The current system models content as `Novel -> Chapter -> Revision -> RevisionText`. This supports text versioning and label integrity workflows. The immediate goal is not to redesign that stack. The goal is to add a source-material grouping layer for discovery and navigation.
+Historically, the system modeled content as `Novel -> Chapter -> Revision -> RevisionText`. The active implementation direction is a one-pass model restructure to `SourceWork -> Novel -> Chapter -> ChapterContent`, while keeping text versioning semantics for label integrity and concurrency safety.
 
 Primary goals:
 1. Group related novels (for example, source and translations) under one parent resource.
 2. Keep novel-level permissions authoritative.
 3. Avoid introducing implicit ownership inheritance from the new grouping layer.
-4. Keep revisions and text versioning behavior unchanged in the near term.
+4. Preserve text versioning behavior during the one-pass rename/restructure.
+
+### Current implementation note
+
+The backend service/schemas/permissions/model layers are being migrated in one pass. Router updates are intentionally deferred to a follow-up step after the core rename/restructure commit to reduce moving pieces during the data-model migration.
 
 ## Theory and Motivation
 
@@ -61,9 +65,9 @@ This is also why the refactor space opens up once the frontend works: after the 
 This document captures the following decisions from architecture discussion:
 
 1. Introduce `SourceWork` as metadata and grouping resource.
-2. Keep revisions at the novel layer for now.
-3. Keep text versioning (currently `RevisionText`) for concurrency and label safety.
-4. Remove `revision_is_primary` from future workflow direction.
+2. Keep text versioning at the chapter-content layer for concurrency and label safety.
+3. Move from revision-oriented naming to chapter-content naming in backend internals.
+4. Remove `revision_is_primary` and `revision_is_public` in favor of chapter-level publication state.
 5. Default discovery should list `SourceWork` items only when at least one child novel is visible to the requesting actor.
 6. AutoLabel creation policy target remains: any user with read access to the novel.
 7. Label group creation policy target remains: any user with novel access.
@@ -82,8 +86,8 @@ Once the frontend workflow is stable, the backend has a few clean refactor targe
 
 | Current model | Target model | Why it changes |
 |---|---|---|
-| `Novel -> Chapter -> Revision -> RevisionText` | `SourceWork -> Novel -> Chapter -> ChapterTextVersion` | Makes the text-history layer explicit while collapsing the unnecessary chapter/revision split |
-| `revision_is_primary` flag on revision metadata | Removed or replaced by a more explicit published/current pointer on chapter-level data | The field becomes redundant if each chapter has one canonical metadata row |
+| `Novel -> Chapter -> Revision -> RevisionText` | `SourceWork -> Novel -> Chapter -> ChapterContent` | Makes the text-history layer explicit while collapsing the unnecessary chapter/revision split |
+| `revision_is_primary` / `revision_is_public` on revision metadata | Removed; chapter publication state is tracked on `Chapter.chapter_is_public` | The fields become redundant after collapsing chapter/revision metadata |
 | Revisions as the main UI selection concept | Novel or chapter text version as the user-facing unit | The UI no longer needs to ask the user to choose among artificial revision layers |
 | Discovery by novel or chapter context first | Discovery by SourceWork first, then Novel, then Chapter | Better matches grouped source material and cross-translation browsing |
 | Permission helpers tied to revision-oriented joins | Permission helpers tied to novel and chapter-text-version joins | Keeps access checks aligned with the actual entity boundaries |
@@ -121,11 +125,11 @@ The preferred naming direction is:
 1. `SourceWork` - source-material grouping metadata.
 2. `Novel` - concrete edition/translation variant in a group.
 3. `Chapter` - chapter metadata (number, ownership to novel).
-4. `ChapterTextVersion` - long-term naming direction for versioned chapter text.
+4. `ChapterContent` - active implementation name for versioned chapter text rows.
 
 Notes:
-1. Current implementation still uses `Revision` and `RevisionText`.
-2. Renaming to `ChapterTextVersion` is a future naming alignment task, not an immediate requirement.
+1. The active backend migration is using `ChapterContent` as the canonical replacement for `RevisionText`.
+2. Router endpoint naming and payload naming can be rewritten after the core rename/restructure commit.
 
 ## Data Model Proposal
 
@@ -271,7 +275,7 @@ If later you decide to keep only one canonical chapter per chapter number in eac
 Not in initial SourceWork rollout:
 
 1. Full replacement of revision model.
-2. Immediate rename of `RevisionText` to `ChapterTextVersion`.
+2. Immediate endpoint-level router path/parameter rewrite during the same commit as model-layer migration.
 3. Automatic cross-novel permission inheritance.
 4. Migration logic for production historical data (currently out of scope).
 
@@ -287,7 +291,11 @@ Not in initial SourceWork rollout:
 2. Implement attach/detach novel endpoints.
 3. Add permission tests for all source-work endpoints.
 
-### Phase 3: UI integration
+### Phase 3: Router and UI integration
+1. Rewrite router endpoints and request/response naming to chapter-content terminology.
+2. Align frontend API contracts with chapter-content naming.
+
+### Phase 4: UI integration
 1. Add source work discovery and selection UI.
 2. Add source work scoped novel browsing.
 3. Optionally add cross-novel chapter-next navigation.
@@ -300,11 +308,11 @@ Not in initial SourceWork rollout:
 
 ## Relevant Files
 
-- `backend/src/novels/models.py` - Current novel/chapter/revision schema and constraints.
+- `backend/src/novels/models.py` - Novel/chapter/chapter-content schema and constraints.
 - `backend/src/novels/permissions.py` - Canonical novel visibility and contributor permission helpers.
-- `backend/src/novels/service.py` - Current novel/chapter/revision query and mutation patterns.
-- `backend/src/labels/permissions.py` - Label access model coupled to novel/revision visibility.
-- `backend/src/autolabels/service.py` - AutoLabel query and insert behavior scoped by novel/revision access.
+- `backend/src/novels/service.py` - Novel/chapter/chapter-content query and mutation patterns.
+- `backend/src/labels/permissions.py` - Label access model coupled to novel/chapter-content visibility.
+- `backend/src/autolabels/service.py` - AutoLabel query and insert behavior scoped by novel/chapter-content access.
 - `frontend/src/pages/NovelWorkspacePage.tsx` - Workspace navigation and revision selection behavior.
 - `frontend/src/api/autolabels.ts` - AutoLabel request filters and request shape.
 - `docs/architecture.md` - High-level architecture and service responsibilities.

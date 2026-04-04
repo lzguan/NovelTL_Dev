@@ -117,7 +117,7 @@ def chapter_mod_access_select[T : Select[tuple[Any, ...]]](q : T, current_user :
                 Novel.novel_id == aliased_type.novel_id
             ).where(
                 Novel.novel_visibility >= Visibility.UNLISTED
-            )
+            ).correlate(aliased_type)
         )).where(
             aliased_type.chapter_is_public.is_(True)
         )
