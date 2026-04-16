@@ -21,9 +21,6 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	 "features": {
 		"ghcr.io/devcontainers/features/git:1": {},
-		"ghcr.io/devcontainers/features/node": {
-			"version": "lts"
-		},
 		"ghcr.io/devcontainers/features/github-cli:1": {}
 	 },
 
@@ -36,7 +33,7 @@
 	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
 	// "shutdownAction": "none",
 
-	"postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.codex && npm install -g @openai/codex",
+	"postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.codex && pnpm add -g @openai/codex",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -48,13 +45,20 @@
 				"charliermarsh.ruff",
 				"bierner.markdown-mermaid",
 				"openai.chatgpt",
-				"meta.pyrefly"
+				"meta.pyrefly",
+				"bradlc.vscode-tailwindcss"
 			],
 			"settings": {
 				"python.defaultInterpreterPath": "/.venv/bin/python",
 				"python.analysis.typeCheckingMode": "strict",
 				"python.analysis.include": ["backend/src"],
-				"python.analysis.extraPaths": ["backend/src"]
+				"python.analysis.extraPaths": ["backend/src"],
+				"css.lint.unknownAtRules": "ignore",
+				"scss.lint.unknownAtRules": "ignore",
+				"less.lint.unknownAtRules": "ignore",
+				"files.associations": {
+					"*.css": "tailwindcss"
+				}
 			}
 		}
 	}

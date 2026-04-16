@@ -21,8 +21,6 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
-    volumes:
-      - .:/project
     environment:
       <<: [*db-env, *test-db-env, *redis-env]
       SECRET_KEY: ${SECRET_KEY}
@@ -95,8 +93,10 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/project
+      - pnpm-store:/pnpm/store
     ports:
       - "${FRONTEND_PORT}:5173"
 
 volumes:
   db_data:
+  pnpm-store:

@@ -3,7 +3,7 @@ name = "noveltl-dev"
 version = "0.1.0"
 description = "Novel translation backend"
 authors = [{ name = "Leo Guan", email = "leo.ziqi@gmail.com" }]
-requires-python = ">=3.12,<4"
+requires-python = ">=3.12,<3.13"
 readme = "README.md"
 dependencies = [
     "sqlalchemy>=2.0.40,<3",
@@ -79,7 +79,7 @@ markers = [
     "implementation: marks heavy model implementation tests",
     "slow: marks tests that take a long time"
 ]
-addopts = "-ra -q -m 'not slow'"
+addopts = "-ra -q -m 'not slow' --order-dependencies"
 
 [tool.ruff]
 target-version = "py312"
