@@ -4,7 +4,7 @@ import {
     makeBasicSegmenter,
     makeFullReducingSegmenter,
     makeReducingSegmenter,
-} from "../core/segmenter";
+} from "../core/segmenters";
 import type { Label } from "../core/types";
 
 type TestStyle = {

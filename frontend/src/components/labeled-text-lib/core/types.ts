@@ -42,13 +42,13 @@ declare const fullReducedBrand: unique symbol;
 
 export type ReducedSegment<S extends Style> = Segment<S> & { [reducedBrand] : true };
 
-export function makeReducedSegment<S extends Style>(segment: Segment<S>): ReducedSegment<S> {
+export function asReducedSegment<S extends Style>(segment: Segment<S>): ReducedSegment<S> {
     return segment as ReducedSegment<S>;
 }
 
 export type FullReducedSegment<S extends Style> = ReducedSegment<S> & { [fullReducedBrand] : true };
 
-export function makeFullReducedSegment<S extends Style>(segment: Segment<S>): FullReducedSegment<S> {
+export function asFullReducedSegment<S extends Style>(segment: Segment<S>): FullReducedSegment<S> {
     return segment as FullReducedSegment<S>;
 }
 
@@ -56,7 +56,6 @@ export function makeFullReducedSegment<S extends Style>(segment: Segment<S>): Fu
  * Produces renderable text segments from source text and absolute labels.
  */
 export type Segmenter<S extends Style> = (text : string, labels : Label<S>[]) => Segment<S>[];
-
 
 export type ReducingSegmenter<S extends Style> = (text : string, labels : Label<S>[]) => ReducedSegment<S>[];
 

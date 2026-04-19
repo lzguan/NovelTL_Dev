@@ -1,4 +1,4 @@
-import { type Style, type Label, type Segmenter, type Segment, type ReducingSegmenter, type FullReducingSegmenter, makeReducedSegment, makeFullReducedSegment } from "./types";
+import { type Style, type Label, type Segmenter, type Segment, type ReducingSegmenter, type FullReducingSegmenter, asReducedSegment, asFullReducedSegment } from "./types";
 
 function isSorted(nums : number[]) : boolean {
     for (let i = 1; i < nums.length; i++) {
@@ -105,7 +105,7 @@ export function makeReducingSegmenter<S extends Style>(reducer: StyleReducer<S>,
                 labels: newLabels
             });
         }
-        return newSegments.map(makeReducedSegment);
+        return newSegments.map(asReducedSegment);
     }
 }
 
@@ -133,6 +133,6 @@ export function makeFullReducingSegmenter<S extends Style>(reducer: StyleReducer
                 }] : []
             });
         }
-        return segments.map(makeFullReducedSegment);
+        return segments.map(asFullReducedSegment);
     }
 }

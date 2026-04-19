@@ -1,4 +1,4 @@
-import { type StyleReducer } from "../core/segmenter";
+import { type StyleReducer } from "../core/segmenters";
 import { type Style } from "../core/types";
 import { averageColors, type Color } from "./colors";
 

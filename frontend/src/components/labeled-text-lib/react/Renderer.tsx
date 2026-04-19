@@ -1,81 +1,134 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState, type JSX } from "react";
 
-import type { Segment, Style } from "../core/types";
+import type { Segment, ReducedSegment, FullReducedSegment, Style } from "../core/types";
 
-export type RendererProps<S extends Style> = {
-    segment: Segment<S>;
+export type TextRenderer<S extends Style> = ({ segment } : { segment: Segment<S> }) => JSX.Element;
+
+export type ReducedTextRenderer<S extends Style> = ({ segment } : { segment: ReducedSegment<S> }) => JSX.Element;
+
+export type FullReducedTextRenderer<S extends Style> = ({ segment } : { segment: FullReducedSegment<S> }) => JSX.Element;
+
+export type OverlayRenderer<S extends Style> = ({ segment, containerRef, overlayRef } : { segment: Segment<S>, containerRef : React.RefObject<HTMLDivElement | null>, overlayRef: React.RefObject<HTMLDivElement | null> }) => JSX.Element;
+
+type TextPoint = {
+    node : Node | null;
+    pos : number;
 }
+
+type TextPointResolver<S extends Style> = (
+    element : HTMLElement | null, // container element
+    segment : Segment<S>,
+    offset : number // offset into the segment text
+) => TextPoint | null;
 
 /**
  * Rendering strategy for a segmented text view.
  */
-export type Renderer<S extends Style> = ({ segment }: RendererProps<S>) => JSX.Element;
-
-
-export type BoxRendererOptions<S extends Style> = {
-    toBoxStyle: (style: S) => React.CSSProperties;
-    textStyle? : React.CSSProperties;
-    className?: string;
+export type Renderer<S extends Style> = {
+    renderText: TextRenderer<S>
+    renderOverlay?: OverlayRenderer<S>;
 }
 
-export function makeBoxRenderer<S extends Style>(options: BoxRendererOptions<S>): Renderer<S> {
+export type ReducedRenderer<S extends Style> = {
+    renderText: ReducedTextRenderer<S>
+    renderOverlay?: OverlayRenderer<S>;
+}
+
+export type FullReducedRenderer<S extends Style> = {
+    renderText: FullReducedTextRenderer<S>
+    renderOverlay?: OverlayRenderer<S>;
+}
+
+export function makePlainTextRenderer<S extends Style>(): TextRenderer<S> {
     return ({ segment }) => {
-        const textRef = useRef<HTMLSpanElement | null>(null);
+        return <>{segment.text}</>;
+    }
+}
+
+export function resolvePlainTextPoint<S extends Style>(element: HTMLElement | null, _ : Segment<S>, offset: number): TextPoint | null {
+    return { node: element? element.firstChild : null, pos: offset };
+}
+
+export function getSegmentElement<S extends Style>(containerRef: React.RefObject<HTMLDivElement | null>, segment: Segment<S>): HTMLElement | null {
+    return containerRef.current?.querySelector(`[data-segment-start="${segment.start}"]`) as HTMLElement | null;
+}
+
+
+export function makeBoxOverlayRenderer<S extends Style>(toBoxStyle: (style: S) => React.CSSProperties, resolveTextPoint: TextPointResolver<S>): OverlayRenderer<S> {
+    return ({ segment, containerRef, overlayRef }) => {
         const [styledBoxes, setStyledBoxes] = useState<{ rect: {left : number; top: number; width: number; height: number}; style: S }[]>([]);
 
         const measure = useCallback(() => {
-            const element = textRef.current;
-            const textNode = element?.firstChild?.firstChild;
-            if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
-                setStyledBoxes([]);
+            const overlayElement = overlayRef.current;
+            if (!overlayElement) {
+                setStyledBoxes(prev => prev.length === 0 ? prev : []);
                 return;
             }
-            const containerRect = element.getBoundingClientRect();
+            const overlayRect = overlayElement.getBoundingClientRect();
             const styledRects = segment.labels.map(label => {
                 const range = document.createRange();
-                range.setStart(textNode, label.range.start);
-                range.setEnd(textNode, label.range.end);
-                return Array.from(range.getClientRects()).map(rect => ({ rect : { height: rect.height, width: rect.width, top: rect.top - containerRect.top, left: rect.left - containerRect.left }, style: label.style }));
-            }).flat();
+                const segmentElement = getSegmentElement(containerRef, segment);
+                if (!segmentElement) {
+                    return;
+                }
+                const leftTextPoint = resolveTextPoint(segmentElement, segment, label.range.start);
+                const rightTextPoint = resolveTextPoint(segmentElement, segment, label.range.end);
+                if (!leftTextPoint?.node || !rightTextPoint?.node) {
+                    return;
+                }
+                range.setStart(leftTextPoint.node, leftTextPoint.pos);
+                range.setEnd(rightTextPoint.node, rightTextPoint.pos);
+                return Array.from(range.getClientRects()).map(rect => ({ rect : { height: rect.height, width: rect.width, top: rect.top - overlayRect.top, left: rect.left - overlayRect.left }, style: label.style }));
+            }).flat().filter((x): x is Exclude<typeof x, undefined> => x !== undefined);
             setStyledBoxes(styledRects);
-        }, [segment]);
+        }, [segment, overlayRef, containerRef]);
 
         useLayoutEffect(() => {
             measure();
         }, [measure]);
 
         useEffect(() => {
-            const element = textRef.current;
-            if (!element) {
+            const segmentElement = getSegmentElement(containerRef, segment);
+            if (!segmentElement) {
+                return;
+            }
+            const overlayElement = overlayRef.current;
+            if (!overlayElement) {
                 return;
             }
             const resizeObserver = new ResizeObserver(() => {
                 measure();
             });
-            resizeObserver.observe(element);
+            resizeObserver.observe(segmentElement);
+            resizeObserver.observe(overlayElement);
             return () => {
                 resizeObserver.disconnect();
             };
-        }, [measure]);
+        }, [measure, segment, containerRef, overlayRef]);
 
-        return <span className={options.className} ref={textRef} style={{ position: "relative", whiteSpace: "pre-wrap", display: "inline-block"}}>
-            <span style={{ position: "relative", zIndex: 1, ...options.textStyle}}>{segment.text}</span>
-            <span aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", userSelect: "none", zIndex: 0}}>
-                {styledBoxes.map(({ rect, style }, index) => (
-                    <div
-                        key={segment.start + ":" + index}
-                        style={{
-                            position: "absolute",
-                            left: rect.left,
-                            top: rect.top,
-                            width: rect.width,
-                            height: rect.height,
-                            pointerEvents: "none",
-                            ...options.toBoxStyle(style),
-                        }}
-                    />
-                ))}
-            </span>
-        </span>;
+        return <>
+            {styledBoxes.map(({ rect, style }, index) => (
+                <div
+                    key={segment.start + ":" + index}
+                    style={{
+                        position: "absolute",
+                        left: rect.left,
+                        top: rect.top,
+                        width: rect.width,
+                        height: rect.height,
+                        pointerEvents: "none",
+                        ...toBoxStyle(style),
+                    }}
+                />
+            ))}
+        </>;
+    }
+}
+
+
+export function makePlainBoxRenderer<BS extends Style>(toBoxStyle: (style: BS) => React.CSSProperties): Renderer<BS> {
+    return {
+        renderText: makePlainTextRenderer(),
+        renderOverlay: makeBoxOverlayRenderer(toBoxStyle, resolvePlainTextPoint)
     }
 }
