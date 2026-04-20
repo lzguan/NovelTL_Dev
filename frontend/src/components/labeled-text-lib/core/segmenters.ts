@@ -9,16 +9,16 @@ function isSorted(nums : number[]) : boolean {
     return true;
 }
 
-export function makeBasicSegmenter<S extends Style>(gap: number = 0): Segmenter<S> {
-    return (text: string, labels: Label<S>[]): Segment<S>[] => {
-        const segments: Segment<S>[] = [];
+export function makeBasicSegmenter<S extends Style, L extends Label<S>>(gap: number = 0): Segmenter<S, L> {
+    return (text: string, labels: L[]): Segment<S, L>[] => {
+        const segments: Segment<S, L>[] = [];
         const labelsCopy = [...labels];
         if (!isSorted(labelsCopy.map(l => l.range.start))) {
             labelsCopy.sort((a, b) => a.range.start - b.range.start);
         }
         let curSegmentStart = 0;
         let curSegmentEnd = 0;
-        let curSegmentLabels: Label<S>[] = [];
+        let curSegmentLabels: L[] = [];
         for (const label of labelsCopy) {
             // check if no overlap with the current segment
             if (label.range.start >= curSegmentEnd + gap) {
@@ -72,10 +72,10 @@ export function makeBasicSegmenter<S extends Style>(gap: number = 0): Segmenter<
  */
 export type StyleReducer<S extends Style> = (styles : S[]) => S
 
-export function makeReducingSegmenter<S extends Style>(reducer: StyleReducer<S>, baseSegmenter: Segmenter<S>): ReducingSegmenter<S> {
-    return (text: string, labels: Label<S>[]) => {
+export function makeReducingSegmenter<S extends Style, L extends Label<S>>(reducer: StyleReducer<S>, baseSegmenter: Segmenter<S, L>): ReducingSegmenter<S, L> {
+    return (text: string, labels: L[]) => {
         const segments = baseSegmenter(text, labels);
-        const newSegments: Segment<S>[] = [];
+        const newSegments: Segment<S, Label<S>>[] = [];
         for (const segment of segments) {
             const partition = new Set<number>()
             partition.add(0);
@@ -109,8 +109,8 @@ export function makeReducingSegmenter<S extends Style>(reducer: StyleReducer<S>,
     }
 }
 
-export function makeFullReducingSegmenter<S extends Style>(reducer: StyleReducer<S>): FullReducingSegmenter<S> {
-    return (text: string, labels: Label<S>[]) => {
+export function makeFullReducingSegmenter<S extends Style, L extends Label<S>>(reducer: StyleReducer<S>): FullReducingSegmenter<S, L> {
+    return (text: string, labels: L[]) => {
         const partition = new Set<number>();
         partition.add(0);
         partition.add(text.length);
@@ -119,7 +119,7 @@ export function makeFullReducingSegmenter<S extends Style>(reducer: StyleReducer
             partition.add(label.range.end);
         }
         const sortedPartition = Array.from(partition).sort((a, b) => a - b);
-        const segments: Segment<S>[] = [];
+        const segments: Segment<S, Label<S>>[] = [];
         for (let i = 0; i < sortedPartition.length - 1; i++) {
             const partStart = sortedPartition[i];
             const partEnd = sortedPartition[i + 1];

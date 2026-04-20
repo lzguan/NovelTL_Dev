@@ -2,11 +2,11 @@ import type { Renderer } from "./Renderer";
 import { type Style, type Label, type Segmenter } from "../core/types";
 import { useRef } from "react";
 
-function StaticLabeledText<S extends Style>(props: { 
+function StaticLabeledText<S extends Style, L extends Label<S>>(props: { 
     text: string, 
-    labels: Label<S>[], 
-    segment: Segmenter<S>, 
-    render : Renderer<S>,
+    labels: L[], 
+    segment: Segmenter<S, L>, 
+    render : Renderer<S, L>,
     containerStyle?: React.CSSProperties,
     overlayStyle?: React.CSSProperties,
 }) {

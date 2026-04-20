@@ -1,60 +1,60 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState, type JSX } from "react";
 
-import type { Segment, ReducedSegment, FullReducedSegment, Style } from "../core/types";
+import type { Segment, ReducedSegment, FullReducedSegment, Style, Label } from "../core/types";
 
-export type TextRenderer<S extends Style> = ({ segment } : { segment: Segment<S> }) => JSX.Element;
+export type TextRenderer<S extends Style, L extends Label<S>> = ({ segment } : { segment: Segment<S, L> }) => JSX.Element;
 
 export type ReducedTextRenderer<S extends Style> = ({ segment } : { segment: ReducedSegment<S> }) => JSX.Element;
 
 export type FullReducedTextRenderer<S extends Style> = ({ segment } : { segment: FullReducedSegment<S> }) => JSX.Element;
 
-export type OverlayRenderer<S extends Style> = ({ segment, containerRef, overlayRef } : { segment: Segment<S>, containerRef : React.RefObject<HTMLDivElement | null>, overlayRef: React.RefObject<HTMLDivElement | null> }) => JSX.Element;
+export type OverlayRenderer<S extends Style, L extends Label<S>> = ({ segment, containerRef, overlayRef } : { segment: Segment<S, L>, containerRef : React.RefObject<HTMLDivElement | null>, overlayRef: React.RefObject<HTMLDivElement | null> }) => JSX.Element;
 
 type TextPoint = {
     node : Node | null;
     pos : number;
 }
 
-type TextPointResolver<S extends Style> = (
+type TextPointResolver<S extends Style, L extends Label<S>> = (
     element : HTMLElement | null, // container element
-    segment : Segment<S>,
+    segment : Segment<S, L>,
     offset : number // offset into the segment text
 ) => TextPoint | null;
 
 /**
  * Rendering strategy for a segmented text view.
  */
-export type Renderer<S extends Style> = {
-    renderText: TextRenderer<S>
-    renderOverlay?: OverlayRenderer<S>;
+export type Renderer<S extends Style, L extends Label<S>> = {
+    renderText: TextRenderer<S, L>
+    renderOverlay?: OverlayRenderer<S, L>;
 }
 
-export type ReducedRenderer<S extends Style> = {
+export type ReducedRenderer<S extends Style, L extends Label<S>> = {
     renderText: ReducedTextRenderer<S>
-    renderOverlay?: OverlayRenderer<S>;
+    renderOverlay?: OverlayRenderer<S, L>;
 }
 
-export type FullReducedRenderer<S extends Style> = {
+export type FullReducedRenderer<S extends Style, L extends Label<S>> = {
     renderText: FullReducedTextRenderer<S>
-    renderOverlay?: OverlayRenderer<S>;
+    renderOverlay?: OverlayRenderer<S, L>;
 }
 
-export function makePlainTextRenderer<S extends Style>(): TextRenderer<S> {
+export function makePlainTextRenderer<S extends Style, L extends Label<S>>(): TextRenderer<S, L> {
     return ({ segment }) => {
         return <>{segment.text}</>;
     }
 }
 
-export function resolvePlainTextPoint<S extends Style>(element: HTMLElement | null, _ : Segment<S>, offset: number): TextPoint | null {
+export function resolvePlainTextPoint<S extends Style, L extends Label<S>>(element: HTMLElement | null, _ : Segment<S, L>, offset: number): TextPoint | null {
     return { node: element? element.firstChild : null, pos: offset };
 }
 
-export function getSegmentElement<S extends Style>(containerRef: React.RefObject<HTMLDivElement | null>, segment: Segment<S>): HTMLElement | null {
+export function getSegmentElement<S extends Style, L extends Label<S>>(containerRef: React.RefObject<HTMLDivElement | null>, segment: Segment<S, L>): HTMLElement | null {
     return containerRef.current?.querySelector(`[data-segment-start="${segment.start}"]`) as HTMLElement | null;
 }
 
 
-export function makeBoxOverlayRenderer<S extends Style>(toBoxStyle: (style: S) => React.CSSProperties, resolveTextPoint: TextPointResolver<S>): OverlayRenderer<S> {
+export function makeBoxOverlayRenderer<S extends Style, L extends Label<S>>(toBoxStyle: (style: S) => React.CSSProperties, resolveTextPoint: TextPointResolver<S, L>): OverlayRenderer<S, L> {
     return ({ segment, containerRef, overlayRef }) => {
         const [styledBoxes, setStyledBoxes] = useState<{ rect: {left : number; top: number; width: number; height: number}; style: S }[]>([]);
 
@@ -126,7 +126,7 @@ export function makeBoxOverlayRenderer<S extends Style>(toBoxStyle: (style: S) =
 }
 
 
-export function makePlainBoxRenderer<BS extends Style>(toBoxStyle: (style: BS) => React.CSSProperties): Renderer<BS> {
+export function makePlainBoxRenderer<BS extends Style, L extends Label<BS>>(toBoxStyle: (style: BS) => React.CSSProperties): Renderer<BS, L> {
     return {
         renderText: makePlainTextRenderer(),
         renderOverlay: makeBoxOverlayRenderer(toBoxStyle, resolvePlainTextPoint)

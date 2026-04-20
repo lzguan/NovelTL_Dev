@@ -6,6 +6,7 @@ import { StaticLabeledText } from "./components/labeled-text-lib/react/LabeledTe
 import { makePlainBoxRenderer, makePlainTextRenderer } from "./components/labeled-text-lib/react/Renderer";
 
 type DemoStyle = ProductStyle<[ColorStyle, UnderlineStyle, BoldStyle]>;
+type DemoLabel = Label<DemoStyle>;
 
 function toHexColor(color: number): string {
     return `#${color.toString(16).padStart(6, "0")}`;
@@ -13,7 +14,7 @@ function toHexColor(color: number): string {
 
 const demoText = "Alice met Bob in Wonderland. The Queen of Hearts watched from afar.";
 
-const demoLabels: Label<DemoStyle>[] = [
+const demoLabels: DemoLabel[] = [
     {
         range: { start: 0, end: 5 },
         style: [
@@ -67,7 +68,7 @@ const demoLabels: Label<DemoStyle>[] = [
 const measuredBoxText =
     "Alice met Bob in Wonderland. The Queen of Hearts watched from afar while Wonderland itself shimmered under layered labels.";
 
-const measuredBoxLabels: Label<DemoStyle>[] = [
+const measuredBoxLabels: DemoLabel[] = [
     {
         range: { start: 0, end: 5 },
         style: [
@@ -126,10 +127,10 @@ const measuredBoxLabels: Label<DemoStyle>[] = [
     },
 ];
 
-const measuredBoxSegmenter = makeBasicSegmenter<DemoStyle>(1);
-const plainSegmenter = makeBasicSegmenter<DemoStyle>();
+const measuredBoxSegmenter = makeBasicSegmenter<DemoStyle, DemoLabel>(1);
+const plainSegmenter = makeBasicSegmenter<DemoStyle, DemoLabel>();
 const plainTextRenderer = {
-    renderText: makePlainTextRenderer<DemoStyle>(),
+    renderText: makePlainTextRenderer<DemoStyle, DemoLabel>(),
 };
 const measuredBoxLayering = {
     containerStyle: {
@@ -140,7 +141,7 @@ const measuredBoxLayering = {
     },
 };
 
-const measuredBoxRenderer = makePlainBoxRenderer<DemoStyle>(([colorStyle, underlineStyle, boldStyle]) => ({
+const measuredBoxRenderer = makePlainBoxRenderer<DemoStyle, DemoLabel>(([colorStyle, underlineStyle, boldStyle]) => ({
         backgroundColor: `${toHexColor(colorStyle.color)}2f`,
         border: `1px solid ${toHexColor(colorStyle.color)}7a`,
         borderRadius: "0.8rem",
@@ -154,11 +155,11 @@ const measuredBoxRenderer = makePlainBoxRenderer<DemoStyle>(([colorStyle, underl
 
 function buildStressDemo(blockCount: number): {
     text: string;
-    labels: Label<DemoStyle>[];
+    labels: DemoLabel[];
 } {
     const baseSentence =
         "Alice met Bob in Wonderland while the Queen of Hearts watched from afar and Wonderland itself shimmered under layered labels. ";
-    const labels: Label<DemoStyle>[] = [];
+    const labels: DemoLabel[] = [];
     let text = "";
 
     for (let blockIndex = 0; blockIndex < blockCount; blockIndex += 1) {
@@ -230,12 +231,12 @@ const stressDemo = buildStressDemo(18);
 
 function buildSparseStressDemo(blockCount: number): {
     text: string;
-    labels: Label<DemoStyle>[];
+    labels: DemoLabel[];
 } {
     const baseSentence =
         "Alice crossed the market square, Bob waited near the old fountain, and the city kept muttering about Wonderland in half-remembered fragments. ";
     const text = baseSentence.repeat(blockCount);
-    const labels: Label<DemoStyle>[] = [];
+    const labels: DemoLabel[] = [];
 
     for (let blockIndex = 0; blockIndex < blockCount; blockIndex += 1) {
         const blockStart = blockIndex * baseSentence.length;
@@ -285,8 +286,8 @@ function collectLabeledTerms(
         term: string;
         style: DemoStyle;
     }[],
-): Label<DemoStyle>[] {
-    const labels: Label<DemoStyle>[] = [];
+): DemoLabel[] {
+    const labels: DemoLabel[] = [];
 
     for (const entry of entries) {
         let searchStart = 0;
@@ -309,7 +310,7 @@ function collectLabeledTerms(
 
 function buildChineseChapterDemo(paragraphCount: number): {
     text: string;
-    labels: Label<DemoStyle>[];
+    labels: DemoLabel[];
 } {
     const paragraph =
         "青云城夜雨未歇，林玄披着旧袍立在长街尽头，望着玄天宗方向翻涌的雷云。苏晚抱剑而来，只说黑风山的妖气又重了三分，陈长青已经先一步入山探路。洛清璃站在酒楼檐下，把镇魂塔的残图递给林玄，提醒他天命玉今夜必有异动。林玄记得三年前也是在青云城，也是苏晚陪他走出城门，而黑风山深处第一次传来镇魂塔的钟鸣。\n";

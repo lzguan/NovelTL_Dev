@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeBasicSegmenter } from "../core/segmenters";
 import type { Label } from "../core/types";
-import { LabeledText } from "../react/LabeledText";
+import { StaticLabeledText } from "../react/LabeledText";
 import {
     makeBoxOverlayRenderer,
     makePlainBoxRenderer,
@@ -15,7 +15,9 @@ type TestStyle = {
     name: string;
 };
 
-function makeLabel(start: number, end: number, name: string): Label<TestStyle> {
+type TestLabel = Label<TestStyle>;
+
+function makeLabel(start: number, end: number, name: string): TestLabel {
     return {
         range: { start, end },
         style: { name },
@@ -81,13 +83,13 @@ describe("LabeledText React integration", () => {
     });
 
     it("renders segmented text directly through LabeledText", () => {
-        const segmenter = makeBasicSegmenter<TestStyle>();
-        const renderer: Renderer<TestStyle> = {
+        const segmenter = makeBasicSegmenter<TestStyle, TestLabel>();
+        const renderer: Renderer<TestStyle, TestLabel> = {
             renderText: makePlainTextRenderer(),
         };
 
         const { container } = render(
-            <LabeledText
+            <StaticLabeledText
                 text="abcdef"
                 labels={[makeLabel(1, 3, "name")]}
                 segment={segmenter}
@@ -102,13 +104,13 @@ describe("LabeledText React integration", () => {
     });
 
     it("renders measured overlay boxes with the plain boxed renderer", async () => {
-        const segmenter = makeBasicSegmenter<TestStyle>();
-        const renderer = makePlainBoxRenderer<TestStyle>((style) => ({
+        const segmenter = makeBasicSegmenter<TestStyle, TestLabel>();
+        const renderer = makePlainBoxRenderer<TestStyle, TestLabel>((style) => ({
             backgroundColor: style.name === "name" ? "rgb(255, 0, 0)" : "rgb(0, 0, 255)",
         }));
 
         const { container } = render(
-            <LabeledText
+            <StaticLabeledText
                 text="abcdef"
                 labels={[makeLabel(1, 3, "name")]}
                 segment={segmenter}
@@ -128,8 +130,8 @@ describe("LabeledText React integration", () => {
     });
 
     it("supports overlay measurement across multiple text nodes with a custom resolver", async () => {
-        const segmenter = makeBasicSegmenter<TestStyle>(2);
-        const renderer: Renderer<TestStyle> = {
+        const segmenter = makeBasicSegmenter<TestStyle, TestLabel>(2);
+        const renderer: Renderer<TestStyle, TestLabel> = {
             renderText: ({ segment }) => (
                 <>
                     <span data-base="0">{segment.text.slice(0, 2)}</span>
@@ -154,7 +156,7 @@ describe("LabeledText React integration", () => {
         };
 
         const { container } = render(
-            <LabeledText
+            <StaticLabeledText
                 text="abc"
                 labels={[makeLabel(1, 3, "name")]}
                 segment={segmenter}
