@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { makeBasicSegmenter } from "../core/segmenters";
 import type { Label } from "../core/types";
-import { StaticLabeledText } from "../react/LabeledText";
+import { StaticLabeledText } from "../react/StaticLabeledText";
 import {
     makeBoxOverlayRenderer,
     makePlainBoxRenderer,

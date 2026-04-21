@@ -1,15 +1,15 @@
 import { makeBasicSegmenter } from "./segmenters";
 import type { Label, Range, Segment, Style } from "./types";
 
-type LabelID = number;
-type SegmentID = number;
+type LabelID = string;
+type SegmentID = string;
 type Index = number;
 
-type ManagedLabel<S extends Style, L extends Label<S>> = L & {
+export type ManagedLabel<S extends Style, L extends Label<S>> = L & {
     id: LabelID;
 }
 
-type ManagedSegment<S extends Style, L extends Label<S>> = Segment<S, ManagedLabel<S, L>> & {
+export type ManagedSegment<S extends Style, L extends Label<S>> = Segment<S, ManagedLabel<S, L>> & {
     id: SegmentID;
 }
 
@@ -69,7 +69,7 @@ export function getUncoveredSubintervals(
  * - Essentially, the getter interface should return data consistent with the representation that LabeledText expects.
  * - The actual label data should store start pos relative to entire text.
  */
-type SegmentManager<S extends Style, L extends Label<S>> = {
+export type SegmentManager<S extends Style, L extends Label<S>> = {
     /**
      * Gets the current text.
      */
@@ -191,7 +191,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
         idGenerator: (function*() {
             let id = 0;
             while (true) {
-                yield id++;
+                yield String(id++);
             }
         })(),
         segmentsById: new Map<SegmentID, Segment<S, ManagedLabel<S, L>>>(),
@@ -261,6 +261,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             }
             return { startIdx, endIdx };
         },
+
         mergeSegments(startIdx: Index, endIdx: Index) {
             if (startIdx === -1 || endIdx === -1 || startIdx >= endIdx) {
                 throw new Error(`Invalid segment indices: startIdx=${startIdx}, endIdx=${endIdx}`);
@@ -294,6 +295,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             this.bounds.splice(startIdx, endIdx - startIdx, { id: newId, start: mergedSegment.start, end: mergedSegment.start + mergedSegment.text.length });
             return newId;
         },
+
         splitSegment(segmentId: SegmentID, relPos: number) {
             const segment = this.segmentsById.get(segmentId);
             if (!segment) {
@@ -321,6 +323,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             this.segmentsById.set(secondId, secondHalf);
             this.bounds.splice(idx, 1, { id: segmentId, start: firstHalf.start, end: firstHalf.start + firstHalf.text.length }, { id: secondId, start: secondHalf.start, end: secondHalf.start + secondHalf.text.length });
         },
+
         postpendSegment(segment: Segment<S, ManagedLabel<S, L>>) {
             const id = this.idGenerator.next().value;
             for (const label of segment.labels) {
@@ -331,6 +334,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             this.text += segment.text;
             return id;
         },
+
         prependSegment(newSegment: Segment<S, ManagedLabel<S, L>>) {
             const id = this.idGenerator.next().value;
             for (const label of newSegment.labels) {
@@ -348,6 +352,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             this.bounds.unshift({ id, start: newSegment.start, end: newSegment.start + newSegment.text.length });
             return id;
         },
+
         addLabel(label: ManagedLabel<S, L>) {
             if (this.labelsById.has(label.id)) {
                 throw new Error(`Label with id ${label.id} already exists`);
@@ -358,6 +363,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             this.segmentIdsByLabelId.set(label.id, newSegmentId);
             this.subscribers.forEach((subscriber) => subscriber());
         },
+
         removeLabel(id : LabelID) {
             const label = this.labelsById.get(id);
             if (!label) {
@@ -389,10 +395,12 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             }
             this.subscribers.forEach((subscriber) => subscriber());
         },
+
         updateLabel(id: LabelID, newLabel: L) {
             this.removeLabel(id);
             this.addLabel({ ...newLabel, id });
         },
+
         insertTextAt(pos : number, text : string) {
             if (pos === 0) {
                 this.prependSegment({ start: 0, text, labels: [] });
@@ -450,6 +458,7 @@ export function makeBasicSegmentManager<S extends Style, L extends Label<S>>(ini
             }
             this.subscribers.forEach((subscriber) => subscriber());
         },
+        
         deleteTextAt(pos: number, length: number) {
             if (length < 0) {
                 throw new Error(`Delete length must be non-negative, got ${length}`);

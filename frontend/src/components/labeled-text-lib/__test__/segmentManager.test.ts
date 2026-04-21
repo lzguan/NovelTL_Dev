@@ -8,10 +8,10 @@ type TestStyle = {
 };
 
 type ManagedTestLabel = Label<TestStyle> & {
-    id: number;
+    id: string;
 };
 
-function makeLabel(id: number, start: number, end: number, name: string): ManagedTestLabel {
+function makeLabel(id: string, start: number, end: number, name: string): ManagedTestLabel {
     return {
         id,
         range: { start, end },
@@ -55,7 +55,7 @@ function getAbsoluteLabels(manager: ReturnType<typeof makeBasicSegmentManager<Te
                 name: label.style.name,
             })),
         )
-        .sort((left, right) => left.start - right.start || left.id - right.id);
+        .sort((left, right) => left.start - right.start || left.id.localeCompare(right.id));
 }
 
 describe("getUncoveredSubintervals", () => {
@@ -97,31 +97,31 @@ describe("BasicSegmentManager", () => {
     it("initializes segments from the basic segmenter in text order", () => {
         const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
             "abcdef",
-            [makeLabel(1, 1, 3, "name")],
+            [makeLabel("1", 1, 3, "name")],
         );
 
         expect(manager.getText()).toBe("abcdef");
         expect(manager.getSegments()).toEqual([
             {
-                id: 0,
+                id: "0",
                 start: 0,
                 text: "a",
                 labels: [],
             },
             {
-                id: 1,
+                id: "1",
                 start: 1,
                 text: "bc",
                 labels: [
                     {
-                        id: 1,
+                        id: "1",
                         range: { start: 0, end: 2 },
                         style: { name: "name" },
                     },
                 ],
             },
             {
-                id: 2,
+                id: "2",
                 start: 3,
                 text: "def",
                 labels: [],
@@ -129,7 +129,7 @@ describe("BasicSegmentManager", () => {
         ]);
         assertManagerInvariants(manager);
         expect(getAbsoluteLabels(manager)).toEqual([
-            { id: 1, start: 1, end: 3, name: "name" },
+            { id: "1", start: 1, end: 3, name: "name" },
         ]);
     });
 
@@ -174,34 +174,34 @@ describe("BasicSegmentManager", () => {
         const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
             "Alice met Bob in Wonderland.",
             [
-                makeLabel(1, 0, 5, "alice"),
-                makeLabel(2, 10, 13, "bob"),
-                makeLabel(3, 17, 27, "place"),
+                makeLabel("1", 0, 5, "alice"),
+                makeLabel("2", 10, 13, "bob"),
+                makeLabel("3", 17, 27, "place"),
             ],
             1,
         );
 
         assertManagerInvariants(manager);
         expect(getAbsoluteLabels(manager)).toEqual([
-            { id: 1, start: 0, end: 5, name: "alice" },
-            { id: 2, start: 10, end: 13, name: "bob" },
-            { id: 3, start: 17, end: 27, name: "place" },
+            { id: "1", start: 0, end: 5, name: "alice" },
+            { id: "2", start: 10, end: 13, name: "bob" },
+            { id: "3", start: 17, end: 27, name: "place" },
         ]);
 
         manager.insertTextAt(6, "quietly ");
         assertManagerInvariants(manager);
         expect(getAbsoluteLabels(manager)).toEqual([
-            { id: 1, start: 0, end: 5, name: "alice" },
-            { id: 2, start: 18, end: 21, name: "bob" },
-            { id: 3, start: 25, end: 35, name: "place" },
+            { id: "1", start: 0, end: 5, name: "alice" },
+            { id: "2", start: 18, end: 21, name: "bob" },
+            { id: "3", start: 25, end: 35, name: "place" },
         ]);
 
         manager.deleteTextAt(6, 4);
         assertManagerInvariants(manager);
         expect(getAbsoluteLabels(manager)).toEqual([
-            { id: 1, start: 0, end: 5, name: "alice" },
-            { id: 2, start: 14, end: 17, name: "bob" },
-            { id: 3, start: 21, end: 31, name: "place" },
+            { id: "1", start: 0, end: 5, name: "alice" },
+            { id: "2", start: 14, end: 17, name: "bob" },
+            { id: "3", start: 21, end: 31, name: "place" },
         ]);
     });
 
