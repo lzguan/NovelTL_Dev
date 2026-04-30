@@ -823,6 +823,33 @@ export type Language = {
 };
 
 /**
+ * ModifyChapterContentResponse
+ *
+ * Pydantic schema for the response after modifying chapter content.
+ *
+ * Attributes:
+ * chapter_content_version: The new version number of the text content after applying the modifications.
+ * chapter_content_id: The UUID of the text content that was modified.
+ * label_data_id_map: A mapping from label data IDs before the text modification to label data IDs after the text modification
+ */
+export type ModifyChapterContentResponse = {
+    /**
+     * Chaptercontentversion
+     */
+    chapterContentVersion: number;
+    /**
+     * Chaptercontentid
+     */
+    chapterContentId: string;
+    /**
+     * Labeldataidmap
+     */
+    labelDataIdMap: {
+        [key: string]: string;
+    };
+};
+
+/**
  * Novel
  *
  * Pydantic schema for novel.
@@ -2004,7 +2031,7 @@ export type UpdateChapterContentChaptersChapterIdContentPatchResponses = {
     /**
      * Successful Response
      */
-    200: OperationStatus;
+    200: ModifyChapterContentResponse;
 };
 
 export type UpdateChapterContentChaptersChapterIdContentPatchResponse = UpdateChapterContentChaptersChapterIdContentPatchResponses[keyof UpdateChapterContentChaptersChapterIdContentPatchResponses];

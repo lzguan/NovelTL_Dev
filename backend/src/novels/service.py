@@ -761,7 +761,7 @@ def modify_chapter_content(
         chapter_id : uuid.UUID,
         chapter_content_id : uuid.UUID,
         ops : list[schemas.TextOp],
-) -> OperationStatus:
+) -> schemas.ModifyChapterContentResponse:
     """
     Modify the text of a chapter and port all label datas over, including those the current user does not have access to.
 
@@ -814,11 +814,11 @@ def modify_chapter_content(
     )
     cols = ['chapter_id', 'chapter_content_text', 'chapter_content_version']
     vals = chapter_content_mod_access_insert(vals, current_user, chapter_content.chapter_id)
-    stmt = insert(models.ChapterContent).from_select(cols, vals).returning(models.ChapterContent.chapter_content_id)
+    stmt = insert(models.ChapterContent).from_select(cols, vals).returning(models.ChapterContent.chapter_content_id, models.ChapterContent.chapter_content_version)
 
     try:
         result = db.execute(stmt)
-        new_chapter_content_id = result.scalar_one()
+        new_chapter_content_id, new_chapter_content_version = result.one()
         db.commit()
     except NoResultFound as e:
         db.rollback()
@@ -831,8 +831,15 @@ def modify_chapter_content(
         db.rollback()
         raise UnknownError from e
 
+    qq = select(label_models.LabelData.label_data_id).where(label_models.LabelData.chapter_content_id == chapter_content.chapter_content_id)
+    all_label_data_ids = db.execute(qq).scalars().all()
     # port label datas
     label_data_map : dict[uuid.UUID, list[label_schemas.Label]] = defaultdict(list)
+
+    for ldid in all_label_data_ids:
+        label_data_map[ldid] = []
+
+    label_data_id_map : dict[uuid.UUID, uuid.UUID] = {}
 
     for label in new_labels:
         label_data_map[label.label_data_id].append(label)
@@ -842,6 +849,7 @@ def modify_chapter_content(
         label_group_id = db.execute(label_data_q).scalar_one()
         stmt = insert(label_models.LabelData).values(label_group_id=label_group_id, chapter_content_id=new_chapter_content_id).returning(label_models.LabelData)
         label_data = db.execute(stmt).scalar_one()
+        label_data_id_map[label_data_id] = label_data.label_data_id
         label_vals = [label.model_dump(exclude={"label_id"}) for label in labels]
         for label in label_vals:
             label['label_data_id'] = label_data.label_data_id
@@ -849,7 +857,11 @@ def modify_chapter_content(
         db.execute(stmt)
     db.commit()
 
-    return OperationStatus(status="success", detail="Chapter content modified successfully.")
+    return schemas.ModifyChapterContentResponse(
+        chapter_content_id=new_chapter_content_id,
+        chapter_content_version=new_chapter_content_version,
+        label_data_id_map=label_data_id_map
+    )
 
 
 def remove_chapter(

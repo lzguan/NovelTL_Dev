@@ -222,3 +222,17 @@ class UpdateChapterContent(Model):
     """
     text_ops : list[TextOp]
     chapter_content_id : uuid.UUID
+
+class ModifyChapterContentResponse(Model):
+    """
+    Pydantic schema for the response after modifying chapter content.
+
+    Attributes:
+        chapter_content_version: The new version number of the text content after applying the modifications.
+        chapter_content_id: The UUID of the text content that was modified.
+        label_data_id_map: A mapping from label data IDs before the text modification to label data IDs after the text modification
+    """
+    model_config = ConfigDict(from_attributes=True)
+    chapter_content_version : int
+    chapter_content_id : uuid.UUID
+    label_data_id_map : dict[uuid.UUID, uuid.UUID]

@@ -613,7 +613,7 @@ async def read_chapter_content_status(
 
 @router.patch(
     '/chapters/{chapterId}/content',
-    response_model=OperationStatus
+    response_model=schemas.ModifyChapterContentResponse
 )
 async def update_chapter_content(
     chapter_id : Annotated[uuid.UUID, Path(alias="chapterId")],

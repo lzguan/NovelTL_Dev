@@ -1196,7 +1196,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OperationStatus"
+                  "$ref": "#/components/schemas/ModifyChapterContentResponse"
                 }
               }
             }
@@ -3609,6 +3609,38 @@
         ],
         "title": "Language",
         "description": "Pydantic schema for language.\n\nAttributes:\n    language_code: String code key to language.\n    language_name: String name of language."
+      },
+      "ModifyChapterContentResponse": {
+        "properties": {
+          "chapterContentVersion": {
+            "type": "integer",
+            "title": "Chaptercontentversion"
+          },
+          "chapterContentId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Chaptercontentid"
+          },
+          "labelDataIdMap": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "propertyNames": {
+              "format": "uuid"
+            },
+            "type": "object",
+            "title": "Labeldataidmap"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chapterContentVersion",
+          "chapterContentId",
+          "labelDataIdMap"
+        ],
+        "title": "ModifyChapterContentResponse",
+        "description": "Pydantic schema for the response after modifying chapter content.\n\nAttributes:\n    chapter_content_version: The new version number of the text content after applying the modifications.\n    chapter_content_id: The UUID of the text content that was modified.\n    label_data_id_map: A mapping from label data IDs before the text modification to label data IDs after the text modification"
       },
       "Novel": {
         "properties": {
