@@ -13,6 +13,8 @@ from ..auth.models import User
 from ..database import get_db
 from ..exceptions import DataTooLongException, InsufficientPermissionsException
 from ..languages.exceptions import LanguageNotFoundException
+from ..requests.cache import redis_cache
+from ..requests.decorators import attl_cache, svp
 from ..schemas import OperationStatus
 from . import schemas
 from .exceptions import (
@@ -61,8 +63,8 @@ router = APIRouter()
 async def read_source_works(
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User | None, Depends(get_optional_user)],
-    title_contains : str | None = Query(default=None, alias="titleContains"),
-    ret_novels : bool = Query(default=False, alias="retNovels")
+    title_contains : Annotated[str | None, Query(alias="titleContains")] = None,
+    ret_novels : Annotated[bool, Query(alias="retNovels")] = False
 ):
     """
     Endpoint for retrieving source works in bulk, optionally filtered by title substring.
@@ -190,7 +192,7 @@ async def update_source_work(
 async def read_novels(
     db : Annotated[Session, Depends(get_db)],
     current_user : Annotated[User | None, Depends(get_optional_user)],
-    title_contains : str | None = Query(default=None, alias="titleContains")
+    title_contains : Annotated[str | None, Query(alias="titleContains")] = None
 ):
     """
     Endpoint for retrieving novels in bulk.
@@ -615,11 +617,13 @@ async def read_chapter_content_status(
     '/chapters/{chapterId}/content',
     response_model=schemas.ModifyChapterContentResponse
 )
+@attl_cache(ttl=60, cache=redis_cache, success_code=200, serialize_ret=svp(schemas.ModifyChapterContentResponse))
 async def update_chapter_content(
     chapter_id : Annotated[uuid.UUID, Path(alias="chapterId")],
     request : schemas.UpdateChapterContent,
     db : Annotated[Session, Depends(get_db)],
-    current_user : Annotated[User, Depends(get_current_user)]
+    current_user : Annotated[User, Depends(get_current_user)],
+    request_key: Annotated[uuid.UUID | None, Query(alias="requestKey")] = None,
 ):
     """
     Apply text operations to the most recent content of a chapter. Uses optimistic concurrency

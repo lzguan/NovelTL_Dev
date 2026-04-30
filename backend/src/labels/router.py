@@ -9,6 +9,8 @@ from ..auth.models import User
 from ..database import get_db
 from ..exceptions import DataTooLongException, NotFoundException
 from ..novels.exceptions import ChapterContentNotFoundException, NovelNotFoundException
+from ..requests.cache import redis_cache
+from ..requests.decorators import svp, ttl_cache
 from . import schemas
 from .exceptions import (
     LabelDataNotFoundException,
@@ -115,10 +117,12 @@ def read_labels_by_label_data(
     return labels
 
 @router.post('/label-groups', response_model=schemas.LabelGroup)
+@ttl_cache(ttl=60, cache=redis_cache, success_code=200, serialize_ret=svp(schemas.LabelGroup))
 def create_label_group(
         request: schemas.CreateLabelGroup,
         db: Annotated[Session, Depends(get_db)],
-        current_user: Annotated[User, Depends(get_current_user)]
+        current_user: Annotated[User, Depends(get_current_user)],
+        request_key: Annotated[uuid.UUID | None, Query(alias="requestKey")] = None,
     ):
     """
     Creates a new label group.
@@ -170,11 +174,13 @@ def update_label_group(
     return label_group
 
 @router.post('/label-groups/{labelGroupId}/label-datas', response_model=schemas.LabelData)
+@ttl_cache(ttl=60, cache=redis_cache, success_code=200, serialize_ret=svp(schemas.LabelData))
 def create_label_data(
         label_group_id: Annotated[uuid.UUID, Path(alias="labelGroupId")],
         request: schemas.CreateLabelData,
         db: Annotated[Session, Depends(get_db)],
-        current_user: Annotated[User, Depends(get_current_user)]
+        current_user: Annotated[User, Depends(get_current_user)],
+        request_key: Annotated[uuid.UUID | None, Query(alias="requestKey")] = None,
     ):
     """
     Creates a label data entry for a revision text in a label group.
@@ -203,12 +209,14 @@ def create_label_data(
     return label_data
 
 @router.patch('/label-datas/{labelDataId}', status_code=status.HTTP_204_NO_CONTENT)
+@ttl_cache(ttl=60, cache=redis_cache, success_code=204, serialize_ret=svp(schemas.LabelData))
 def update_label_data_stream(
         label_data_id: Annotated[uuid.UUID, Path(alias="labelDataId")],
         request: schemas.UpdateLabelDataStream,
         db: Annotated[Session, Depends(get_db)],
-        current_user: Annotated[User, Depends(get_current_user)]
-    ):
+        current_user: Annotated[User, Depends(get_current_user)],
+        request_key: Annotated[uuid.UUID | None, Query(alias="requestKey")] = None,
+    ) -> None:
     """
     Applies a stream of edit operations to labels.
 

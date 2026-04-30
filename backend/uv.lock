@@ -430,6 +430,7 @@ backend = [
     { name = "fastapi" },
     { name = "pwdlib" },
     { name = "pyjwt" },
+    { name = "redis", extra = ["hiredis"] },
     { name = "uvicorn" },
 ]
 dev = [
@@ -467,6 +468,7 @@ backend = [
     { name = "fastapi", specifier = ">=0.119.0,<0.120" },
     { name = "pwdlib", specifier = ">=0.3.0,<0.4" },
     { name = "pyjwt", specifier = "==2.9.0" },
+    { name = "redis", extras = ["hiredis"], specifier = ">=5.3.1" },
     { name = "uvicorn", specifier = ">=0.30.0,<0.31" },
 ]
 dev = [

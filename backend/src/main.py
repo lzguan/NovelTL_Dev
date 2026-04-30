@@ -2,7 +2,6 @@
 This is the main endpoint for the application.
 """
 import logging
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,8 +14,8 @@ from .filters.router import router as filters_router
 from .labels.router import router as label_router
 from .languages.router import router as language_router
 from .novels.router import router as novel_router
-from .redis import set_redis
-
+from .redis_conn import set_redis
+from .requests.router import router as requests_router
 
 logger = logging.getLogger("src")
 logger.setLevel(logging.DEBUG)
@@ -52,6 +51,7 @@ app.include_router(autolabel_router)
 app.include_router(language_router)
 app.include_router(filters_router)
 app.include_router(editing_router)
+app.include_router(requests_router)
 
 if __name__ == "__main__":
     import uvicorn

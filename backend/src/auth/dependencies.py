@@ -1,5 +1,5 @@
-from typing import Annotated, Any
 import logging
+from typing import Annotated, Any
 
 import jwt
 from fastapi import Depends, HTTPException, status

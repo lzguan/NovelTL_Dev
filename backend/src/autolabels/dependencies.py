@@ -3,7 +3,7 @@ from typing import Annotated
 from arq import ArqRedis
 from fastapi import Depends
 
-from ..redis import get_redis
+from ..redis_conn import get_redis
 from .utils import ArqDispatcher, AutoLabelDispatcher
 
 

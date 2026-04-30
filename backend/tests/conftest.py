@@ -1,6 +1,7 @@
 import os
 from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from arq import ArqRedis, create_pool
@@ -14,7 +15,35 @@ from src.autolabels.worker.worker import WorkerSettings
 from src.database import get_db
 from src.main import app
 from src.models import Base
-from src.redis import get_redis_for_app
+from src.redis_conn import get_redis_for_app
+
+
+class FakeTTLCacheSyncRedis:
+    def __init__(self, store: dict[str, str]) -> None:
+        self.store = store
+
+    def get(self, key: str) -> str | None:
+        return self.store.get(key)
+
+    def set(self, key: str, value: str, ex: int | None = None, nx: bool = False) -> bool | None:
+        if nx and key in self.store:
+            return None
+        self.store[key] = value
+        return True
+
+
+class FakeTTLCacheAsyncRedis:
+    def __init__(self, store: dict[str, str]) -> None:
+        self.store = store
+
+    async def get(self, key: str) -> str | None:
+        return self.store.get(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None, nx: bool = False) -> bool | None:
+        if nx and key in self.store:
+            return None
+        self.store[key] = value
+        return True
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -47,6 +76,24 @@ def test_url() -> str:
     if ret is None:
         raise OSError("TEST_URL environment variable not set for tests.")
     return ret
+
+
+@pytest.fixture
+def ttl_cache_store() -> dict[str, str]:
+    return {}
+
+
+@pytest.fixture(autouse=True)
+def fake_ttl_cache_redis(monkeypatch: pytest.MonkeyPatch, ttl_cache_store: dict[str, str]) -> dict[str, Any]:
+    import src.requests.cache as cache_module
+
+    sync_redis = FakeTTLCacheSyncRedis(ttl_cache_store)
+    async_redis = FakeTTLCacheAsyncRedis(ttl_cache_store)
+
+    monkeypatch.setattr(cache_module, "get_redis_for_ttl_cache_sync", lambda: sync_redis)
+    monkeypatch.setattr(cache_module, "get_redis_for_ttl_cache_async", lambda: async_redis)
+
+    return {"sync": sync_redis, "async": async_redis, "store": ttl_cache_store}
 
 @pytest.fixture
 def test_engine(test_url : str) -> Engine:

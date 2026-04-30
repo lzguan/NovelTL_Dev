@@ -1178,6 +1178,23 @@
               "format": "uuid",
               "title": "Chapterid"
             }
+          },
+          {
+            "name": "requestKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Requestkey"
+            }
           }
         ],
         "requestBody": {
@@ -1422,6 +1439,25 @@
         "security": [
           {
             "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Requestkey"
+            }
           }
         ],
         "requestBody": {
@@ -1704,6 +1740,23 @@
               "format": "uuid",
               "title": "Labeldataid"
             }
+          },
+          {
+            "name": "requestKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Requestkey"
+            }
           }
         ],
         "requestBody": {
@@ -1802,6 +1855,23 @@
               "type": "string",
               "format": "uuid",
               "title": "Labelgroupid"
+            }
+          },
+          {
+            "name": "requestKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Requestkey"
             }
           }
         ],
@@ -2498,6 +2568,46 @@
           }
         }
       }
+    },
+    "/cached/{cachedId}": {
+      "get": {
+        "summary": "Get Cached Result",
+        "operationId": "get_cached_result_cached__cachedId__get",
+        "parameters": [
+          {
+            "name": "cachedId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cachedid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CacheEntry"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2749,6 +2859,61 @@
           "password"
         ],
         "title": "Body_login_for_access_token_token_post"
+      },
+      "CacheEntry": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "success",
+              "failure"
+            ],
+            "title": "Status"
+          },
+          "status_code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Code"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "status_code",
+          "response",
+          "error"
+        ],
+        "title": "CacheEntry"
       },
       "Chapter": {
         "properties": {

@@ -32,4 +32,4 @@ class _RedisSettings(BaseConfig):
 database_settings = DatabaseSettings()
 auth_settings = AuthSettings()
 _redis_settings = _RedisSettings()
-redis_settings = RedisSettings(host=_redis_settings.REDIS_HOST, port=_redis_settings.REDIS_PORT)
+redis_settings = RedisSettings(host=_redis_settings.REDIS_HOST, port=_redis_settings.REDIS_PORT, database=0)
