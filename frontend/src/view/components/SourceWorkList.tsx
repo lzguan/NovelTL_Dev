@@ -1,7 +1,7 @@
-import { type SourceWorkData } from "@/types/novel";
+import type { SourceWorkDataOutput } from "@/client";
 import { SourceWorkCard } from "./SourceWorkCard";
 
-function SourceWorkList({ data } : { data : SourceWorkData[] }) {
+function SourceWorkList({ data } : { data : SourceWorkDataOutput[] }) {
     return (
         <div className="space-y-4">
             {data.map((item) => (

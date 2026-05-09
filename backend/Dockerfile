@@ -6,11 +6,11 @@ ENV UV_PROJECT_ENVIRONMENT="/.venv"
 RUN uv sync --frozen --no-default-groups --no-install-project
 
 FROM base AS backend
-RUN uv sync --frozen --group backend --no-dev
+RUN uv sync --frozen --group backend --no-dev --no-install-project
 COPY . .
 CMD ["uv", "run", "--no-sync", "uvicorn", "src.main:app", "--host", "0.0.0.0"]
 
 FROM base AS worker
-RUN uv sync --frozen --group worker --no-dev
+RUN uv sync --frozen --group worker --no-dev --no-install-project
 COPY . .
 CMD ["uv", "run", "--no-sync", "arq", "src.autolabels.worker.worker.WorkerSettings"]

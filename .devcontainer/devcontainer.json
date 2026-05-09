@@ -14,17 +14,14 @@
 	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
 	"service": "dev",
 
+	"runServices": [],
+
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	 "features": {
-		"ghcr.io/devcontainers/features/git:1": {},
-		"ghcr.io/devcontainers/features/github-cli:1": {},
-		"ghcr.io/devcontainers/features/node:1": {
-			"version": "lts"
-		}
 	 },
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -36,7 +33,7 @@
 	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
 	// "shutdownAction": "none",
 
-	"postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.claude /home/vscode/.codex && pnpm add -g @openai/codex && rm  -rf /workspaces/NovelTL_Dev/frontend/node_modules/.vite-temp",
+	"postCreateCommand": "mkdir -p /home/node/.claude /home/node/.codex && sudo chown -R node:node /home/node/.claude /home/node/.codex",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -60,11 +57,20 @@
 				"files.associations": {
 					"*.css": "tailwindcss"
 				},
-				"js/ts.experimental.useTsgo": true
+				"js/ts.experimental.useTsgo": true,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff",
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports.ruff": "explicit",
+						"source.fixAll": "explicit"
+					}
+				}
 			}
 		}
 	}
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "devcontainer"
+	// Use "remoteUser" so VS Code connects with the expected user
+	// "remoteUser": "node"
 }

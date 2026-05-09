@@ -1,11 +1,11 @@
-import { type Novel, type SourceWork } from "@/types/novel";
 import { NovelList } from "./NovelList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { routeTo } from "@/routes";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/text/ExpandableText";
-import { truncateProducer } from "./NovelCard";
+import { truncateProducer } from "../utils/truncateProducer";
+import type { Novel, SourceWork } from "@/client";
 
 const truncate = truncateProducer(300)
 

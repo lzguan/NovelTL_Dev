@@ -71,6 +71,9 @@ services:
       SECRET_KEY: ${SECRET_KEY} # purely to not crash on startup
     volumes:
       - ./backend:/project
+    profiles:
+      - manual
+
 
   backend:
     build: 
@@ -99,6 +102,7 @@ services:
       - pnpm-store:/pnpm/store
     ports:
       - "${FRONTEND_PORT}:5173"
+
 
 volumes:
   db_data:

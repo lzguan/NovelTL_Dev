@@ -12,3 +12,4 @@ database/db_backups/backup_*.sql
 handoff.md
 .codex
 *.log
+.pnpm-store/
