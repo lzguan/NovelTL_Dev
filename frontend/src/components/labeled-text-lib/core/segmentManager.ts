@@ -1,5 +1,8 @@
+import { createLogger } from "@/lib/logging";
 import { makeBasicSegmenter } from "./segmenters";
 import type { StyledLabel, Interval, Segment, Style } from "./types";
+
+const logger = createLogger("SegmentManager");
 
 export type LabelID = string;
 type SegmentID = string;
@@ -41,6 +44,7 @@ export function getUncoveredSubintervals(
     coveredIntervals: readonly Interval[],
 ): Interval[] {
     if (target.start > target.end) {
+        logger.error(`Invalid target interval with start greater than end: [${target.start}, ${target.end})`);
         throw new Error(`Invalid target interval: [${target.start}, ${target.end})`);
     }
     if (target.start === target.end) {
@@ -76,14 +80,16 @@ export function getUncoveredSubintervals(
 }
 
 /**
+ * We say a position is relative to a segment if it is an offset from the start of the segment. We say a position is absolute if it is an offset from the start of the full text. 
+ * 
  * Invariants to maintain:
  * - The segments should cover the full text without gaps or overlaps. 
  * - Each label should be fully contained within a single segment. 
  * - Each segment should have length greater than 0. 
  * - Each label should have length greater than 0.
  * - Each label's start position within the segment manager should be relative to the segment it is contained in.
- * - Essentially, the getter interface should return data consistent with the representation that LabeledText expects.
- * - The actual label data should store start pos relative to entire text.
+ * - The segment interfaces should return data consistent with the representation that LabeledText expects (e.g. labels have relative positions, segment has absolute position).
+ * - The actual label data should be exposed in absolute positions. Internal stores should be relative.
  */
 export type SegmentManager<S extends Style, L extends StyledLabel<S>> = {
     /**
@@ -95,7 +101,8 @@ export type SegmentManager<S extends Style, L extends StyledLabel<S>> = {
      */
     getSegmentIds(): SegmentID[];
     /**
-     * Gets a segment by its ID.
+     * Gets a segment by its ID. The segment contains labels with relative positions but the segment's position is absolute. 
+     * @param id
      */
     getSegment(id : SegmentID): Segment<S, ManagedLabel<S, L>>;
     /**
@@ -109,11 +116,11 @@ export type SegmentManager<S extends Style, L extends StyledLabel<S>> = {
     subscribe(callback: () => void): () => void;
 
     /**
-     * Adds a new label. Throw an error if the label id already exists.
+     * Adds a new label. The label's position should be absolute. Throw an error if the label id already exists.
      */
     addLabel(id : LabelID, label: L): void;
     /**
-     * Updates an existing label. If the label id does not exist, throw an error.
+     * Updates an existing label. The new label's position should be absolute. If the label id does not exist, throw an error.
      * @param id 
      * @param newLabel 
      */
@@ -125,24 +132,24 @@ export type SegmentManager<S extends Style, L extends StyledLabel<S>> = {
     removeLabel(id: LabelID): void;
 
     /**
-     * Gets a label by its ID. Throw an error if the label id does not exist.
+     * Gets a label by its ID. Returns the label with absolute positions. Throw an error if the label id does not exist.
      */
     getLabel(id: LabelID): L;
     /**
-     * Insert text at a given position. This may cause segments to split or merge depending on the implementation. The position is relative to the full text, not segment-local. If the position is out of bounds, throw an error.
+     * Insert text at a given position. This may cause segments to split or merge depending on the implementation. The position is absolute. If the position is out of bounds, throw an error.
      * @param pos 
      * @param text 
      */
     insertTextAt(pos: number, text: string): void;
     /**
-     * Delete text at a given position with given length. This may cause segments to split or merge depending on the implementation. The position is relative to the full text, not segment-local. If the position is out of bounds, throw an error.
+     * Delete text at a given position with given length. This may cause segments to split or merge depending on the implementation. The position is absolute. If the position is out of bounds, throw an error.
      * @param pos 
      * @param length 
      */
     deleteTextAt(pos: number, length: number): void;
 
     /**
-     * Perform a batch of operations. 
+     * Perform a batch of operations (i.e. delay notification to subscribers until the end of the batch). Can nest batch operations.
      */
     batch(operations: (() => void)): void;
 }
@@ -210,7 +217,7 @@ type SegmentManagerData<S extends Style, L extends StyledLabel<S>> = {
     /**
      * Lookup index, not ssot
      */
-    labelsById : Map<LabelID, L>;
+    labelsById : Map<LabelID, L>; // L stored with relative pos, translation layer at interface boundary
     segmentIdsByLabelId : Map<LabelID, SegmentID>;
     segmentsById : Map<SegmentID, Segment<S, ManagedLabel<S, L>>>;
     bounds : {id : SegmentID; start : number; end : number}[]
@@ -261,9 +268,20 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
         getLabel(id: LabelID) {
             const label = this.labelsById.get(id);
             if (!label) {
+                logger.error(`Label with ID ${id} not found`);
                 throw new Error(`Label with ID ${id} not found`);
             }
-            return label;
+            const segmentId = this.segmentIdsByLabelId.get(id);
+            if (!segmentId) {
+                logger.error(`Segment for label ID ${id} not found`);
+                throw new Error(`Segment for label ID ${id} not found`);
+            }
+            const segment = this.segmentsById.get(segmentId);
+            if (!segment) {
+                logger.error(`Segment with ID ${segmentId} not found`);
+                throw new Error(`Segment with ID ${segmentId} not found`);
+            }
+            return { ...label, interval: { start: label.interval.start + segment.start, end: label.interval.end + segment.start } };
         },
 
         subscribe(listener : () => void) {
@@ -280,7 +298,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
         },
 
         validateSplit(segment: Segment<S, ManagedLabel<S, L>>, pos: number) {
-            if (pos <= 0 || pos >= segment.text.length) {
+            if (pos < 0 || pos > segment.text.length) {
                 return false;
             }
             for (const label of segment.labels) {
@@ -293,6 +311,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
 
         querySegment(pos: number) {
             if (pos < 0 || pos >= this.text.length) {
+                logger.error(`Position ${pos} is out of bounds for text of length ${this.text.length}`);
                 throw new Error(`Position ${pos} is out of bounds for text of length ${this.text.length}`);
             }
             const idx = this.bounds.findIndex(b => b.start <= pos && b.end > pos);
@@ -301,9 +320,11 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
 
         querySegments(startPos: number, endPos: number) {
             if (startPos < 0 || endPos > this.text.length || startPos > endPos) {
+                logger.error(`Invalid segment query range: startPos=${startPos}, endPos=${endPos}, text length=${this.text.length}`);
                 throw new Error(`Invalid segment query range: startPos=${startPos}, endPos=${endPos}, text length=${this.text.length}`);
             }
             if (startPos >= endPos) {
+                logger.error(`Invalid segment query range: startPos=${startPos} is not less than endPos=${endPos}`);
                 throw new Error(`Invalid segment query range: startPos=${startPos} is not less than endPos=${endPos}`);
             }
             const startIdx = this.bounds.findIndex(b => b.end > startPos);
@@ -316,6 +337,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
 
         mergeSegments(startIdx: Index, endIdx: Index) {
             if (startIdx === -1 || endIdx === -1 || startIdx >= endIdx) {
+                logger.error(`Invalid segment indices for merging: startIdx=${startIdx}, endIdx=${endIdx}`);
                 throw new Error(`Invalid segment indices: startIdx=${startIdx}, endIdx=${endIdx}`);
             }
             const boundsSegments = this.bounds.slice(startIdx, endIdx);
@@ -327,7 +349,13 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
             let offsetTemp = 0
             let newLabels: ManagedLabel<S, L>[] = [];
             for (const seg of segments) {
-                newLabels = newLabels.concat(seg.labels.map(l => ({ ...l, interval: { start: l.interval.start + offsetTemp, end: l.interval.end + offsetTemp } })));
+                newLabels = newLabels.concat(
+                    seg.labels.map(l => {
+                        const interval = { start: l.interval.start + offsetTemp, end: l.interval.end + offsetTemp };
+                        this.labelsById.get(l.id)!.interval = interval;
+                        return { ...l, interval }
+                    })
+                );
                 offsetTemp += seg.text.length;
             }
             const mergedSegment : Segment<S, ManagedLabel<S, L>> = {
@@ -351,9 +379,15 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
         splitSegment(segmentId: SegmentID, relPos: number) {
             const segment = this.segmentsById.get(segmentId);
             if (!segment) {
+                logger.error(`Segment with id ${segmentId} does not exist`);
                 throw new Error(`Segment with id ${segmentId} does not exist`);
             }
+            if (relPos === 0 || relPos === segment.text.length) {
+                logger.info(`Split position ${relPos} is at the boundary of the segment, no split needed`);
+                return;
+            }
             if (!this.validateSplit(segment, relPos)) {
+                logger.error(`Position ${relPos} is not a valid split point for segment with id ${segmentId}`);
                 throw new Error(`Position ${relPos} is not a valid split point for segment with id ${segmentId}`);
             }
             const firstHalf : Segment<S, ManagedLabel<S, L>> = {
@@ -366,8 +400,10 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
                 start: segment.start + relPos,
                 text: segment.text.slice(relPos),
                 labels: segment.labels.filter(l => l.interval.start >= relPos).map(l => {
+                    const interval = { start: l.interval.start - relPos, end: l.interval.end - relPos };
                     this.segmentIdsByLabelId.set(l.id, secondId);
-                    return { ...l, interval: { start: l.interval.start - relPos, end: l.interval.end - relPos } }
+                    this.labelsById.get(l.id)!.interval = interval;
+                    return { ...l, interval }
                 })
             }
             const idx = this.querySegment(segment.start);
@@ -407,11 +443,13 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
 
         addLabel(id : LabelID, label: L) {
             if (this.labelsById.has(id)) {
+                logger.error(`Label with id ${id} already exists`);
                 throw new Error(`Label with id ${id} already exists`);
             }
             const { startIdx, endIdx } = this.querySegments(label.interval.start, label.interval.end);
             const newSegmentId = this.mergeSegments(startIdx, endIdx);
-            this.labelsById.set(id, label);
+            const newSegment = this.getSegment(newSegmentId);
+            this.labelsById.set(id, {...label, interval: { start: label.interval.start - newSegment.start, end: label.interval.end - newSegment.start }});
             this.segmentIdsByLabelId.set(id, newSegmentId);
             this.segmentsById.get(newSegmentId)!.labels.push( { ...label, interval: { start: label.interval.start - this.segmentsById.get(newSegmentId)!.start, end: label.interval.end - this.segmentsById.get(newSegmentId)!.start } , id });
             this.notifySubscribers();
@@ -420,6 +458,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
         removeLabel(id : LabelID) {
             const label = this.labelsById.get(id);
             if (!label) {
+                logger.error(`Label with id ${id} does not exist`);
                 throw new Error(`Label with id ${id} does not exist`);
             }
             const segmentId = this.segmentIdsByLabelId.get(id) as SegmentID;
@@ -443,7 +482,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
                 if (range.end - range.start < gap) {
                     continue;
                 }
-                const splitPos = range.start - segment.start;
+                const splitPos = range.start;
                 this.splitSegment(segmentId, splitPos);
             }
             this.notifySubscribers();
@@ -471,6 +510,7 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
                 return;
             }
             if (pos < 0 || pos > this.text.length) {
+                logger.error(`Position ${pos} is out of bounds for text of length ${this.text.length}`);
                 throw new Error(`Position ${pos} is out of bounds for text of length ${this.text.length}`);
             }
             const idx = this.querySegment(pos);
@@ -484,20 +524,28 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
                 this.labelsById.delete(label.id);
                 this.segmentIdsByLabelId.delete(label.id);
             }
-            const gapRange = { start : segment.labels.filter(l => l.interval.end <= relPos).reduce((max, l) => Math.max(max, l.interval.end), 0), end: segment.labels.filter(l => l.interval.start >= relPos).reduce((min, l) => Math.min(min, l.interval.start), segment.text.length) };
+            const gapRange = {
+                start : segment.labels.filter(l => l.interval.end <= relPos).reduce((max, l) => Math.max(max, l.interval.end), 0), 
+                end: segment.labels.filter(l => l.interval.start >= relPos).reduce((min, l) => Math.min(min, l.interval.start), segment.text.length) 
+            };
             if (gapRange.end - gapRange.start < gap) {
                 const labelsAfter = segment.labels.filter(l => l.interval.start >= relPos);
                 for (const label of labelsAfter) {
-                    label.interval.start += text.length;
-                    label.interval.end += text.length;
-                    this.labelsById.get(label.id)!.interval.start += text.length;
-                    this.labelsById.get(label.id)!.interval.end += text.length;
+                    const interval = { start: label.interval.start + text.length, end: label.interval.end + text.length };
+                    label.interval = interval;
+                    this.labelsById.get(label.id)!.interval = interval;
                 }
                 segment.text = segment.text.slice(0, relPos) + text + segment.text.slice(relPos);
                 this.text = this.text.slice(0, pos) + text + this.text.slice(pos);
                 this.segmentsById.set(segmentId, segment);
                 this.bounds[idx].end += text.length;
-                this.bounds.slice(idx + 1).forEach(b => { b.start += text.length; b.end += text.length; this.segmentsById.get(b.id)!.start += text.length });
+                this.bounds.slice(idx + 1).forEach(
+                    b => { 
+                        b.start += text.length; 
+                        b.end += text.length; 
+                        this.segmentsById.get(b.id)!.start += text.length 
+                    }
+                );
             }
             else {
                 let startOff = 0;
@@ -519,94 +567,238 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
             this.notifySubscribers();
         },
         
-        deleteTextAt(pos: number, length: number) {
+        deleteTextAt(startPos: number, length: number) {
+            // this function has lots of edge cases
+            // todo: refactor into smaller functions and add more comments
             if (length < 0) {
+                logger.error(`Delete length must be non-negative, got ${length}`);
                 throw new Error(`Delete length must be non-negative, got ${length}`);
             }
             if (length === 0) {
                 return;
             }
-            if (pos < 0 || pos + length > this.text.length) {
-                throw new Error(`Delete range [${pos}, ${pos + length}) is out of bounds for text of length ${this.text.length}`);
+            if (startPos < 0 || startPos + length > this.text.length) {
+                logger.error(`Delete range [${startPos}, ${startPos + length}) is out of bounds for text of length ${this.text.length}`);
+                throw new Error(`Delete range [${startPos}, ${startPos + length}) is out of bounds for text of length ${this.text.length}`);
             }
 
-            const endPos = pos + length;
-            const { startIdx, endIdx } = this.querySegments(pos, endPos);
+            const endPos = startPos + length;
+            const { startIdx, endIdx } = this.querySegments(startPos, endPos);
             const affectedBounds = this.bounds.slice(startIdx, endIdx);
+            this.text = this.text.slice(0, startPos) + this.text.slice(endPos);
             if (affectedBounds.length === 0) {
-                this.text = this.text.slice(0, pos) + this.text.slice(endPos);
-                this.notifySubscribers();
-                return;
+                //pass
             }
-
-            const affectedStart = affectedBounds[0].start;
-            const affectedEnd = affectedBounds[affectedBounds.length - 1].end;
-            const affectedSegments = affectedBounds.map((bound) => this.segmentsById.get(bound.id)!);
-
-            const deletedLabelIds = new Set<LabelID>();
-            for (const segment of affectedSegments) {
-                for (const label of segment.labels) {
-                    const labelStart = segment.start + label.interval.start;
-                    const labelEnd = segment.start + label.interval.end;
-                    if (labelStart < endPos && labelEnd > pos) {
-                        deletedLabelIds.add(label.id);
+            // only one segment affected, edge case
+            //      [____dddddd_____]
+            //    l1:  1111
+            //    l2:        2222
+            //    l3: 33
+            //    l4:             44
+            else if (affectedBounds.length === 1 && affectedBounds[0].start === startPos && affectedBounds[0].end === endPos) {
+                // the deleted part is exactly the whole segment, just delete it and update bounds
+                const segment = this.segmentsById.get(affectedBounds[0].id)!;
+                segment.labels.forEach(l => {
+                    this.labelsById.delete(l.id);
+                    this.segmentIdsByLabelId.delete(l.id);
+                });
+                this.segmentsById.delete(affectedBounds[0].id);
+                this.bounds.splice(startIdx, 1);
+                this.bounds.slice(startIdx).forEach(b => { 
+                    b.start -= length; 
+                    b.end -= length; 
+                    this.segmentsById.get(b.id)!.start -= length 
+                });
+            }
+            else if (affectedBounds.length === 1) {
+                const segment = this.segmentsById.get(affectedBounds[0].id)!;
+                const relStart = startPos - segment.start;
+                const relEnd = endPos - segment.start;
+                // first pass, don't update ranges
+                // e.g. delete labels of type 1 and 2
+                const newLabelsLeft = segment.labels.filter(l => l.interval.end <= relStart);
+                const newLabelsRight = segment.labels.filter(l => l.interval.start >= relEnd);
+                const deletedLabels = segment.labels.filter(l => !(l.interval.end <= relStart || l.interval.start >= relEnd));
+                for (const label of deletedLabels) {
+                    this.labelsById.delete(label.id);
+                    this.segmentIdsByLabelId.delete(label.id);
+                }
+                segment.labels = [...newLabelsLeft, ...newLabelsRight];
+                const leftUp = Math.max(0, ...newLabelsLeft.map(l => l.interval.end))
+                const rightDown = Math.min(segment.text.length, ...newLabelsRight.map(l => l.interval.start));
+                if ((relStart - leftUp) + (rightDown - relEnd) < gap) {
+                    // can't split, just delete and update labels of type 4 / modify bounds
+                    for (const label of newLabelsRight) {
+                        const interval = { start: label.interval.start - length, end: label.interval.end - length };
+                        label.interval = interval;
+                        this.labelsById.get(label.id)!.interval = interval;
+                    }
+                    segment.text = segment.text.slice(0, relStart) + segment.text.slice(relEnd);
+                    this.bounds[startIdx].end -= length;
+                    this.bounds.slice(startIdx + 1).forEach(b => { 
+                        b.start -= length; 
+                        b.end -= length; 
+                        this.segmentsById.get(b.id)!.start -= length 
+                    });
+                }
+                else {
+                    if (leftUp === 0 && rightDown === segment.text.length) {
+                        // all labels are deleted, just update the segment text and bounds
+                        segment.text = segment.text.slice(0, relStart) + segment.text.slice(relEnd);
+                        this.bounds[startIdx].end -= length;
+                        this.bounds.slice(startIdx + 1).forEach(b => { 
+                            b.start -= length; 
+                            b.end -= length; 
+                            this.segmentsById.get(b.id)!.start -= length 
+                        });
+                    }
+                    else if (rightDown === segment.text.length) {
+                        // no labels of type 4
+                        this.splitSegment(affectedBounds[0].id, leftUp);
+                        const newSegment = this.segmentsById.get(this.bounds[startIdx + 1].id)!;
+                        newSegment.text = newSegment.text.slice(0, relStart - leftUp) + newSegment.text.slice(relEnd - leftUp);
+                        this.bounds[startIdx + 1].end -= length;
+                        this.bounds.slice(startIdx + 2).forEach(b => { 
+                            b.start -= length; 
+                            b.end -= length; 
+                            this.segmentsById.get(b.id)!.start -= length 
+                        });
+                        if (this.bounds[startIdx + 1].end === this.bounds[startIdx + 1].start) {
+                            this.segmentsById.delete(this.bounds[startIdx + 1].id);
+                            this.bounds.splice(startIdx + 1, 1);
+                        }
+                    }
+                    else if (leftUp === 0) {
+                        // no labels of type 3
+                        this.splitSegment(affectedBounds[0].id, rightDown);
+                        const newSegment = this.segmentsById.get(this.bounds[startIdx].id)!;
+                        newSegment.text = newSegment.text.slice(0, relStart) + newSegment.text.slice(relEnd);
+                        this.bounds[startIdx].end -= length;
+                        this.bounds.slice(startIdx + 1).forEach(b => { 
+                            b.start -= length; 
+                            b.end -= length; 
+                            this.segmentsById.get(b.id)!.start -= length 
+                        });
+                        if (this.bounds[startIdx].end === this.bounds[startIdx].start) {
+                            this.segmentsById.delete(this.bounds[startIdx].id);
+                            this.bounds.splice(startIdx, 1);
+                        }
+                    }
+                    else {
+                        // split twice and modify the middle segment
+                        this.splitSegment(affectedBounds[0].id, leftUp);
+                        this.splitSegment(this.bounds[startIdx + 1].id, rightDown - leftUp);
+                        const newSegment = this.segmentsById.get(this.bounds[startIdx + 1].id)!;
+                        if (newSegment.text.length === length) {
+                            // the deleted part is exactly the middle segment, just delete it and update bounds
+                            this.segmentsById.delete(this.bounds[startIdx + 1].id);
+                            this.bounds.splice(startIdx + 1, 1);
+                            this.bounds.slice(startIdx + 1).forEach(b => { 
+                                b.start -= length; 
+                                b.end -= length; 
+                                this.segmentsById.get(b.id)!.start -= length 
+                            });
+                        }
+                        else {
+                            newSegment.text = newSegment.text.slice(0, relStart - leftUp) + newSegment.text.slice(relEnd - leftUp);
+                            this.bounds[startIdx + 1].end -= length;
+                            this.bounds.slice(startIdx + 2).forEach(b => { 
+                                b.start -= length; 
+                                b.end -= length; 
+                                this.segmentsById.get(b.id)!.start -= length
+                            });
+                        }
+                    }   
+                }
+            }
+            else {
+                // we modify two different segments and delete all segments in between
+                affectedBounds.slice(1, -1).forEach(
+                    b => {
+                        const segment = this.segmentsById.get(b.id);
+                        segment!.labels.forEach(
+                            l => {
+                                this.labelsById.delete(l.id);
+                                this.segmentIdsByLabelId.delete(l.id);
+                            }
+                        )
+                        this.segmentsById.delete(b.id);
+                    }
+                )
+                const firstSegment = this.segmentsById.get(affectedBounds[0].id)!
+                let firstDeleted = false
+                const lastSegment = this.segmentsById.get(affectedBounds[affectedBounds.length - 1].id)!;
+                let lastDeleted = false;
+                if (startPos - firstSegment.start === 0) {
+                    firstSegment.labels.forEach(
+                        l => {
+                            this.labelsById.delete(l.id);
+                            this.segmentIdsByLabelId.delete(l.id);
+                        }
+                    )
+                    this.segmentsById.delete(affectedBounds[0].id);
+                    firstDeleted = true;
+                }
+                else {
+                    firstSegment.text = firstSegment.text.slice(0, startPos - firstSegment.start)
+                    firstSegment.labels.filter(l => l.interval.end > startPos - firstSegment.start).forEach(
+                        l => {
+                            this.labelsById.delete(l.id);
+                            this.segmentIdsByLabelId.delete(l.id);
+                        }
+                    )
+                    firstSegment.labels = firstSegment.labels.filter(l => l.interval.end <= startPos - firstSegment.start);
+                    this.bounds[startIdx].end = startPos;
+                }
+                if (endPos - lastSegment.start === lastSegment.text.length) {
+                    lastSegment.labels.forEach(
+                        l => {
+                            this.labelsById.delete(l.id);
+                            this.segmentIdsByLabelId.delete(l.id);
+                        }
+                    )
+                    this.segmentsById.delete(affectedBounds[affectedBounds.length - 1].id);
+                    lastDeleted = true;
+                }
+                else {
+                    lastSegment.text = lastSegment.text.slice(endPos - lastSegment.start);
+                    lastSegment.labels.filter(l => l.interval.start < endPos - lastSegment.start).forEach(
+                        l => {
+                            this.labelsById.delete(l.id);
+                            this.segmentIdsByLabelId.delete(l.id);
+                        }
+                    )
+                    lastSegment.labels = lastSegment.labels.filter(l => l.interval.start >= endPos - lastSegment.start).map(l => {
+                        const interval = { start: l.interval.start - (endPos - lastSegment.start), end: l.interval.end - (endPos - lastSegment.start) };
+                        this.labelsById.get(l.id)!.interval = interval;
+                        return { ...l, interval }
+                    });
+                    lastSegment.start = startPos;
+                    this.bounds[endIdx - 1].start = startPos;
+                    this.bounds[endIdx - 1].end -= endPos - lastSegment.start;
+                }
+                let killStart = startIdx + 1;
+                let killEnd = endIdx - 1;
+                if (firstDeleted) {
+                    killStart = startIdx;
+                }
+                if (lastDeleted) {
+                    killEnd = endIdx;
+                }
+                this.bounds.splice(killStart, killEnd - killStart);
+                this.bounds.slice(killStart + (lastDeleted ? 0 : 1)).forEach(b => { 
+                    b.start -= length; 
+                    b.end -= length; 
+                    this.segmentsById.get(b.id)!.start -= length 
+                });
+                if (killStart - 1 >= 0 && killStart < this.bounds.length) {
+                    const rightDown = Math.min(this.bounds[killStart].end - this.bounds[killStart].start, ...this.getSegment(this.bounds[killStart].id).labels.map(l => l.interval.start));
+                    const leftUp = Math.max(0, ...this.getSegment(this.bounds[killStart - 1].id).labels.map(l => l.interval.end));
+                    if (rightDown + this.bounds[killStart].start - this.bounds[killStart - 1].start - leftUp < gap) {
+                        this.mergeSegments(killStart - 1, killStart + 1)
                     }
                 }
             }
-
-            for (const labelId of deletedLabelIds) {
-                this.labelsById.delete(labelId);
-                this.segmentIdsByLabelId.delete(labelId);
-            }
-
-            this.text = this.text.slice(0, pos) + this.text.slice(endPos);
-
-            for (const [, label] of this.labelsById) {
-                if (label.interval.start >= endPos) {
-                    label.interval.start -= length;
-                    label.interval.end -= length;
-                }
-            }
-
-            for (const bound of affectedBounds) {
-                this.segmentsById.delete(bound.id);
-            }
-            this.bounds.splice(startIdx, endIdx - startIdx);
-
-            for (const bound of this.bounds.slice(startIdx)) {
-                bound.start -= length;
-                bound.end -= length;
-                this.segmentsById.get(bound.id)!.start -= length;
-            }
-
-            const rebuiltText = this.text.slice(affectedStart, affectedEnd - length);
-            const affectedSegmentIds = new Set(affectedBounds.map((bound) => bound.id));
-            const rebuiltLabels = Array.from(this.labelsById.entries())
-                .filter(([labelId]) => affectedSegmentIds.has(this.segmentIdsByLabelId.get(labelId)!))
-                .map(([labelId, label]) => ({ ...label, id: labelId }));
-
-            const localRebuiltLabels = rebuiltLabels.map((label) => ({
-                ...label,
-                interval: {
-                    start: label.interval.start - affectedStart,
-                    end: label.interval.end - affectedStart,
-                },
-            }));
-            const rebuiltSegments = segmenter(rebuiltText, localRebuiltLabels).map((segment) => ({
-                ...segment,
-                start: segment.start + affectedStart,
-            }));
-
-            const rebuiltBounds: { id: SegmentID; start: number; end: number }[] = [];
-            for (const segment of rebuiltSegments) {
-                const id = this.idGenerator.next().value;
-                for (const label of segment.labels) {
-                    this.segmentIdsByLabelId.set(label.id, id);
-                }
-                this.segmentsById.set(id, segment);
-                rebuiltBounds.push({ id, start: segment.start, end: segment.start + segment.text.length });
-            }
-            this.bounds.splice(startIdx, 0, ...rebuiltBounds);
             this.notifySubscribers();
         },
 
@@ -621,12 +813,12 @@ export function makeBasicSegmentManager<S extends Style, L extends StyledLabel<S
             }
         }
     }
-    for (const label of initialLabels) {
-        segmentManager.labelsById.set(label.id, label);
-    }
     const segments = segmenter(initialText, initialLabels);
     for (const segment of segments) {
         segmentManager.postpendSegment(segment);
+        for (const label of segment.labels) {
+            segmentManager.labelsById.set(label.id, label);
+        }
     }
     return segmentManager as SegmentManager<S, L>;
 }

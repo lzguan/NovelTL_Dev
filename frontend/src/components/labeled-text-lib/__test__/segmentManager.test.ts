@@ -58,6 +58,19 @@ function getAbsoluteLabels(manager: ReturnType<typeof makeBasicSegmentManager<Te
         .sort((left, right) => left.start - right.start || left.id.localeCompare(right.id));
 }
 
+function expectAbsoluteLabels(
+    manager: ReturnType<typeof makeBasicSegmentManager<TestStyle, ManagedTestLabel>>,
+    expected: { id: string; start: number; end: number; name: string }[],
+) {
+    expect(getAbsoluteLabels(manager)).toEqual(expected);
+    for (const label of expected) {
+        expect(manager.getLabel(label.id)).toMatchObject({
+            interval: { start: label.start, end: label.end },
+            style: { name: label.name },
+        });
+    }
+}
+
 describe("getUncoveredSubintervals", () => {
     it("returns the gaps inside the target interval", () => {
         expect(
@@ -115,7 +128,7 @@ describe("BasicSegmentManager", () => {
                 labels: [
                     {
                         id: "1",
-                        range: { start: 0, end: 2 },
+                        interval: { start: 0, end: 2 },
                         style: { name: "name" },
                     },
                 ],
@@ -128,7 +141,7 @@ describe("BasicSegmentManager", () => {
             },
         ]);
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([
+        expectAbsoluteLabels(manager, [
             { id: "1", start: 1, end: 3, name: "name" },
         ]);
     });
@@ -140,7 +153,7 @@ describe("BasicSegmentManager", () => {
 
         expect(manager.getText()).toBe("abcdef");
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([]);
+        expectAbsoluteLabels(manager, []);
     });
 
     it("deletes text from an unlabeled segment and rebuilds the local region", () => {
@@ -150,7 +163,7 @@ describe("BasicSegmentManager", () => {
 
         expect(manager.getText()).toBe("abef");
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([]);
+        expectAbsoluteLabels(manager, []);
     });
 
     it("preserves invariants across a longer unlabeled editing sequence", () => {
@@ -167,7 +180,7 @@ describe("BasicSegmentManager", () => {
 
         manager.insertTextAt(0, ">");
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([]);
+        expectAbsoluteLabels(manager, []);
     });
 
     it("preserves visible segment invariants for mixed labeled and unlabeled text", () => {
@@ -182,7 +195,7 @@ describe("BasicSegmentManager", () => {
         );
 
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([
+        expectAbsoluteLabels(manager, [
             { id: "1", start: 0, end: 5, name: "alice" },
             { id: "2", start: 10, end: 13, name: "bob" },
             { id: "3", start: 17, end: 27, name: "place" },
@@ -190,7 +203,7 @@ describe("BasicSegmentManager", () => {
 
         manager.insertTextAt(6, "quietly ");
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([
+        expectAbsoluteLabels(manager, [
             { id: "1", start: 0, end: 5, name: "alice" },
             { id: "2", start: 18, end: 21, name: "bob" },
             { id: "3", start: 25, end: 35, name: "place" },
@@ -198,11 +211,143 @@ describe("BasicSegmentManager", () => {
 
         manager.deleteTextAt(6, 4);
         assertManagerInvariants(manager);
-        expect(getAbsoluteLabels(manager)).toEqual([
+        expectAbsoluteLabels(manager, [
             { id: "1", start: 0, end: 5, name: "alice" },
             { id: "2", start: 14, end: 17, name: "bob" },
             { id: "3", start: 21, end: 31, name: "place" },
         ]);
+    });
+
+    it("deletes a single-segment suffix without leaving an empty segment", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdef",
+            [
+                makeLabel("left", 0, 2, "left"),
+                makeLabel("deleted", 4, 6, "deleted"),
+            ],
+            10,
+        );
+
+        manager.deleteTextAt(2, 4);
+
+        expect(manager.getText()).toBe("ab");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "left", start: 0, end: 2, name: "left" },
+        ]);
+        expect(() => manager.getLabel("deleted")).toThrow();
+    });
+
+    it("deletes a single-segment prefix without leaving an empty segment", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdef",
+            [
+                makeLabel("deleted", 0, 2, "deleted"),
+                makeLabel("right", 4, 6, "right"),
+            ],
+            10,
+        );
+
+        manager.deleteTextAt(0, 4);
+
+        expect(manager.getText()).toBe("ef");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "right", start: 0, end: 2, name: "right" },
+        ]);
+        expect(() => manager.getLabel("deleted")).toThrow();
+    });
+
+    it("deletes across multiple segments while preserving both edge fragments", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdefghijklmnop",
+            [
+                makeLabel("a", 0, 2, "a"),
+                makeLabel("b", 4, 6, "b"),
+                makeLabel("c", 8, 10, "c"),
+                makeLabel("d", 12, 14, "d"),
+            ],
+        );
+
+        manager.deleteTextAt(1, 8);
+
+        expect(manager.getText()).toBe("ajklmnop");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "d", start: 4, end: 6, name: "d" },
+        ]);
+        expect(() => manager.getLabel("a")).toThrow();
+        expect(() => manager.getLabel("b")).toThrow();
+        expect(() => manager.getLabel("c")).toThrow();
+    });
+
+    it("deletes across multiple segments when the first edge survives and the last edge is removed", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdefghijklmnop",
+            [
+                makeLabel("a", 0, 2, "a"),
+                makeLabel("b", 4, 6, "b"),
+                makeLabel("c", 8, 10, "c"),
+                makeLabel("d", 12, 14, "d"),
+            ],
+        );
+
+        manager.deleteTextAt(1, 9);
+
+        expect(manager.getText()).toBe("aklmnop");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "d", start: 3, end: 5, name: "d" },
+        ]);
+        expect(() => manager.getLabel("a")).toThrow();
+        expect(() => manager.getLabel("b")).toThrow();
+        expect(() => manager.getLabel("c")).toThrow();
+    });
+
+    it("deletes across multiple segments when the first edge is removed and the last edge survives", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdefghijklmnop",
+            [
+                makeLabel("a", 0, 2, "a"),
+                makeLabel("b", 4, 6, "b"),
+                makeLabel("c", 8, 10, "c"),
+                makeLabel("d", 12, 14, "d"),
+            ],
+        );
+
+        manager.deleteTextAt(0, 9);
+
+        expect(manager.getText()).toBe("jklmnop");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "d", start: 3, end: 5, name: "d" },
+        ]);
+        expect(() => manager.getLabel("a")).toThrow();
+        expect(() => manager.getLabel("b")).toThrow();
+        expect(() => manager.getLabel("c")).toThrow();
+    });
+
+    it("deletes across multiple segments when both edge segments are removed", () => {
+        const manager = makeBasicSegmentManager<TestStyle, ManagedTestLabel>(
+            "abcdefghijklmnop",
+            [
+                makeLabel("a", 0, 2, "a"),
+                makeLabel("b", 4, 6, "b"),
+                makeLabel("c", 8, 10, "c"),
+                makeLabel("d", 12, 14, "d"),
+            ],
+        );
+
+        manager.deleteTextAt(0, 10);
+
+        expect(manager.getText()).toBe("klmnop");
+        assertManagerInvariants(manager);
+        expectAbsoluteLabels(manager, [
+            { id: "d", start: 2, end: 4, name: "d" },
+        ]);
+        expect(() => manager.getLabel("a")).toThrow();
+        expect(() => manager.getLabel("b")).toThrow();
+        expect(() => manager.getLabel("c")).toThrow();
     });
 
     it("notifies subscribers when the manager changes", () => {

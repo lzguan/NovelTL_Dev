@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { makeDecoratedSignal, type Controller, type DecoratedSignal, type LabelGroupView, type ProvisionalId, type Runtime, type Signal, type UserEvent } from "./types";
 import { type EditChapterData } from "@/client";
 import { generateRandomColor } from "@/components/labeled-text-lib/builtin/colors";
+import { createLogger } from "@/lib/logging";
 
+
+const logger = createLogger("Controller")
 
 function buildLabelGroupViews(
     dataManager: Runtime["dataManager"],
@@ -39,12 +42,15 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleTextOpEvent = (event : UserEvent) => {
         if (event.eventType !== "textOp") {
+            logger.error("handleTextOpEvent called with non-textOp event", { event })
             throw new Error("handleTextOpEvent called with non-textOp event")
         }
         if (getMode() !== "edit") {
+            logger.error("Received text operation event while not in edit mode", { event })
             setErrors([new Error("Received text operation event while not in edit mode")])
         } 
         else if (editChapterData.role === "viewer") {
+            logger.error("Failed to perform text operation", { error: new Error("You do not have permission to edit"), event })
             setErrors([new Error("You do not have permission to edit")])
         }
         else {
@@ -58,6 +64,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                     dataManager.insertTextAt(event.op.start, event.op.text)
                     uiManager.segmentManager.insertTextAt(event.op.start, event.op.text)
                 } catch (err) {
+                    logger.error("Failed to insert text", { error: err, event })
                     setErrors([err instanceof Error ? err : new Error(String(err))])
                 }
             }
@@ -66,6 +73,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                     dataManager.deleteTextAt(event.op.start, event.op.text.length)
                     uiManager.segmentManager.deleteTextAt(event.op.start, event.op.text.length)
                 } catch (err) {
+                    logger.error("Failed to delete text", { error: err, event })
                     setErrors([err instanceof Error ? err : new Error(String(err))])
                 }
             }
@@ -74,12 +82,15 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleLabelOpEvent = (event : UserEvent) => {
         if (event.eventType !== "labelOp") {
+            logger.error("handleLabelOpEvent called with non-labelOp event", { event })
             throw new Error("handleLabelOpEvent called with non-labelOp event")
         }
         if (getMode() !== "label") {
+            logger.error("Received label operation event while not in label mode", { event })
             setErrors([new Error("Received label operation event while not in label mode")])
         } 
         else if (dataManager.getForGroup.role(event.labelGroupId) === "viewer") {
+            logger.error("Failed to perform label operation", { error: new Error("You do not have permission to edit labels"), event })
             setErrors([new Error("You do not have permission to edit labels")])
         }
         else {
@@ -92,6 +103,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 try {
                     const labelDataId = dataManager.getForGroup.labelDataId(event.labelGroupId)
                     if (!labelDataId) {
+                        logger.error(`Label data not found for label group ID ${event.labelGroupId} in add label operation`, { event })
                         throw new Error(`Label data not found for label group ID ${event.labelGroupId}`)
                     }
                     const provisionalLabelId = dataManager.addLabel(
@@ -118,6 +130,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                         interval: { start: event.op.startPos, end: event.op.endPos },
                     })
                 } catch (err) {
+                    logger.error("Failed to add label", { error: err, event })
                     setErrors([err instanceof Error ? err : new Error(String(err))])
                 }
             }
@@ -125,6 +138,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 try {
                     const labelDataId = dataManager.getForGroup.labelDataId(event.labelGroupId)
                     if (!labelDataId) {
+                        logger.error(`Label data not found for label group ID ${event.labelGroupId} in delete label operation`, { event })
                         throw new Error(`Label data not found for label group ID ${event.labelGroupId}`)
                     }
                     const labelId = dataManager.deleteLabel(
@@ -135,6 +149,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                     )
                     uiManager.segmentManager.removeLabel(labelId)
                 } catch (err) {
+                    logger.error("Failed to delete label", { error: err, event })
                     setErrors([err instanceof Error ? err : new Error(String(err))])
                 }
             }
@@ -142,6 +157,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 try {
                     const labelDataId = dataManager.getForGroup.labelDataId(event.labelGroupId)
                     if (!labelDataId) {
+                        logger.error(`Label data not found for label group ID ${event.labelGroupId} in update label operation`, { event })
                         throw new Error(`Label data not found for label group ID ${event.labelGroupId}`)
                     }
                     const labelId = dataManager.updateLabel(
@@ -171,6 +187,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                         interval: { start: event.op.newStartPos ?? event.op.startPos, end: event.op.newEndPos ?? event.op.endPos },
                     })
                 } catch (err) {
+                    logger.error("Failed to update label", { error: err, event })
                     setErrors([err instanceof Error ? err : new Error(String(err))])
                 }
             }
@@ -179,6 +196,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleAddLabelGroupEvent = (event : UserEvent) => {
         if (event.eventType !== "addLabelGroup") {
+            logger.error("handleAddLabelGroupEvent called with non-addLabelGroup event", { event })
             throw new Error("handleAddLabelGroupEvent called with non-addLabelGroup event")
         }
         try {
@@ -197,6 +215,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
             }
             requestEvents.forEach((requestEvent) => requestManager.enqueueRequest(requestEvent))
         } catch (err) {
+            logger.error("Failed to add label group", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
         syncLabelGroupViews()
@@ -204,9 +223,11 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleSwitchLabelGroupEvent = (event : UserEvent) => {
         if (event.eventType !== "switchLabelGroup") {
+            logger.error("handleSwitchLabelGroupEvent called with non-switchLabelGroup event", { event })
             throw new Error("handleSwitchLabelGroupEvent called with non-switchLabelGroup event")
         }
         if (getMode() !== "label") {
+            logger.error("Received switch label group event while not in label mode", { event })
             setErrors([new Error("Received switch label group event while not in label mode")])
             return
         }
@@ -219,15 +240,18 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 setActiveLabelGroupId(event.labelGroupId)
             }
         } catch (err) {
+            logger.error("Failed to switch label group", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
     }
 
     const handleClickPosEvent = (event : UserEvent) => {
         if (event.eventType !== "clickPos") {
+            logger.error("handleClickPosEvent called with non-clickPos event", { event })
             throw new Error("handleClickPosEvent called with non-clickPos event")
         }
         if (getMode() !== "label") {
+            logger.error("Received click position event while not in label mode", { event })
             setErrors([new Error("Received click position event while not in label mode")])
             return
         }
@@ -246,15 +270,18 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 clickedLabelIdsRef.current = []
             }
         } catch (err) {
+            logger.error("Failed to click position", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
     }
 
     const handleHoverPosEvent = (event : UserEvent) => {
         if (event.eventType !== "hoverPos") {
+            logger.error("handleHoverPosEvent called with non-hoverPos event", { event })
             throw new Error("handleHoverPosEvent called with non-hoverPos event")
         }
         if (getMode() !== "label") {
+            logger.error("Received hover position event while not in label mode", { event })
             setErrors([new Error("Received hover position event while not in label mode")])
             return
         }
@@ -272,15 +299,18 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
                 hoveredLabelIdsRef.current = []
             }
         } catch (err) {
+            logger.error("Failed to hover position", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
     }
 
     const handleLoadGroupEvent = (event : UserEvent) => {
         if (event.eventType !== "loadGroup") {
+            logger.error("handleLoadGroupEvent called with non-loadGroup event", { event })
             throw new Error("handleLoadGroupEvent called with non-loadGroup event")
         }
         if (getMode() !== "label") {
+            logger.error("Received load group event while not in label mode", { event })
             setErrors([new Error("Received load group event while not in label mode")])
             return
         }
@@ -298,6 +328,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
             const requestEvents = dataManager.reloadGroup(event.labelGroupId)
             requestEvents.forEach((requestEvent) => requestManager.enqueueRequest(requestEvent))
         } catch (err) {
+            logger.error("Failed to reload group", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
         syncLabelGroupViews()
@@ -305,6 +336,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleToggleVisibilityEvent = (event : UserEvent) => {
         if (event.eventType !== "toggleVisibility") {
+            logger.error("handleToggleVisibilityEvent called with non-toggleVisibility event", { event })
             throw new Error("handleToggleVisibilityEvent called with non-toggleVisibility event")
         }
         try {
@@ -312,6 +344,7 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
             uiManager.toggleVisibility(labelIds, event.visible)
             visibilityMapping.set(event.labelGroupId, event.visible)
         } catch (err) {
+            logger.error("Failed to toggle visibility", { error: err, event })
             setErrors([err instanceof Error ? err : new Error(String(err))])
         }
         syncLabelGroupViews()
@@ -319,9 +352,11 @@ export function useController( editChapterData : EditChapterData, getMode: () =>
 
     const handleSwitchModeEvent = (event : UserEvent) => {
         if (event.eventType !== "switchMode") {
+            logger.error("handleSwitchModeEvent called with non-switchMode event", { event })
             throw new Error("handleSwitchModeEvent called with non-switchMode event")
         }
         if (event.mode === "edit" && editChapterData.role === "viewer") {
+            logger.error("Failed to switch mode", { error: new Error("You do not have permission to switch to edit mode"), event })
             setErrors([new Error("You do not have permission to switch to edit mode")])
         }
         else {

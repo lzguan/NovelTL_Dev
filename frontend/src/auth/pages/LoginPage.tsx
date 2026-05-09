@@ -71,7 +71,7 @@ export function LoginPage() {
     };
 
     return (
-        <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(245,187,110,0.24),_transparent_34%),linear-gradient(180deg,_#f8f3ea_0%,_#f4efe5_32%,_#efe8dc_100%)] px-4 py-10">
+        <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,rgba(245,187,110,0.24),transparent_34%),linear-gradient(180deg,#f8f3ea_0%,#f4efe5_32%,#efe8dc_100%)] px-4 py-10">
             <Card className="w-full max-w-md border-0 bg-white/88 shadow-[0_20px_60px_rgba(38,29,18,0.12)] backdrop-blur">
                 <CardHeader className="border-b border-black/5 pb-5">
                     <CardTitle className="text-2xl text-slate-950">Sign In</CardTitle>

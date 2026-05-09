@@ -1,5 +1,8 @@
+import { createLogger } from "@/lib/logging";
 import type { IDRepository, IdentifiableKindMap, ExistableKindMap, IdStatus, InFlightIdStatus, ServerExists, ServerId, ProvisionalId, Kind, IdentifiableKind, ExistableKind } from "./types";
 import { isIdentifiableKind, isInFlight, entryStatus, exitStatus } from "./types";
+
+const logger = createLogger("IdRepository")
 
 /**
  * As the current data model stands, most objects have an underlying ID. In order to synchronize the IDs that appear on the frontend and backend without sacrificing client responsiveness, we need a way to bridge the gap between client-side IDs and server-side IDs. This repository serves as a central place to manage this mapping and the state of these IDs.
@@ -60,37 +63,55 @@ export function buildIdRepository() : IDRepository {
 
         getServerId(kind : IdentifiableKind, provisionalId : ProvisionalId) : ServerId | null {
             const entry = identifiableKindMap[kind].get(provisionalId)
-            if (!entry) throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            if (!entry)  {
+                logger.error(`Provisional id ${provisionalId} not found for kind ${kind} in getServerId`)
+                throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`) 
+            }
             return entry.serverId
         },
 
         getServerExists(kind : ExistableKind, provisionalId : ProvisionalId) : ServerExists | null {
             const entry = existableKindMap[kind].get(provisionalId)
-            if (!entry) throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            if (!entry)  {
+                logger.error(`Provisional id ${provisionalId} not found for kind ${kind} in getServerExists`)
+                throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`) 
+            }
             return entry.serverExists
         },
 
         bindServerId(kind : IdentifiableKind, provisionalId : ProvisionalId, serverId : ServerId) : void {
             const entry = identifiableKindMap[kind].get(provisionalId)
-            if (!entry) throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            if (!entry) {
+                logger.error(`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`)
+                throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            }
             entry.serverId = serverId
         },
 
         bindServerExists(kind : ExistableKind, provisionalId : ProvisionalId) : void {
             const entry = existableKindMap[kind].get(provisionalId)
-            if (!entry) throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            if (!entry) {
+                logger.error(`Provisional id ${provisionalId} not found for kind ${kind} in bindServerExists`)
+                throw new Error(`Provisional id ${provisionalId} not found for kind ${kind}`)
+            }
             entry.serverExists = true
         },
 
         idObjState(kind : Kind, id : string) : IdStatus {
             if (isIdentifiableKind(kind)) {
                 const entry = identifiableKindMap[kind].get(id)
-                if (!entry) throw new Error(`Provisional id ${id} not found for kind ${kind}`)
+                if (!entry) {
+                    logger.error(`Provisional id ${id} not found for kind ${kind} in idObjState`)
+                    throw new Error(`Provisional id ${id} not found for kind ${kind}`)
+                }
                 return entry.status
             }
             else {
                 const entry = existableKindMap[kind].get(id)
-                if (!entry) throw new Error(`Provisional id ${id} not found for kind ${kind}`)
+                if (!entry) {
+                    logger.error(`Provisional id ${id} not found for kind ${kind} in idObjState`)
+                    throw new Error(`Provisional id ${id} not found for kind ${kind}`)
+                }
                 return entry.status
             }
         },
@@ -153,6 +174,7 @@ export function buildIdRepository() : IDRepository {
         releaseIdObjStateOnFailure(kind : Kind, id : ProvisionalId) : void {
             const entry = isIdentifiableKind(kind) ? identifiableKindMap[kind].get(id) : existableKindMap[kind].get(id)
             if (!entry || !isInFlight(entry.status)) {
+                logger.error(`Provisional id ${id} not found for kind ${kind} in releaseIdObjStateOnFailure`)
                 return
             }
             if (entry.status === "locked") {

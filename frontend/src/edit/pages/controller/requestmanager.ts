@@ -1,7 +1,9 @@
+import { createLogger } from "@/lib/logging";
 import type { CachedKeyedRequestEvent, IDRepository, KeyedRequestEvent, RequestEvent, RequestManager, Reservation, Signal, UserEvent } from "./types"
 import { FatalError, TimeoutError, ConnectionError, CacheConflictError, isDetailHttpErrorResponse, NoCacheEntryError } from "./types"
 import { getCachedResultCachedCachedIdGet, type CacheEntry } from "@/client";
 
+const logger = createLogger("RequestManager")
 
 function withTimeout<T>(promise : Promise<T>, timeoutMs : number) : Promise<T> {
     return new Promise((resolve, reject) => {
@@ -12,6 +14,7 @@ function withTimeout<T>(promise : Promise<T>, timeoutMs : number) : Promise<T> {
             clearTimeout(timeoutId)
             resolve(result)
         }).catch((err) => {
+            logger.error("Error occurred in withTimeout wrapper", { error: err instanceof Error ? err : new Error(String(err)) })
             clearTimeout(timeoutId)
             reject(err)
         })
@@ -116,6 +119,7 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
                     cachedId: request.requestKey
                 }
             }).catch((err) => {
+                logger.error(`Failed to fetch status for request ${request.requestKey}`, { error: err instanceof Error ? err : new Error(String(err)) })
                 reject(new ConnectionError(`Failed to fetch status for request ${request.requestKey}`, err))
             }).then((response) => {
                 if (!response) {
@@ -147,6 +151,7 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
                 getReservationList(request).forEach((reservation) => idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id))
                 request.onFailure?.()
             })
+            logger.error("One or more requests have exceeded the maximum number of retries", { statusQueries: statusQueries.filter((request) => request.retries < 0), retryRequests: retryRequests.filter((request) => request.retries < 0) })
             throw new FatalError("A request has exceeded the maximum number of retries")
         }
         while (
@@ -183,12 +188,15 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
         ])
 
         if (fromQueueResult.status === "rejected") {
+            logger.error("Error occurred in queue requests", { error: fromQueueResult.reason instanceof Error ? fromQueueResult.reason : new Error(String(fromQueueResult.reason)) })
             throw new FatalError("Error occured in queue requests: how the hell did that happen?", fromQueueResult.reason instanceof Error ? fromQueueResult.reason : new Error(String(fromQueueResult.reason)))            
         }
         if (statusQueryResult.status === "rejected") {
+            logger.error("Error occurred in status query requests", { error: statusQueryResult.reason instanceof Error ? statusQueryResult.reason : new Error(String(statusQueryResult.reason)) })
             throw new FatalError("Error occured in status query requests: how the hell did that happen?", statusQueryResult.reason instanceof Error ? statusQueryResult.reason : new Error(String(statusQueryResult.reason)))            
         }
         if (retryResult.status === "rejected") {
+            logger.error("Error occurred in retry requests", { error: retryResult.reason instanceof Error ? retryResult.reason : new Error(String(retryResult.reason)) })
             throw new FatalError("Error occured in retry requests: how the hell did that happen?", retryResult.reason instanceof Error ? retryResult.reason : new Error(String(retryResult.reason)))            
         }
         const errorsList = []
@@ -257,6 +265,7 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
                         }
                     }
                 } catch (err) {
+                    logger.error(`Error occurred while handling cached result for request ${request.requestKey}`, { error: err instanceof Error ? err : new Error(String(err)) })
                     errorsList.push({request: request, reason: err instanceof Error ? err : new Error(String(err))})
                     getReservationList(request).forEach((reservation) => idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id))
                     request.onFatalError?.(err instanceof Error ? err : new Error(String(err)))
@@ -325,14 +334,16 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
                 }
             }
         } catch (err) {
-            console.error("Error occurred in request loop:", err)
             if (err instanceof FatalError) {
+                logger.error("Fatal error occurred in request loop", { error: err })
                 setErrors([err])
             }
             else if (err instanceof TimeoutError || err instanceof ConnectionError) {
+                logger.error("Connection error occurred in request loop", { error: err })
                 setErrors([err])
             }
             else {
+                logger.error("Unexpected error occurred in request loop", { error: err instanceof Error ? err : new Error(String(err)) })
                 setErrors([new Error("Unexpected error occurred in request loop", err instanceof Error ? err : new Error(String(err)))])
             }
         } finally {
@@ -341,7 +352,7 @@ export function buildRequestManager(idRepo : IDRepository, setErrors : (errors :
     }
 
     const onUserEvent = (event : UserEvent) => {
-        console.log("User event:", event)
+        logger.info("User event:", event)
         if (["textOp", "labelOp", "addLabelGroup", "loadGroup", "switchMode"].includes(event.eventType)) {
             debounceLock = true
             if (userEventTimeout) {

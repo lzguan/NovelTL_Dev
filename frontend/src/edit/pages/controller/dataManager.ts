@@ -2,6 +2,9 @@ import type { Chapter, Novel, TextOp } from "@/client"
 import { type DataEntry, type LabelOp, type DataManager, type IDRepository, type ProvisionalId, type RequestEvent, type ProvisionalLabelGroup, type Kind, ConnectionError, CacheConflictError, FatalError, type InFlightIdStatus, type ProvisionalLabel, isInFlight, makeIdempotent, type Reservation, type DecoratedSignal } from "./types"
 import { createLabelDataLabelGroupsLabelGroupIdLabelDatasPost, createLabelGroupLabelGroupsPost, readLabelContributorsLabelGroupsLabelGroupIdContributorsGet, readLabelDatasByGroupChaptersLabelDatasGet, readLabelGroupLabelGroupsLabelGroupIdGet, readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet, updateChapterContentChaptersChapterIdContentPatch, updateLabelDataStreamLabelDatasLabelDataIdPatch } from "@/client"
 import { isDetailHttpErrorResponse, isLabelData, isLabelGroup, isRequestConflictErrorResponse, validateData, isModifyChapterContentResponse } from "./types"
+import { createLogger } from "@/lib/logging";
+
+const logger = createLogger("DataManager")
 
 /**
  * The data manager is built on top of the ID repository and is responsible for managing the state of the data entries and providing functions to mutate the data. Below is a description of the interfaces exposed by the data manager.
@@ -132,6 +135,7 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to create label group", { error: err, requestKey })
                         throw new ConnectionError("Failed to create label group", err)
                     }
                     if (!resp.data) {
@@ -188,6 +192,7 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to create label data", { error: err, requestKey, labelGroupId: idRepo.getServerId("labelGroup", provisionalGroupId)! })
                         throw new ConnectionError("Failed to create label data", err)
                     }
                     if (!resp.data) {
@@ -457,6 +462,7 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to update label data stream", { error: err, labelDataId: idRepo.getServerId("labelData", entry.labelData.labelDataId)!, requestKey })
                         throw new ConnectionError("Failed to update label data stream", err)
                     }
                     if (resp.error) {
@@ -625,6 +631,7 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to modify chapter content", { error: err, chapterContentId: idRepo.getServerId("chapterContent", currentChapterContentId)!, requestKey })
                         throw new ConnectionError("Failed to modify chapter content", err)
                     }
                     if (!resp.data) {
@@ -681,7 +688,7 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
     }
 
     const handleSignal = (signal : DecoratedSignal) => {
-        console.log("Received signal in data manager:", signal)
+        logger.info("Received signal in data manager:", signal)
         return
     }
 
@@ -749,9 +756,11 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             })
                         ])
                     } catch (err) {
+                        logger.error("Failed to read label group or contributors during reload", { error: err, labelGroupId: entry.labelGroup.labelGroupId })
                         throw new ConnectionError("Failed to read label group", err)
                     }
                     if (resp[0].error || resp[1].error) {
+                        logger.error("Failed to read label group or contributors during reload", { errors: [resp[0].error, resp[1].error], labelGroupId: entry.labelGroup.labelGroupId })
                         throw new FatalError("Failed to read label group", resp[0].error ?? resp[1].error)
                     }
                     entry.labelGroup = {
@@ -854,12 +863,15 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to read label data", { error: err, labelGroupId: entry.labelGroup.labelGroupId })
                         throw new ConnectionError("Failed to read label data", err)
                     }
                     if (resp.error) {
+                        logger.error("Failed to read label data", { errors: [resp.error], labelGroupId: entry.labelGroup.labelGroupId })
                         throw new FatalError("Failed to read label data", resp.error)
                     }
                     if (resp.data.length === 0) {
+                        logger.error("No label data found for label group and chapter", { labelGroupId: entry.labelGroup.labelGroupId, chapterNum: chapter.chapterNum })
                         throw new FatalError("No label data found for label group and chapter")
                     }
                     idRepo.bindServerId("labelData", newLabelDataId, resp.data[0].labelDataId)
@@ -904,9 +916,11 @@ export function buildDataManager(ents : DataEntry[], idRepo : IDRepository, nove
                             }
                         })
                     } catch (err) {
+                        logger.error("Failed to read labels for label data", { error: err, labelDataId: idRepo.getServerId("labelData", newLabelDataId)! })
                         throw new ConnectionError("Failed to read labels for label data", err)
                     }
                     if (resp.error) {
+                        logger.error("Failed to read labels for label data", { errors: [resp.error], labelDataId: idRepo.getServerId("labelData", newLabelDataId)! })
                         throw new FatalError("Failed to read labels for label data", resp.error)
                     }
                     const newLabels = resp.data.map((label) : ProvisionalLabel => ({ ...label, provisional: true, labelId: idRepo.newIdAndBindExists("label") })) // possible leak here if timeout but it doesn't really matter
