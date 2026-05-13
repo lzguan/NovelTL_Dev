@@ -3,7 +3,7 @@ name = "noveltl-dev"
 version = "0.1.0"
 description = "Novel translation backend"
 authors = [{ name = "Leo Guan", email = "leo.ziqi@gmail.com" }]
-requires-python = ">=3.12,<4"
+requires-python = ">=3.12,<3.13"
 readme = "README.md"
 dependencies = [
     "sqlalchemy>=2.0.40,<3",
@@ -23,6 +23,7 @@ backend = [
     "pyjwt==2.9.0",
     "argon2-cffi>=23.0.0,<24",
     "pwdlib>=0.3.0,<0.4",
+    "redis[hiredis]>=5.3.1",
 ]
 worker = [
     "transformers>=4.35.0,<5",
@@ -41,7 +42,7 @@ dev = [
 ]
 
 [tool.uv]
-package = false
+package = true
 default-groups = [
     "backend",
     "worker",
@@ -79,7 +80,7 @@ markers = [
     "implementation: marks heavy model implementation tests",
     "slow: marks tests that take a long time"
 ]
-addopts = "-ra -q -m 'not slow'"
+addopts = "-ra -q -m 'not slow' --order-dependencies"
 
 [tool.ruff]
 target-version = "py312"

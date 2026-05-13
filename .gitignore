@@ -11,3 +11,5 @@ database/db_backups/backup_*.sql
 .claude/settings.json
 handoff.md
 .codex
+*.log
+.pnpm-store/

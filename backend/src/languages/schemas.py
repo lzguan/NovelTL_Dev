@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from ..schemas import Model
 
 
-class Language(BaseModel):
+class Language(Model):
     """
     Pydantic schema for language.
 
@@ -9,5 +9,6 @@ class Language(BaseModel):
         language_code: String code key to language.
         language_name: String name of language.
     """
+
     language_code: str
     language_name: str

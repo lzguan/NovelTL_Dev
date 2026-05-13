@@ -1,15 +1,19 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     watch: {
-      usePolling: true
+      ignored: ['**/.git/**', '**/node_modules/**', '**/.pnpm-store/**'],
+      usePolling: true,
     },
-    host: true,
+    host: '0.0.0.0',
     strictPort: true,
+    origin: 'http://localhost:5173',
     port: 5173,
     proxy: {
       '/api': {
@@ -19,10 +23,9 @@ export default defineConfig({
       }
     }
   },
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/setupTests.ts',
-    include: ['src/**/*.test.{ts,tsx}']
-  }
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
 })

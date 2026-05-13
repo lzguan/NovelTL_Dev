@@ -1,41 +1,36 @@
 import './App.css'
-import { Routes, Route, Navigate, useParams } from 'react-router'
-import { LoginPage } from './pages/LoginPage'
-import { NovelsPage } from './pages/NovelsPage'
-import { NovelDetailsPage } from './pages/NovelDetailsPage'
-import { ChapterReaderPage } from './pages/ChapterReaderPage'
-import { EditNovelsPage } from './pages/EditNovelsPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { NovelWorkspacePage } from './pages/NovelWorkspacePage'
-import { Layout } from './components/layout/Layout'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppRoutes } from './routes'
-import { LanguageProvider } from './contexts/LanguageProvider'
+import { Test } from './Test'
+import { LoginPage } from './auth/pages/LoginPage'
+import { EditNovelPage } from './edit/pages/EditNovelPage'
+import { SourceWorksPage } from './view/pages/SourceWorksPage';
+import { ViewShell, EditShell } from './components/navigation/AppShell';
+import { DashboardPage } from './dashboard/pages/DashboardPage';
+import { EditDashboardPage } from './edit/pages/EditDashboardPage';
+import { SourceWorkDetailsPage } from './view/pages/SourceWorkDetailsPage';
+import { NovelDetailsPage } from './view/pages/NovelDetailsPage';
+import { NovelsPage } from './view/pages/NovelsPage';
 
-const EditNovelRedirect = () => {
-    const { novel_id } = useParams<{ novel_id: string }>();
-    return <Navigate to={`/workspace/${novel_id}`} replace />;
-};
 
 function App() {
     return (
-        <LanguageProvider>
-            <Routes>
-                <Route path={AppRoutes.LOGIN} element={<LoginPage />} />
-
-                {/* Routes with navbar */}
-                <Route element={<Layout />}>
-                    <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
-                    <Route path={AppRoutes.VIEW.NOVELS} element={<NovelsPage />} />
-                    <Route path={AppRoutes.VIEW.NOVEL_DETAILS} element={<NovelDetailsPage />} />
-                    <Route path={AppRoutes.VIEW.CHAPTER} element={<ChapterReaderPage />} />
-                    <Route path={AppRoutes.EDIT.NOVELS} element={<EditNovelsPage />} />
-                    <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelRedirect />} />
-                    <Route path={AppRoutes.WORKSPACE} element={<NovelWorkspacePage />} />
-                </Route>
-
-                <Route path="/" element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
-            </Routes>
-        </LanguageProvider>
+        <Routes>
+            <Route path={AppRoutes.ROOT} element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
+            <Route path={AppRoutes.LOGIN} element={<LoginPage />} />
+            <Route path={AppRoutes.TEST} element={<Test />} />
+            <Route element={<ViewShell />}>
+                <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
+                <Route path={AppRoutes.VIEW.SOURCEWORKS} element={<SourceWorksPage />} />
+                <Route path={AppRoutes.VIEW.SOURCEWORK_DETAILS} element={<SourceWorkDetailsPage />} />
+                <Route path={AppRoutes.VIEW.NOVELS} element={<NovelsPage />} />
+                <Route path={AppRoutes.VIEW.NOVEL_DETAILS} element={<NovelDetailsPage />} />
+            </Route>
+            <Route element={<EditShell />}>
+                <Route path={AppRoutes.EDIT.DASHBOARD} element={<EditDashboardPage />} />
+                <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelPage loadLabelsNum={3} />} />
+            </Route>
+        </Routes>
     )
 }
 

@@ -21,8 +21,6 @@ services:
     build:
       context: .
       dockerfile: .devcontainer/Dockerfile
-    volumes:
-      - .:/project
     environment:
       <<: [*db-env, *test-db-env, *redis-env]
       SECRET_KEY: ${SECRET_KEY}
@@ -56,6 +54,8 @@ services:
       - test
   redis:
     image: redis
+  test_redis:
+    image: redis
 
   worker:
     build: 
@@ -71,6 +71,9 @@ services:
       SECRET_KEY: ${SECRET_KEY} # purely to not crash on startup
     volumes:
       - ./backend:/project
+    profiles:
+      - manual
+
 
   backend:
     build: 
@@ -88,6 +91,7 @@ services:
       - ./backend:/project
     ports:
       - "${BACKEND_PORT}:8000"
+    command: uv run python -m src.main --no-sync
 
   frontend:
     build:
@@ -95,8 +99,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/project
+      - /project/node_modules
+      - pnpm-store:/pnpm/store
     ports:
       - "${FRONTEND_PORT}:5173"
 
+
 volumes:
   db_data:
+  pnpm-store:
