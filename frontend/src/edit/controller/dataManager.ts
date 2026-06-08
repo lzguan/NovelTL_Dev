@@ -17,7 +17,7 @@ import {
   makeIdempotent,
   type Reservation,
   type DecoratedSignal,
-} from "./types";
+} from "./types/types";
 import {
   createLabelDataLabelGroupsLabelGroupIdLabelDatasPost,
   createLabelGroupLabelGroupsPost,
@@ -35,7 +35,7 @@ import {
   isRequestConflictErrorResponse,
   validateData,
   isModifyChapterContentResponse,
-} from "./types";
+} from "./types/types";
 import { createLogger } from "@/lib/logging";
 
 const logger = createLogger("DataManager");

@@ -32,10 +32,7 @@
             }
           },
           "401": {
-            "description": "Password does not match.",
-            "headers": {
-              "WWW-Authenticate": "Bearer"
-            }
+            "description": "Password does not match."
           },
           "422": {
             "description": "Validation Error",
@@ -2258,6 +2255,7 @@
                 {
                   "type": "array",
                   "items": {
+                    "const": "cluener",
                     "type": "string"
                   }
                 },
@@ -2868,6 +2866,7 @@
           },
           "autoLabelModelName": {
             "type": "string",
+            "const": "cluener",
             "title": "Autolabelmodelname"
           },
           "autoLabelModelParams": {
@@ -2922,6 +2921,7 @@
           },
           "autoLabelModelName": {
             "type": "string",
+            "const": "cluener",
             "title": "Autolabelmodelname"
           },
           "autoLabelModelParams": {
@@ -3215,6 +3215,7 @@
           },
           "autoLabelModelName": {
             "type": "string",
+            "const": "cluener",
             "title": "Autolabelmodelname"
           },
           "autoLabelModelParams": {
@@ -3324,6 +3325,7 @@
         "properties": {
           "modelName": {
             "type": "string",
+            "const": "cluener",
             "title": "Modelname"
           },
           "modelParams": {

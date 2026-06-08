@@ -5,7 +5,13 @@
       "@/*": ["./src/*"]
     },
     "strict": true,
-    "types": []
+    "exactOptionalPropertyTypes": true,
+    "types": [],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   },
   "include": ["src"],
   "exclude": ["**/node_modules/**"]

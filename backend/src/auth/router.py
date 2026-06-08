@@ -28,7 +28,7 @@ router = APIRouter()
     "/token",
     response_model=schemas.Token,
     responses={
-        401: {"description": "Password does not match.", "headers": {"WWW-Authenticate": "Bearer"}},
+        401: {"description": "Password does not match."},
     },
 )
 async def login_for_access_token(

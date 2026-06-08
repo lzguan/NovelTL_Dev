@@ -7,7 +7,7 @@ import {
   type Runtime,
   type Signal,
   type UserEvent,
-} from "./types";
+} from "./types/types";
 import { type EditChapterData } from "@/client";
 import { generateRandomColor } from "@/components/labeled-text-lib/builtin/colors";
 import { createLogger } from "@/lib/logging";
