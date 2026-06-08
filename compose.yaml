@@ -93,7 +93,6 @@ services:
       - /project/.venv
     ports:
       - "${BACKEND_PORT}:8000"
-    command: uv run python -m src.main --no-sync
 
   frontend:
     build:
@@ -101,11 +100,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./frontend:/project
-      - pnpm-store:/pnpm/store
     ports:
       - "${FRONTEND_PORT}:5173"
 
-
 volumes:
   db_data:
-  pnpm-store:
