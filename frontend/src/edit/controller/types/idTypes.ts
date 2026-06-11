@@ -16,8 +16,9 @@
  * slightly outdated
  */
 
-import { Brand } from "effect";
+import { Brand, Effect } from "effect";
 import type { Prov } from "./helperTypes";
+import type { NotFoundException, NotReserveableException } from "./errors";
 
 export type ProvId = Prov<string>;
 export const ProvId = Brand.nominal<ProvId>();
@@ -102,6 +103,9 @@ export function isIdentifiableKind(kind: Kind): kind is IdentifiableKind {
 	);
 }
 
+type ActionHappened = boolean & Brand.Brand<"ActionHappened">;
+export const ActionHappened = Brand.nominal<ActionHappened>();
+
 /**
  * Used for managing existence of ids, not state
  */
@@ -120,24 +124,51 @@ export interface IDRepository {
 	/**
 	 * Get the server id corresponding to a provisional id. If server id has not been bound yet, return null.
 	 */
-	getServerId(kind: IdentifiableKind, provisionalId: ProvId): ServId | null;
-	getServerExists(kind: ExistableKind, provisionalId: ProvId): ServEx | null;
+	getServerId(
+		kind: IdentifiableKind,
+		provisionalId: ProvId,
+	): Effect.Effect<ServId | null, NotFoundException>;
+	getServerExists(
+		kind: ExistableKind,
+		provisionalId: ProvId,
+	): Effect.Effect<ServEx | null, NotFoundException>;
 
 	/**
 	 * Bind a provisional id to a server id, so that the controller can update the corresponding entry with the new server id when it receives the signal from the request event.
 	 */
-	bindServerId(kind: IdentifiableKind, provisionalId: ProvId, serverId: ServId): void;
-	bindServerExists(kind: ExistableKind, provisionalId: ProvId): void;
+	bindServerId(
+		kind: IdentifiableKind,
+		provisionalId: ProvId,
+		serverId: ServId,
+	): Effect.Effect<void, NotFoundException>;
+	bindServerExists(
+		kind: ExistableKind,
+		provisionalId: ProvId,
+	): Effect.Effect<void, NotFoundException>;
 
-	idObjState(kind: Kind, id: ProvId): IdStatus;
+	idObjState(kind: Kind, id: ProvId): Effect.Effect<IdStatus, NotFoundException>;
 
-	isReserveable(kind: Kind, id: ProvId, desiredState: InFlightIdStatus): boolean;
+	isReserveable(
+		kind: Kind,
+		id: ProvId,
+		desiredState: InFlightIdStatus,
+	): Effect.Effect<boolean, NotFoundException>;
 
-	reserveIdObjState(kind: Kind, id: ProvId, desiredState: InFlightIdStatus): boolean;
+	reserveIdObjState(
+		kind: Kind,
+		id: ProvId,
+		desiredState: InFlightIdStatus,
+	): Effect.Effect<void, NotFoundException | NotReserveableException>;
 
-	releaseIdObjStateOnSuccess(kind: Kind, id: ProvId): void;
+	releaseIdObjStateOnSuccess(
+		kind: Kind,
+		id: ProvId,
+	): Effect.Effect<ActionHappened, NotFoundException>;
 
-	releaseIdObjStateOnFailure(kind: Kind, id: ProvId): void;
+	releaseIdObjStateOnFailure(
+		kind: Kind,
+		id: ProvId,
+	): Effect.Effect<ActionHappened, NotFoundException>;
 
 	gc(): void;
 }

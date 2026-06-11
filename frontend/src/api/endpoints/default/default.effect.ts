@@ -20,7 +20,7 @@ export const ReadAutolabelsAutoLabelsGetQueryParams = S.Struct({
   "modelNames": S.optional(S.Union(S.Array(S.Literal("cluener")), S.Null))
 })
 
-export const ReadAutolabelsAutoLabelsGetResponseItem = S.Struct({
+export const ReadAutolabelsAutoLabelsGet200ResponseItem = S.Struct({
   "autoLabelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "autoLabelLastJobId": S.String,
   "autoLabelMessage": S.optional(S.Union(S.String, S.Null)),
@@ -29,7 +29,15 @@ export const ReadAutolabelsAutoLabelsGetResponseItem = S.Struct({
   "autoLabelStatus": S.Literal('failed', 'pending', 'processing', 'done').annotations({ description: 'Status for an autolabel in database. One of \'failed\', \'pending\', \'processing\', \'done\'' }),
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for auto-label metadata.\n\nAttributes:\n    auto_label_id: UUID identifier for this AutoLabel.\n    auto_label_model_name: Name of the model used to generate the auto labels.\n    auto_label_model_params: Parameters used for the model to generate the auto labels.\n    auto_label_status: Labeling progress for this autolabel.\n    auto_label_message: Details on status.\n    chapter_content_id: UUID of chapter content this AutoLabel is associated with.\n    auto_label_last_job_id: Job id of last job that was run on this AutoLabel.' })
-export const ReadAutolabelsAutoLabelsGetResponse = S.Array(ReadAutolabelsAutoLabelsGetResponseItem)
+export const ReadAutolabelsAutoLabelsGet200Response = S.Array(ReadAutolabelsAutoLabelsGet200ResponseItem)
+
+export const ReadAutolabelsAutoLabelsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * @summary Create Autolabels
@@ -44,7 +52,7 @@ export const CreateAutolabelsAutoLabelsPostBody = S.Struct({
   "start": S.optional(S.Union(S.Number, S.Null))
 }).annotations({ description: 'Pydantic schema for creating an auto-labeled data entry.\n\nAttributes:\n    novel_id: UUID of novel to create auto labels for.\n    auto_label_model_name: Name of the model used to generate the auto labels.\n    auto_label_model_params: Parameters used for the model to generate the auto labels.\n    chapter_ids: Optional parameter. Restrict to revisions with specific chapter UUIDs.\n    start: Optional parameter. Restrict to revisions with chapter num >= start.\n    end: Optional parameter. Restrict to revisions with chapter num < end.\n    is_public: Optional parameter. Restrict to revisions with this specific public flag.' })
 
-export const CreateAutolabelsAutoLabelsPostResponseItem = S.Struct({
+export const CreateAutolabelsAutoLabelsPost200ResponseItem = S.Struct({
   "autoLabelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "autoLabelLastJobId": S.String,
   "autoLabelMessage": S.optional(S.Union(S.String, S.Null)),
@@ -53,7 +61,15 @@ export const CreateAutolabelsAutoLabelsPostResponseItem = S.Struct({
   "autoLabelStatus": S.Literal('failed', 'pending', 'processing', 'done').annotations({ description: 'Status for an autolabel in database. One of \'failed\', \'pending\', \'processing\', \'done\'' }),
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for auto-label metadata.\n\nAttributes:\n    auto_label_id: UUID identifier for this AutoLabel.\n    auto_label_model_name: Name of the model used to generate the auto labels.\n    auto_label_model_params: Parameters used for the model to generate the auto labels.\n    auto_label_status: Labeling progress for this autolabel.\n    auto_label_message: Details on status.\n    chapter_content_id: UUID of chapter content this AutoLabel is associated with.\n    auto_label_last_job_id: Job id of last job that was run on this AutoLabel.' })
-export const CreateAutolabelsAutoLabelsPostResponse = S.Array(CreateAutolabelsAutoLabelsPostResponseItem)
+export const CreateAutolabelsAutoLabelsPost200Response = S.Array(CreateAutolabelsAutoLabelsPost200ResponseItem)
+
+export const CreateAutolabelsAutoLabelsPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving autolabel from database.
@@ -68,27 +84,27 @@ export const ReadAutolabelByIdAutoLabelsAutoLabelIdGetParams = S.Struct({
   "autoLabelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelEndMin = 0;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelEndMin = 0;
 
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelEntityGroupOneMax = 64;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelEntityGroupOneMax = 64;
 
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelScoreMin = 0;
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelScoreMax = 1;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelScoreMin = 0;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelScoreMax = 1;
 
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelStartMin = 0;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelStartMin = 0;
 
-export const readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelWordMax = 128;
+export const readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelWordMax = 128;
 
 
 
-export const ReadAutolabelByIdAutoLabelsAutoLabelIdGetResponse = S.Struct({
+export const ReadAutolabelByIdAutoLabelsAutoLabelIdGet200Response = S.Struct({
   "autoLabelData": S.Union(S.Array(S.Struct({
   "labelDirty": S.Boolean,
-  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelEndMin)),
-  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelEntityGroupOneMax)), S.Null),
-  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelScoreMin), S.lessThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelScoreMax)),
-  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelStartMin)),
-  "labelWord": S.String.pipe(S.maxLength(readAutolabelByIdAutoLabelsAutoLabelIdGetResponseAutoLabelDataOneItemLabelWordMax))
+  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelEndMin)),
+  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelEntityGroupOneMax)), S.Null),
+  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelScoreMin), S.lessThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelScoreMax)),
+  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelStartMin)),
+  "labelWord": S.String.pipe(S.maxLength(readAutolabelByIdAutoLabelsAutoLabelIdGet200ResponseAutoLabelDataOneItemLabelWordMax))
 }).annotations({ description: 'Pydantic schema for a single label without a parent LabelData reference.\nUsed by autolabels and other contexts where labels exist independently of a LabelData.\n\nAttributes:\n    label_entity_group: Some arbitrary string denoting the entity group this label belongs to (e.g. PERSON, LOCATION, etc.).\n    label_score: Some float corresponding to how likely a label is to be correct. Used by label autogeneration modules (TBD).\n    label_word: Word that this label is labeling.\n    label_start: Start position of this label in text.\n    label_end: End position of this label in text.\n    label_dirty: Use TBD, most likely will be for score calculations in LabelData aggregate operations.\n\nNote:\n    label_start must be strictly less than label_end. Otherwise a ValueError will occur.\n    label_word must have length label_end - label_start. Otherwise a ValueError will occur.' })), S.Null),
   "autoLabelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "autoLabelLastJobId": S.String,
@@ -99,6 +115,14 @@ export const ReadAutolabelByIdAutoLabelsAutoLabelIdGetResponse = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for an auto-labeled data entry.\n\nAttributes:\n    auto_label_id: UUID identifier for this AutoLabel.\n    auto_label_data: Dictionary containing the auto-labeled data.\n    auto_label_model_name: Name of the model used to generate the auto labels.\n    auto_label_model_params: Parameters used for the model to generate the auto labels.\n    auto_label_status: Labeling progress for this autolabel.\n    auto_label_message: Details on status.\n    chapter_content_id: UUID of chapter content this AutoLabel is associated with.\n    auto_label_last_job_id: Job id of last job that was run on this AutoLabel.' })
 
+export const ReadAutolabelByIdAutoLabelsAutoLabelIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
+
 /**
  * @summary Get Cached Result
  */
@@ -106,7 +130,7 @@ export const GetCachedResultCachedCachedIdGetParams = S.Struct({
   "cachedId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const GetCachedResultCachedCachedIdGetResponse = S.Struct({
+export const GetCachedResultCachedCachedIdGet200Response = S.Struct({
   "error": S.Union(S.Struct({
   "cacheConflict": S.Boolean,
   "detail": S.String
@@ -114,6 +138,18 @@ export const GetCachedResultCachedCachedIdGetResponse = S.Struct({
   "response": S.Union(S.Record({ key: S.String, value: S.Unknown }), S.Null),
   "status": S.Literal('pending', 'success', 'failure'),
   "status_code": S.Union(S.Number, S.Null)
+})
+
+export const GetCachedResultCachedCachedIdGet404Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const GetCachedResultCachedCachedIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
 })
 
 /**
@@ -127,11 +163,19 @@ export const ReadChapterContentByIdChapterContentsChapterContentIdGetParams = S.
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadChapterContentByIdChapterContentsChapterContentIdGetResponse = S.Struct({
+export const ReadChapterContentByIdChapterContentsChapterContentIdGet200Response = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterContentText": S.String,
   "chapterContentVersion": S.Number
 }).annotations({ description: 'Pydantic schema for the text content of a chapter.\n\nAttributes:\n    chapter_content_text: The full text content of the chapter.\n    chapter_content_version: The version number of the text content, used for optimistic concurrency control when updating text.\n    chapter_content_id: The UUID of the text content, used for optimistic concurrency control when updating text.' })
+
+export const ReadChapterContentByIdChapterContentsChapterContentIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving chapters by novel_id.
@@ -146,14 +190,22 @@ export const ReadChaptersByNovelChaptersGetQueryParams = S.Struct({
   "end": S.optional(S.Union(S.Number, S.Null))
 })
 
-export const ReadChaptersByNovelChaptersGetResponseItem = S.Struct({
+export const ReadChaptersByNovelChaptersGet200ResponseItem = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterIsPublic": S.Boolean,
   "chapterNum": S.Number,
   "chapterTitle": S.String,
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for chapter metadata. Represents a single \"chapter\" entry, which groups all its revisions.\n\nAttributes:\n    chapter_id: UUID primary key identifier.\n    chapter_num: The chapter number.\n    novel_id: UUID foreign key to the novel this chapter belongs to.' })
-export const ReadChaptersByNovelChaptersGetResponse = S.Array(ReadChaptersByNovelChaptersGetResponseItem)
+export const ReadChaptersByNovelChaptersGet200Response = S.Array(ReadChaptersByNovelChaptersGet200ResponseItem)
+
+export const ReadChaptersByNovelChaptersGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Delete a chapter from the database.
@@ -168,10 +220,18 @@ export const DeleteChapterChaptersChapterIdDeleteParams = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const DeleteChapterChaptersChapterIdDeleteResponse = S.Struct({
+export const DeleteChapterChaptersChapterIdDelete200Response = S.Struct({
   "detail": S.optional(S.Union(S.String, S.Null)),
   "status": S.Literal('success', 'fail')
 }).annotations({ description: 'Pydantic model to signal return status of operation.\n\nAttributes:\n    status: One of \"success\", \"fail\".\n    detail: Details on operation.\n\nNotes:\n    Unless under exceptional circumstances, should not return fail and just raise an exception.' })
+
+export const DeleteChapterChaptersChapterIdDelete422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving chapter by id.
@@ -184,13 +244,21 @@ export const ReadChapterByIdChaptersChapterIdGetParams = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadChapterByIdChaptersChapterIdGetResponse = S.Struct({
+export const ReadChapterByIdChaptersChapterIdGet200Response = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterIsPublic": S.Boolean,
   "chapterNum": S.Number,
   "chapterTitle": S.String,
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for chapter metadata. Represents a single \"chapter\" entry, which groups all its revisions.\n\nAttributes:\n    chapter_id: UUID primary key identifier.\n    chapter_num: The chapter number.\n    novel_id: UUID foreign key to the novel this chapter belongs to.' })
+
+export const ReadChapterByIdChaptersChapterIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Update chapter metadata.
@@ -209,13 +277,21 @@ export const UpdateChapterChaptersChapterIdPatchBody = S.Struct({
   "chapterTitle": S.String
 }).annotations({ description: 'Pydantic schema to validate data for updating chapter metadata.\n\nAttributes:\n    chapter_title: The new title for the chapter.' })
 
-export const UpdateChapterChaptersChapterIdPatchResponse = S.Struct({
+export const UpdateChapterChaptersChapterIdPatch200Response = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterIsPublic": S.Boolean,
   "chapterNum": S.Number,
   "chapterTitle": S.String,
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for chapter metadata. Represents a single \"chapter\" entry, which groups all its revisions.\n\nAttributes:\n    chapter_id: UUID primary key identifier.\n    chapter_num: The chapter number.\n    novel_id: UUID foreign key to the novel this chapter belongs to.' })
+
+export const UpdateChapterChaptersChapterIdPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving the most recent content of a chapter.
@@ -228,11 +304,19 @@ export const ReadChapterContentChaptersChapterIdContentGetParams = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadChapterContentChaptersChapterIdContentGetResponse = S.Struct({
+export const ReadChapterContentChaptersChapterIdContentGet200Response = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterContentText": S.String,
   "chapterContentVersion": S.Number
 }).annotations({ description: 'Pydantic schema for the text content of a chapter.\n\nAttributes:\n    chapter_content_text: The full text content of the chapter.\n    chapter_content_version: The version number of the text content, used for optimistic concurrency control when updating text.\n    chapter_content_id: The UUID of the text content, used for optimistic concurrency control when updating text.' })
+
+export const ReadChapterContentChaptersChapterIdContentGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Apply text operations to the most recent content of a chapter. Uses optimistic concurrency
@@ -262,11 +346,34 @@ export const UpdateChapterContentChaptersChapterIdContentPatchBody = S.Struct({
 }).annotations({ description: 'Pydantic schema to update text content of a chapter.\n\nAttributes:\n    op: The text operation, either \"insert\" or \"delete\".\n    start: The starting index in the text content where the operation should be applied.\n    text: The text to insert (for insert operations) or the text to delete (for delete operations).' }))
 }).annotations({ description: 'Pydantic schema to validate data for updating the text content of a chapter. The chapter_id is expected to be passed via the URL path.\n\nAttributes:\n    text_ops: A list of text operations (insertions or deletions) to apply to the existing text content.\n    chapter_content_id: The UUID of the text content, used for optimistic concurrency control when updating text.' })
 
-export const UpdateChapterContentChaptersChapterIdContentPatchResponse = S.Struct({
+export const UpdateChapterContentChaptersChapterIdContentPatch200Response = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterContentVersion": S.Number,
   "labelDataIdMap": S.Record({ key: S.String, value: S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)) })
 }).annotations({ description: 'Pydantic schema for the response after modifying chapter content.\n\nAttributes:\n    chapter_content_version: The new version number of the text content after applying the modifications.\n    chapter_content_id: The UUID of the text content that was modified.\n    label_data_id_map: A mapping from label data IDs before the text modification to label data IDs after the text modification' })
+
+export const UpdateChapterContentChaptersChapterIdContentPatch401Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const UpdateChapterContentChaptersChapterIdContentPatch404Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const UpdateChapterContentChaptersChapterIdContentPatch409Response = S.Struct({
+  "detail": S.Struct({
+  "cacheConflict": S.Boolean,
+  "detail": S.String
+}).annotations({ description: 'Structured detail payload used by request-key wrapped 409 responses.\n\nAttributes:\n    detail: Human-readable description of the error.\n    cache_conflict: Whether the failure was caused by a request-key cache conflict.' })
+}).annotations({ description: 'HTTPException response body for request-key wrapped 409 responses.\n\nAttributes:\n    detail: Structured conflict detail.' })
+
+export const UpdateChapterContentChaptersChapterIdContentPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Check whether a chapter_content_id is the latest version for a chapter.
@@ -281,10 +388,18 @@ export const ReadChapterContentStatusChaptersChapterIdContentStatusChapterConten
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse = S.Struct({
+export const ReadChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGet200Response = S.Struct({
   "detail": S.optional(S.Union(S.String, S.Null)),
   "status": S.Literal('success', 'fail')
 }).annotations({ description: 'Pydantic model to signal return status of operation.\n\nAttributes:\n    status: One of \"success\", \"fail\".\n    detail: Details on operation.\n\nNotes:\n    Unless under exceptional circumstances, should not return fail and just raise an exception.' })
+
+export const ReadChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving all content version metadata for a chapter.
@@ -295,11 +410,19 @@ export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGetParams
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGetResponseItem = S.Struct({
+export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGet200ResponseItem = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterContentVersion": S.Number
 }).annotations({ description: 'Metadata for a ChapterContent.\n\nAttributes:\n    chapter_content_version: The version number of the text content, used for optimistic concurrency control when updating text.\n    chapter_content_id: The UUID of the text content, used for optimistic concurrency control when updating text.' })
-export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGetResponse = S.Array(ReadChapterContentVersionsChaptersChapterIdContentVersionsGetResponseItem)
+export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGet200Response = S.Array(ReadChapterContentVersionsChaptersChapterIdContentVersionsGet200ResponseItem)
+
+export const ReadChapterContentVersionsChaptersChapterIdContentVersionsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Publish a chapter (make it public).
@@ -313,13 +436,21 @@ export const ActionPublishChapterChaptersChapterIdPublishPostParams = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ActionPublishChapterChaptersChapterIdPublishPostResponse = S.Struct({
+export const ActionPublishChapterChaptersChapterIdPublishPost200Response = S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterIsPublic": S.Boolean,
   "chapterNum": S.Number,
   "chapterTitle": S.String,
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for chapter metadata. Represents a single \"chapter\" entry, which groups all its revisions.\n\nAttributes:\n    chapter_id: UUID primary key identifier.\n    chapter_num: The chapter number.\n    novel_id: UUID foreign key to the novel this chapter belongs to.' })
+
+export const ActionPublishChapterChaptersChapterIdPublishPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Gets all data associated with a chapter required for editing.
@@ -346,22 +477,22 @@ export const ReadEditChapterDataEditChapterDataChapterIdGetQueryParams = S.Struc
   "subjectId": S.optional(S.Union(S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.Null))
 })
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelEndMin = 0;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelEndMin = 0;
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelEntityGroupOneMax = 64;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelEntityGroupOneMax = 64;
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelScoreMin = 0;
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelScoreMax = 1;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelScoreMin = 0;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelScoreMax = 1;
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelStartMin = 0;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelStartMin = 0;
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelWordMax = 128;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelWordMax = 128;
 
-export const readEditChapterDataEditChapterDataChapterIdGetResponseLabelGroupListItemLabelGroupLabelGroupNameMax = 31;
+export const readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelGroupListItemLabelGroupLabelGroupNameMax = 31;
 
 
 
-export const ReadEditChapterDataEditChapterDataChapterIdGetResponse = S.Struct({
+export const ReadEditChapterDataEditChapterDataChapterIdGet200Response = S.Struct({
   "chapter": S.Struct({
   "chapterId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterIsPublic": S.Boolean,
@@ -379,12 +510,12 @@ export const ReadEditChapterDataEditChapterDataChapterIdGetResponse = S.Struct({
   "labels": S.Array(S.Struct({
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelDirty": S.Boolean,
-  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelEndMin)),
-  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelEntityGroupOneMax)), S.Null),
+  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelEndMin)),
+  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelEntityGroupOneMax)), S.Null),
   "labelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelScoreMin), S.lessThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelScoreMax)),
-  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelStartMin)),
-  "labelWord": S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGetResponseLabelDataListItemLabelsItemLabelWordMax))
+  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelScoreMin), S.lessThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelScoreMax)),
+  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelStartMin)),
+  "labelWord": S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelDataListItemLabelsItemLabelWordMax))
 }).annotations({ description: 'Pydantic schema for a label that belongs to a LabelData.\nExtends LabelBase with a label_data_id foreign key and label_id pkey.' }))
 })),
   "labelGroupList": S.Array(S.Struct({
@@ -395,13 +526,21 @@ export const ReadEditChapterDataEditChapterDataChapterIdGetResponse = S.Struct({
 }).annotations({ description: 'Pydantic schema for a list of labels in some text.\n\nAttributes:\n    label_data_id: UUID identifier for this LabelData.\n    label_group_id: UUID of label group this LabelData belongs to.\n    chapter_content_id: UUID of chapter content this LabelData is labelling.' }), S.Null),
   "labelGroup": S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelGroupName": S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGetResponseLabelGroupListItemLabelGroupLabelGroupNameMax)),
+  "labelGroupName": S.String.pipe(S.maxLength(readEditChapterDataEditChapterDataChapterIdGet200ResponseLabelGroupListItemLabelGroupLabelGroupNameMax)),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label group.\n\nAttributes:\n    label_group_id: UUID identifier for this label group.\n    label_group_name: Name of this label group.\n    novel_id: UUID of novel this label group belongs to.' }),
   "role": S.Literal('owner', 'viewer', 'editor')
 })),
   "role": S.Literal('owner', 'viewer', 'editor')
 }).annotations({ description: 'Pydantic schema for the data needed to edit a chapter.\n\nAttributes:\n    chapter: Chapter being edited.\n    chapter_content: ChapterContent being edited.\n    label_groups: List of LabelGroups in this novel.\n    labels: List of Labels in this chapter content.' })
+
+export const ReadEditChapterDataEditChapterDataChapterIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Retrieves the schemas for all registered filters, including the instance, context, and options schemas for each filter.
@@ -410,7 +549,7 @@ export const ReadEditChapterDataEditChapterDataChapterIdGetResponse = S.Struct({
  *     A dictionary mapping filter names to their schema information.
  * @summary Read Filter Schemas
  */
-export const ReadFilterSchemasFiltersSchemasGetResponse = S.Record({ key: S.String, value: S.Struct({
+export const ReadFilterSchemasFiltersSchemasGet200Response = S.Record({ key: S.String, value: S.Struct({
   "apply_filter_options_schema": S.Record({ key: S.String, value: S.Unknown }),
   "context_schema": S.Record({ key: S.String, value: S.Unknown }),
   "decide_instances_options_schema": S.Record({ key: S.String, value: S.Unknown }),
@@ -441,6 +580,14 @@ export const ApplyFilterFiltersFilterNameApplyPostBody = S.Struct({
   "options": S.Record({ key: S.String, value: S.Unknown })
 })
 
+export const ApplyFilterFiltersFilterNameApplyPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
+
 /**
  * Decides whether instances pass a filter in given contexts using specified options.
  *
@@ -460,8 +607,16 @@ export const ReadDecisionsFiltersFilterNameDecideInstancesPostBody = S.Struct({
   "options": S.Record({ key: S.String, value: S.Unknown })
 })
 
-export const ReadDecisionsFiltersFilterNameDecideInstancesPostResponseItem = S.Boolean
-export const ReadDecisionsFiltersFilterNameDecideInstancesPostResponse = S.Array(ReadDecisionsFiltersFilterNameDecideInstancesPostResponseItem)
+export const ReadDecisionsFiltersFilterNameDecideInstancesPost200ResponseItem = S.Boolean
+export const ReadDecisionsFiltersFilterNameDecideInstancesPost200Response = S.Array(ReadDecisionsFiltersFilterNameDecideInstancesPost200ResponseItem)
+
+export const ReadDecisionsFiltersFilterNameDecideInstancesPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Flags instances using a specified filter and options.
@@ -479,8 +634,16 @@ export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostParams = S.St
 
 export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostBody = S.Record({ key: S.String, value: S.Unknown })
 
-export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostResponseItem = S.Unknown
-export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse = S.Array(ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostResponseItem)
+export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPost200ResponseItem = S.Unknown
+export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPost200Response = S.Array(ReadFlaggedInstancesFiltersFilterNameFlagInstancesPost200ResponseItem)
+
+export const ReadFlaggedInstancesFiltersFilterNameFlagInstancesPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Retrieves contexts for a list of instances using a specified filter and options.
@@ -502,8 +665,16 @@ export const ReadContextsFiltersFilterNameGetContextsPostBody = S.Struct({
   "options": S.Record({ key: S.String, value: S.Unknown })
 })
 
-export const ReadContextsFiltersFilterNameGetContextsPostResponseItem = S.Unknown
-export const ReadContextsFiltersFilterNameGetContextsPostResponse = S.Array(ReadContextsFiltersFilterNameGetContextsPostResponseItem)
+export const ReadContextsFiltersFilterNameGetContextsPost200ResponseItem = S.Unknown
+export const ReadContextsFiltersFilterNameGetContextsPost200Response = S.Array(ReadContextsFiltersFilterNameGetContextsPost200ResponseItem)
+
+export const ReadContextsFiltersFilterNameGetContextsPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Gets all label datas in a label group, optionally filtered by chapter range.
@@ -515,12 +686,20 @@ export const ReadLabelDatasByGroupChaptersLabelDatasGetQueryParams = S.Struct({
   "end": S.optional(S.Union(S.Number, S.Null))
 })
 
-export const ReadLabelDatasByGroupChaptersLabelDatasGetResponseItem = S.Struct({
+export const ReadLabelDatasByGroupChaptersLabelDatasGet200ResponseItem = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a list of labels in some text.\n\nAttributes:\n    label_data_id: UUID identifier for this LabelData.\n    label_group_id: UUID of label group this LabelData belongs to.\n    chapter_content_id: UUID of chapter content this LabelData is labelling.' })
-export const ReadLabelDatasByGroupChaptersLabelDatasGetResponse = S.Array(ReadLabelDatasByGroupChaptersLabelDatasGetResponseItem)
+export const ReadLabelDatasByGroupChaptersLabelDatasGet200Response = S.Array(ReadLabelDatasByGroupChaptersLabelDatasGet200ResponseItem)
+
+export const ReadLabelDatasByGroupChaptersLabelDatasGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Gets a label data by id.
@@ -533,11 +712,19 @@ export const ReadLabelDataLabelDatasLabelDataIdGetParams = S.Struct({
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadLabelDataLabelDatasLabelDataIdGetResponse = S.Struct({
+export const ReadLabelDataLabelDatasLabelDataIdGet200Response = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a list of labels in some text.\n\nAttributes:\n    label_data_id: UUID identifier for this LabelData.\n    label_group_id: UUID of label group this LabelData belongs to.\n    chapter_content_id: UUID of chapter content this LabelData is labelling.' })
+
+export const ReadLabelDataLabelDatasLabelDataIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Applies a stream of edit operations to labels.
@@ -622,6 +809,29 @@ export const UpdateLabelDataStreamLabelDatasLabelDataIdPatchBody = S.Struct({
 }).annotations({ description: 'Pydantic schema for a label update operation. Inherits all attributes from LabelOpBase.\n\nAttributes:\n    op: The string literal \'update\'.\n    new_start_pos: Optional parameter. The new start position of the label.\n    new_end_pos: Optional parameter. The new end position of the label.\n    new_word: Optional parameter. The new word the label is labelling. Must satisfy `new_word == chapter_text[new_start_pos : new_end_pos]`.\n    dirty: Optional parameter. Value to change the current label\'s dirty value to.\n    entity_group: Optional parameter. New entity group for this label.\n    score: Optional parameter. New score for the entity.' })))
 }).annotations({ description: 'Pydantic schema for a buffered stream of label operations.\n\nAttributes:\n    ops: A list of label operations.' })
 
+export const UpdateLabelDataStreamLabelDatasLabelDataIdPatch400Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const UpdateLabelDataStreamLabelDatasLabelDataIdPatch404Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const UpdateLabelDataStreamLabelDatasLabelDataIdPatch409Response = S.Struct({
+  "detail": S.Struct({
+  "cacheConflict": S.Boolean,
+  "detail": S.String
+}).annotations({ description: 'Structured detail payload used by request-key wrapped 409 responses.\n\nAttributes:\n    detail: Human-readable description of the error.\n    cache_conflict: Whether the failure was caused by a request-key cache conflict.' })
+}).annotations({ description: 'HTTPException response body for request-key wrapped 409 responses.\n\nAttributes:\n    detail: Structured conflict detail.' })
+
+export const UpdateLabelDataStreamLabelDatasLabelDataIdPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
+
 /**
  * Get the specific list of labels inside a label data entry.
  * @summary Read Labels By Label Data
@@ -630,30 +840,38 @@ export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetParams = S.Struc
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelEndMin = 0;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelEndMin = 0;
 
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelEntityGroupOneMax = 64;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelEntityGroupOneMax = 64;
 
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelScoreMin = 0;
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelScoreMax = 1;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelScoreMin = 0;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelScoreMax = 1;
 
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelStartMin = 0;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelStartMin = 0;
 
-export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelWordMax = 128;
+export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelWordMax = 128;
 
 
 
-export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseItem = S.Struct({
+export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseItem = S.Struct({
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelDirty": S.Boolean,
-  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelEndMin)),
-  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelEntityGroupOneMax)), S.Null),
+  "labelEnd": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelEndMin)),
+  "labelEntityGroup": S.Union(S.String.pipe(S.maxLength(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelEntityGroupOneMax)), S.Null),
   "labelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelScoreMin), S.lessThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelScoreMax)),
-  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelStartMin)),
-  "labelWord": S.String.pipe(S.maxLength(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseLabelWordMax))
+  "labelScore": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelScoreMin), S.lessThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelScoreMax)),
+  "labelStart": S.Number.pipe(S.greaterThanOrEqualTo(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelStartMin)),
+  "labelWord": S.String.pipe(S.maxLength(readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseLabelWordMax))
 }).annotations({ description: 'Pydantic schema for a label that belongs to a LabelData.\nExtends LabelBase with a label_data_id foreign key and label_id pkey.' })
-export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse = S.Array(ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponseItem)
+export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200Response = S.Array(ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGet200ResponseItem)
+
+export const ReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Gets all label groups of the current user for a novel.
@@ -663,16 +881,24 @@ export const ReadLabelGroupsLabelGroupsGetQueryParams = S.Struct({
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const readLabelGroupsLabelGroupsGetResponseLabelGroupNameMax = 31;
+export const readLabelGroupsLabelGroupsGet200ResponseLabelGroupNameMax = 31;
 
 
 
-export const ReadLabelGroupsLabelGroupsGetResponseItem = S.Struct({
+export const ReadLabelGroupsLabelGroupsGet200ResponseItem = S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelGroupName": S.String.pipe(S.maxLength(readLabelGroupsLabelGroupsGetResponseLabelGroupNameMax)),
+  "labelGroupName": S.String.pipe(S.maxLength(readLabelGroupsLabelGroupsGet200ResponseLabelGroupNameMax)),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label group.\n\nAttributes:\n    label_group_id: UUID identifier for this label group.\n    label_group_name: Name of this label group.\n    novel_id: UUID of novel this label group belongs to.' })
-export const ReadLabelGroupsLabelGroupsGetResponse = S.Array(ReadLabelGroupsLabelGroupsGetResponseItem)
+export const ReadLabelGroupsLabelGroupsGet200Response = S.Array(ReadLabelGroupsLabelGroupsGet200ResponseItem)
+
+export const ReadLabelGroupsLabelGroupsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Creates a new label group.
@@ -695,15 +921,38 @@ export const CreateLabelGroupLabelGroupsPostBody = S.Struct({
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for validating forms for creating a label group.\n\nAttributes:\n    label_group_name: Name of label group to create.\n    novel_id: UUID of novel this label group belongs to.' })
 
-export const createLabelGroupLabelGroupsPostResponseLabelGroupNameMax = 31;
+export const createLabelGroupLabelGroupsPost200ResponseLabelGroupNameMax = 31;
 
 
 
-export const CreateLabelGroupLabelGroupsPostResponse = S.Struct({
+export const CreateLabelGroupLabelGroupsPost200Response = S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelGroupName": S.String.pipe(S.maxLength(createLabelGroupLabelGroupsPostResponseLabelGroupNameMax)),
+  "labelGroupName": S.String.pipe(S.maxLength(createLabelGroupLabelGroupsPost200ResponseLabelGroupNameMax)),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label group.\n\nAttributes:\n    label_group_id: UUID identifier for this label group.\n    label_group_name: Name of this label group.\n    novel_id: UUID of novel this label group belongs to.' })
+
+export const CreateLabelGroupLabelGroupsPost400Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const CreateLabelGroupLabelGroupsPost404Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const CreateLabelGroupLabelGroupsPost409Response = S.Struct({
+  "detail": S.Struct({
+  "cacheConflict": S.Boolean,
+  "detail": S.String
+}).annotations({ description: 'Structured detail payload used by request-key wrapped 409 responses.\n\nAttributes:\n    detail: Human-readable description of the error.\n    cache_conflict: Whether the failure was caused by a request-key cache conflict.' })
+}).annotations({ description: 'HTTPException response body for request-key wrapped 409 responses.\n\nAttributes:\n    detail: Structured conflict detail.' })
+
+export const CreateLabelGroupLabelGroupsPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Gets a label group by id.
@@ -716,15 +965,23 @@ export const ReadLabelGroupLabelGroupsLabelGroupIdGetParams = S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const readLabelGroupLabelGroupsLabelGroupIdGetResponseLabelGroupNameMax = 31;
+export const readLabelGroupLabelGroupsLabelGroupIdGet200ResponseLabelGroupNameMax = 31;
 
 
 
-export const ReadLabelGroupLabelGroupsLabelGroupIdGetResponse = S.Struct({
+export const ReadLabelGroupLabelGroupsLabelGroupIdGet200Response = S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelGroupName": S.String.pipe(S.maxLength(readLabelGroupLabelGroupsLabelGroupIdGetResponseLabelGroupNameMax)),
+  "labelGroupName": S.String.pipe(S.maxLength(readLabelGroupLabelGroupsLabelGroupIdGet200ResponseLabelGroupNameMax)),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label group.\n\nAttributes:\n    label_group_id: UUID identifier for this label group.\n    label_group_name: Name of this label group.\n    novel_id: UUID of novel this label group belongs to.' })
+
+export const ReadLabelGroupLabelGroupsLabelGroupIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Updates a label group (e.g. rename).
@@ -746,15 +1003,23 @@ export const UpdateLabelGroupLabelGroupsLabelGroupIdPatchBody = S.Struct({
   "labelGroupName": S.String.pipe(S.maxLength(updateLabelGroupLabelGroupsLabelGroupIdPatchBodyLabelGroupNameMax))
 }).annotations({ description: 'Pydantic schema for validating forms for updating a label group.\n\nAttributes:\n    label_group_name: New name of label group.' })
 
-export const updateLabelGroupLabelGroupsLabelGroupIdPatchResponseLabelGroupNameMax = 31;
+export const updateLabelGroupLabelGroupsLabelGroupIdPatch200ResponseLabelGroupNameMax = 31;
 
 
 
-export const UpdateLabelGroupLabelGroupsLabelGroupIdPatchResponse = S.Struct({
+export const UpdateLabelGroupLabelGroupsLabelGroupIdPatch200Response = S.Struct({
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
-  "labelGroupName": S.String.pipe(S.maxLength(updateLabelGroupLabelGroupsLabelGroupIdPatchResponseLabelGroupNameMax)),
+  "labelGroupName": S.String.pipe(S.maxLength(updateLabelGroupLabelGroupsLabelGroupIdPatch200ResponseLabelGroupNameMax)),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label group.\n\nAttributes:\n    label_group_id: UUID identifier for this label group.\n    label_group_name: Name of this label group.\n    novel_id: UUID of novel this label group belongs to.' })
+
+export const UpdateLabelGroupLabelGroupsLabelGroupIdPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Get the list of contributors for a label group.
@@ -764,12 +1029,20 @@ export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetParams =
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponseItem = S.Struct({
+export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGet200ResponseItem = S.Struct({
   "labelContributorRole": S.Literal('owner', 'viewer', 'editor'),
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a label contributor, which can be either a user or an autolabel model.\n\nAttributes:\n    label_contributor_role: Role of the contributor, either a user or an autolabel model.\n    label_group_id: UUID of label group this contributor belongs to.\n    user_id: UUID of user' })
-export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse = S.Array(ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponseItem)
+export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGet200Response = S.Array(ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGet200ResponseItem)
+
+export const ReadLabelContributorsLabelGroupsLabelGroupIdContributorsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Creates a label data entry for a revision text in a label group.
@@ -791,11 +1064,30 @@ export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostBody = S.Struct
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for validating create requests for label data.\n\nAttributes:\n    chapter_content_id: UUID of chapter content being labelled.' })
 
-export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse = S.Struct({
+export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPost200Response = S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelDataId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "labelGroupId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for a list of labels in some text.\n\nAttributes:\n    label_data_id: UUID identifier for this LabelData.\n    label_group_id: UUID of label group this LabelData belongs to.\n    chapter_content_id: UUID of chapter content this LabelData is labelling.' })
+
+export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPost404Response = S.Struct({
+  "detail": S.String
+}).annotations({ description: 'Generic error payload for HTTPException responses that only return a detail string.\n\nAttributes:\n    detail: Human-readable description of the error.' })
+
+export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPost409Response = S.Struct({
+  "detail": S.Struct({
+  "cacheConflict": S.Boolean,
+  "detail": S.String
+}).annotations({ description: 'Structured detail payload used by request-key wrapped 409 responses.\n\nAttributes:\n    detail: Human-readable description of the error.\n    cache_conflict: Whether the failure was caused by a request-key cache conflict.' })
+}).annotations({ description: 'HTTPException response body for request-key wrapped 409 responses.\n\nAttributes:\n    detail: Structured conflict detail.' })
+
+export const CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Creates label datas and populates labels from autolabel results.
@@ -813,10 +1105,18 @@ export const CreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLa
   "start": S.optional(S.Union(S.Number, S.Null))
 }).annotations({ description: 'Pydantic schema to specifiy a set of AutoLabels to be moved to LabelDatas.\n\nAttributes:\n    model_name: Name of NER model that performed the autolabeling.\n    model_params: Parameters of model used.\n    chapter_ids: Optional filter on what chapters to include.\n    start: Optional filter on the least chapter number to include.\n    end: Optional filter on the greatest chapter number to include.' })
 
-export const CreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse = S.Struct({
+export const CreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPost200Response = S.Struct({
   "errors": S.Array(S.Tuple(S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.String)),
   "success": S.Array(S.Tuple(S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))))
 }).annotations({ description: 'Return message for CreateLabelDataByAutoLabel.\n\nAttributes:\n    success: List of tuples of (chapter_id, chapter_content_id) for successful inserts.\n    errors: List of tuples of (chapter_id, chapter_content_id, error message) for failed inserts.' })
+
+export const CreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Retrieves all languages in the database.
@@ -825,11 +1125,11 @@ export const CreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLa
  *     db: Database session.
  * @summary Read All Languages
  */
-export const ReadAllLanguagesLanguagesGetResponseItem = S.Struct({
+export const ReadAllLanguagesLanguagesGet200ResponseItem = S.Struct({
   "languageCode": S.String,
   "languageName": S.String
 }).annotations({ description: 'Pydantic schema for language.\n\nAttributes:\n    language_code: String code key to language.\n    language_name: String name of language.' })
-export const ReadAllLanguagesLanguagesGetResponse = S.Array(ReadAllLanguagesLanguagesGetResponseItem)
+export const ReadAllLanguagesLanguagesGet200Response = S.Array(ReadAllLanguagesLanguagesGet200ResponseItem)
 
 /**
  * Retrieves a language by its code.
@@ -843,10 +1143,18 @@ export const ReadLanguageByCodeLanguagesLanguageCodeGetParams = S.Struct({
   "languageCode": S.String
 })
 
-export const ReadLanguageByCodeLanguagesLanguageCodeGetResponse = S.Struct({
+export const ReadLanguageByCodeLanguagesLanguageCodeGet200Response = S.Struct({
   "languageCode": S.String,
   "languageName": S.String
 }).annotations({ description: 'Pydantic schema for language.\n\nAttributes:\n    language_code: String code key to language.\n    language_name: String name of language.' })
+
+export const ReadLanguageByCodeLanguagesLanguageCodeGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving novels in bulk.
@@ -856,7 +1164,7 @@ export const ReadNovelsNovelsGetQueryParams = S.Struct({
   "titleContains": S.optional(S.Union(S.String, S.Null))
 })
 
-export const ReadNovelsNovelsGetResponseItem = S.Struct({
+export const ReadNovelsNovelsGet200ResponseItem = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -866,7 +1174,15 @@ export const ReadNovelsNovelsGetResponseItem = S.Struct({
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
-export const ReadNovelsNovelsGetResponse = S.Array(ReadNovelsNovelsGetResponseItem)
+export const ReadNovelsNovelsGet200Response = S.Array(ReadNovelsNovelsGet200ResponseItem)
+
+export const ReadNovelsNovelsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Add a new novel to the database.
@@ -886,7 +1202,7 @@ export const CreateNovelNovelsPostBody = S.Struct({
   "sourceWorkId": S.optional(S.Union(S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.Null))
 }).annotations({ description: 'Pydantic schema to validate forms for creating a novel.\n\nAttributes:\n    novel_title: Novel title to create.\n    novel_description: Description of novel we are creating.\n    novel_author: Author of novel we are creating.\n    novel_visibility: Visibility level of novel we are creating.\n    novel_type: Type of novel we are creating.\n    language_code: String code key to language of novel we are creating.\n    source_work_id: Optional source work to attach to. If None, a new source work is auto-created.' })
 
-export const CreateNovelNovelsPostResponse = S.Struct({
+export const CreateNovelNovelsPost200Response = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -896,6 +1212,14 @@ export const CreateNovelNovelsPostResponse = S.Struct({
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
+
+export const CreateNovelNovelsPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving novels that the user has special access to.
@@ -908,7 +1232,7 @@ export const ReadNovelsMineNovelsMineGetQueryParams = S.Struct({
   "titleContains": S.optional(S.Union(S.String, S.Null))
 })
 
-export const ReadNovelsMineNovelsMineGetResponseItem = S.Struct({
+export const ReadNovelsMineNovelsMineGet200ResponseItem = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -918,7 +1242,15 @@ export const ReadNovelsMineNovelsMineGetResponseItem = S.Struct({
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
-export const ReadNovelsMineNovelsMineGetResponse = S.Array(ReadNovelsMineNovelsMineGetResponseItem)
+export const ReadNovelsMineNovelsMineGet200Response = S.Array(ReadNovelsMineNovelsMineGet200ResponseItem)
+
+export const ReadNovelsMineNovelsMineGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving a novel by id.
@@ -931,7 +1263,7 @@ export const ReadNovelNovelsNovelIdGetParams = S.Struct({
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadNovelNovelsNovelIdGetResponse = S.Struct({
+export const ReadNovelNovelsNovelIdGet200Response = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -941,6 +1273,14 @@ export const ReadNovelNovelsNovelIdGetResponse = S.Struct({
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
+
+export const ReadNovelNovelsNovelIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Update the novel with novel_id.
@@ -963,7 +1303,7 @@ export const UpdateNovelNovelsNovelIdPatchBody = S.Struct({
   "novelVisibility": S.optional(S.Union(S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)), S.Null))
 }).annotations({ description: 'Pydantic schema to validate forms for updating a novel. The novel id will be passed into the router endpoint.\n\nAttributes:\n    novel_title: Updated title to novel we are updating. If None, then do not update.\n    novel_description: Updated description of novel we are updating. If None, then do not update.\n    novel_author: Author of novel we are creating. If None, then do not update.\n    novel_visibility: Updated visibility level of novel we are updating. If None, then do not update.\n    novel_type: Updated novel type. If None, then do not update.' })
 
-export const UpdateNovelNovelsNovelIdPatchResponse = S.Struct({
+export const UpdateNovelNovelsNovelIdPatch200Response = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -973,6 +1313,14 @@ export const UpdateNovelNovelsNovelIdPatchResponse = S.Struct({
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
+
+export const UpdateNovelNovelsNovelIdPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Insert a new chapter into the database. Returns chapter metadata and initial empty content.
@@ -996,7 +1344,7 @@ export const CreateChapterNovelsNovelIdChaptersPostBody = S.Struct({
   "chapterTitle": S.optionalWith(S.String, { default: () => createChapterNovelsNovelIdChaptersPostBodyChapterTitleDefault })
 }).annotations({ description: 'Pydantic schema to validate data for creating a new chapter. The novel_id is expected to be passed via the URL path.\n\nAttributes:\n    chapter_num: The chapter number to create.\n    chapter_title: Title of the chapter. Defaults to empty string.\n    chapter_is_public: Whether the chapter is publicly visible. Defaults to False.' })
 
-export const CreateChapterNovelsNovelIdChaptersPostResponse = S.Struct({
+export const CreateChapterNovelsNovelIdChaptersPost200Response = S.Struct({
   "content": S.Struct({
   "chapterContentId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "chapterContentText": S.String,
@@ -1010,6 +1358,14 @@ export const CreateChapterNovelsNovelIdChaptersPostResponse = S.Struct({
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for chapter metadata. Represents a single \"chapter\" entry, which groups all its revisions.\n\nAttributes:\n    chapter_id: UUID primary key identifier.\n    chapter_num: The chapter number.\n    novel_id: UUID foreign key to the novel this chapter belongs to.' })
 }).annotations({ description: 'Pydantic schema for aggregating a ChapterContent and a Chapter together.\n\nAttributes:\n    metadata: The metadata of the chapter, such as title and whether it\'s primary.\n    content: The text content of the chapter.' })
+
+export const CreateChapterNovelsNovelIdChaptersPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for registering a new user. Client with registration request must not be logged in.
@@ -1026,11 +1382,19 @@ export const RegisterUserRegisterPostBody = S.Struct({
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
 }).annotations({ description: 'Pydantic schema to validate data required to create a user.\n\nAttributes:\n    user_name: Username of user being created.\n    user_password: Unhashed password of user being create.\n    user_type: UserType type of user to be created.\nNotes:' })
 
-export const RegisterUserRegisterPostResponse = S.Struct({
+export const RegisterUserRegisterPost200Response = S.Struct({
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "userName": S.String,
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
 }).annotations({ description: 'Pydantic model for user information.\n\nAttributes:\n    user_id: id of this user.\n    user_name: Username for this user.\n    user_type: A value in UserType (e.g. \'admin\', or \'user\')' })
+
+export const RegisterUserRegisterPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving source works in bulk, optionally filtered by title substring.
@@ -1043,7 +1407,7 @@ export const ReadSourceWorksSourceWorksGetQueryParams = S.Struct({
   "retNovels": S.optionalWith(S.Boolean, { default: () => readSourceWorksSourceWorksGetQueryRetNovelsDefault })
 })
 
-export const ReadSourceWorksSourceWorksGetResponseItem = S.Struct({
+export const ReadSourceWorksSourceWorksGet200ResponseItem = S.Struct({
   "novels": S.Array(S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
@@ -1060,7 +1424,15 @@ export const ReadSourceWorksSourceWorksGetResponseItem = S.Struct({
   "sourceWorkTitle": S.String
 }).annotations({ description: 'Pydantic schema for a source work.\n\nAttributes:\n    source_work_id: UUID id of source work in db.\n    source_work_title: Title of the source work.\n    source_work_description: Optional description of the source work.' })
 }).annotations({ description: 'Pydantic schema to represent a source work and all its associated novels.\n\nAttributes:\n    source_work: The source work metadata.\n    novels: A list of novels associated with this source work.' })
-export const ReadSourceWorksSourceWorksGetResponse = S.Array(ReadSourceWorksSourceWorksGetResponseItem)
+export const ReadSourceWorksSourceWorksGet200Response = S.Array(ReadSourceWorksSourceWorksGet200ResponseItem)
+
+export const ReadSourceWorksSourceWorksGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Create a new source work.
@@ -1074,11 +1446,19 @@ export const CreateSourceWorkSourceWorksPostBody = S.Struct({
   "sourceWorkTitle": S.String
 }).annotations({ description: 'Pydantic schema to validate forms for creating a source work.\n\nAttributes:\n    source_work_title: Title of the source work to create.\n    source_work_description: Optional description.' })
 
-export const CreateSourceWorkSourceWorksPostResponse = S.Struct({
+export const CreateSourceWorkSourceWorksPost200Response = S.Struct({
   "sourceWorkDescription": S.optional(S.Union(S.String, S.Null)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "sourceWorkTitle": S.String
 }).annotations({ description: 'Pydantic schema for a source work.\n\nAttributes:\n    source_work_id: UUID id of source work in db.\n    source_work_title: Title of the source work.\n    source_work_description: Optional description of the source work.' })
+
+export const CreateSourceWorkSourceWorksPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving a source work by id.
@@ -1091,11 +1471,19 @@ export const ReadSourceWorkSourceWorksSourceWorkIdGetParams = S.Struct({
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadSourceWorkSourceWorksSourceWorkIdGetResponse = S.Struct({
+export const ReadSourceWorkSourceWorksSourceWorkIdGet200Response = S.Struct({
   "sourceWorkDescription": S.optional(S.Union(S.String, S.Null)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "sourceWorkTitle": S.String
 }).annotations({ description: 'Pydantic schema for a source work.\n\nAttributes:\n    source_work_id: UUID id of source work in db.\n    source_work_title: Title of the source work.\n    source_work_description: Optional description of the source work.' })
+
+export const ReadSourceWorkSourceWorksSourceWorkIdGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Update a source work's metadata.
@@ -1115,11 +1503,19 @@ export const UpdateSourceWorkSourceWorksSourceWorkIdPatchBody = S.Struct({
   "sourceWorkTitle": S.optional(S.Union(S.String, S.Null))
 }).annotations({ description: 'Pydantic schema to validate forms for updating a source work.\n\nAttributes:\n    source_work_title: Updated title. If None, do not update.\n    source_work_description: Updated description. If None, do not update.' })
 
-export const UpdateSourceWorkSourceWorksSourceWorkIdPatchResponse = S.Struct({
+export const UpdateSourceWorkSourceWorksSourceWorkIdPatch200Response = S.Struct({
   "sourceWorkDescription": S.optional(S.Union(S.String, S.Null)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "sourceWorkTitle": S.String
 }).annotations({ description: 'Pydantic schema for a source work.\n\nAttributes:\n    source_work_id: UUID id of source work in db.\n    source_work_title: Title of the source work.\n    source_work_description: Optional description of the source work.' })
+
+export const UpdateSourceWorkSourceWorksSourceWorkIdPatch422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Endpoint for retrieving novels belonging to a source work.
@@ -1132,7 +1528,7 @@ export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetParams = S.St
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponseItem = S.Struct({
+export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet200ResponseItem = S.Struct({
   "languageCode": S.String,
   "novelAuthor": S.optional(S.Union(S.String, S.Null)),
   "novelDescription": S.optional(S.Union(S.String, S.Null)),
@@ -1142,7 +1538,15 @@ export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponseItem 
   "novelVisibility": S.Union(S.Literal(0), S.Literal(1), S.Literal(2), S.Literal(3)),
   "sourceWorkId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 }).annotations({ description: 'Pydantic schema for novel.\n\nAttributes:\n    novel_id: UUID id of novel in db.\n    novel_title: String title of novel.\n    novel_description: String summary or description of novel.\n    novel_author: String author or description of novel.\n    novel_visibility: Visibility enum of novel.\n    novel_type: NovelType enum of novel.\n    language_code: String code key to language of the novel.\n    source_work_id: UUID foreign key to source work of the novel.' })
-export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse = S.Array(ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponseItem)
+export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet200Response = S.Array(ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet200ResponseItem)
+
+export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Verifies a client's login request and returns a token if it succeeds.
@@ -1152,10 +1556,18 @@ export const ReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse = S.
  *     form_data: OAuth2PasswordRequestForm dependency.
  * @summary Login For Access Token
  */
-export const LoginForAccessTokenTokenPostResponse = S.Struct({
+export const LoginForAccessTokenTokenPost200Response = S.Struct({
   "access_token": S.String,
   "token_type": S.String
 }).annotations({ description: 'Pydantic schema for a JWT\n\nAttributes:\n    access_token: Payload.\n    token_type: Type of token.' })
+
+export const LoginForAccessTokenTokenPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Creates a user with metadata request, provided that the current_user has sufficient permissions.
@@ -1172,17 +1584,25 @@ export const CreateUserUsersPostBody = S.Struct({
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
 }).annotations({ description: 'Pydantic schema to validate data required to create a user.\n\nAttributes:\n    user_name: Username of user being created.\n    user_password: Unhashed password of user being create.\n    user_type: UserType type of user to be created.\nNotes:' })
 
-export const CreateUserUsersPostResponse = S.Struct({
+export const CreateUserUsersPost200Response = S.Struct({
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "userName": S.String,
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
 }).annotations({ description: 'Pydantic model for user information.\n\nAttributes:\n    user_id: id of this user.\n    user_name: Username for this user.\n    user_type: A value in UserType (e.g. \'admin\', or \'user\')' })
 
+export const CreateUserUsersPost422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
+
 /**
  * Delete the user currently logged in.
  * @summary Delete User Me
  */
-export const DeleteUserMeUsersMeDeleteResponse = S.Struct({
+export const DeleteUserMeUsersMeDelete200Response = S.Struct({
   "detail": S.optional(S.Union(S.String, S.Null)),
   "status": S.Literal('success', 'fail', 'verify')
 }).annotations({ description: 'Pydantic schema to return status after deleting a user\n\nAttributes:\n    status: One of \'success\', \'fail\', \'verify\'.\n    detail: String denoting details of operation.' })
@@ -1194,7 +1614,7 @@ export const DeleteUserMeUsersMeDeleteResponse = S.Struct({
  *     current_user: Current user dependency.
  * @summary Read User Me
  */
-export const ReadUserMeUsersMeGetResponse = S.Struct({
+export const ReadUserMeUsersMeGet200Response = S.Struct({
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "userName": S.String,
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
@@ -1208,10 +1628,18 @@ export const DeleteUserUsersUserIdDeleteParams = S.Struct({
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/))
 })
 
-export const DeleteUserUsersUserIdDeleteResponse = S.Struct({
+export const DeleteUserUsersUserIdDelete200Response = S.Struct({
   "detail": S.optional(S.Union(S.String, S.Null)),
   "status": S.Literal('success', 'fail', 'verify')
 }).annotations({ description: 'Pydantic schema to return status after deleting a user\n\nAttributes:\n    status: One of \'success\', \'fail\', \'verify\'.\n    detail: String denoting details of operation.' })
+
+export const DeleteUserUsersUserIdDelete422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 
 /**
  * Get user by username.
@@ -1225,9 +1653,17 @@ export const ReadUserUsersUserNameGetParams = S.Struct({
   "userName": S.String
 })
 
-export const ReadUserUsersUserNameGetResponse = S.Struct({
+export const ReadUserUsersUserNameGet200Response = S.Struct({
   "userId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "userName": S.String,
   "userType": S.Literal('user', 'admin').annotations({ description: 'Enum of possible user types.' })
 }).annotations({ description: 'Pydantic model for user information.\n\nAttributes:\n    user_id: id of this user.\n    user_name: Username for this user.\n    user_type: A value in UserType (e.g. \'admin\', or \'user\')' })
+
+export const ReadUserUsersUserNameGet422Response = S.Struct({
+  "detail": S.optional(S.Array(S.Struct({
+  "loc": S.Array(S.Union(S.String, S.Number)),
+  "msg": S.String,
+  "type": S.String
+})))
+})
 

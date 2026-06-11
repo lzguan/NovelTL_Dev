@@ -1,51 +1,35 @@
-export class TimeoutError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "TimeoutError";
-	}
-}
+import { Data } from "effect";
+import type { RequestKey } from "./requestTypes";
+import type { TimeoutException } from "effect/Cause";
 
-export class CacheConflictError extends Error {
-	requestKey: string;
-	constructor(message: string, requestKey: string) {
-		super(message);
-		this.name = "CacheConflictError";
-		this.requestKey = requestKey;
-	}
-}
+export class CacheConflictException extends Data.TaggedError("CacheConflictException")<{
+	requestKey: RequestKey;
+}> {}
 
-export class NoCacheEntryError extends Error {
-	requestKey: string;
-	constructor(message: string, requestKey: string) {
-		super(message);
-		this.name = "NoCacheEntryError";
-		this.requestKey = requestKey;
-	}
-}
+export class NoCacheEntryException extends Data.TaggedError("NoCacheEntryException")<{
+	requestKey: RequestKey;
+}> {}
 
-export class ConnectionError extends Error {
+export class ConnectionException extends Data.TaggedError("ConnectionException")<{
 	orig: unknown;
-	constructor(message: string, err: unknown) {
-		super(message);
-		this.name = "ConnectionError";
-		this.orig = err;
-	}
-}
+}> {}
 
-export class FatalError extends Error {
+export class FatalException extends Data.TaggedError("FatalException")<{
 	orig?: unknown;
-	constructor(message: string, orig?: unknown) {
-		super(message);
-		this.name = "FatalError";
-		if (orig) {
-			this.orig = orig;
-		}
-	}
-}
+}> {}
 
-export class NotFoundError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = "NotFoundError";
-	}
-}
+export class NotFoundException extends Data.TaggedError("NotFoundException")<{}> {}
+
+export class NotReserveableException extends Data.TaggedError("NotReserveableException")<{}> {}
+
+export class PendingException extends Data.TaggedError("PendingException")<{}> {}
+
+export type AnyError =
+	| FatalException
+	| ConnectionException
+	| CacheConflictException
+	| NoCacheEntryException
+	| NotFoundException
+	| NotReserveableException
+	| TimeoutException
+	| PendingException;

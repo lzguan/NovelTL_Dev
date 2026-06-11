@@ -1,53 +1,32 @@
 import { createLogger } from "@/lib/logging";
-import type {
-  CachedKeyedRequestEvent,
-  IDRepository,
-  KeyedRequestEvent,
-  RequestEvent,
-  RequestManager,
-  Reservation,
-  Signal,
-  UserEvent,
-} from "./types";
+
 import {
-  FatalError,
-  TimeoutError,
-  ConnectionError,
-  CacheConflictError,
-  isDetailHttpErrorResponse,
-  NoCacheEntryError,
-} from "./types";
-import { getCachedResultCachedCachedIdGet, type CacheEntry } from "@/client";
+    consumeRetry,
+	regenerateKey,
+	RequestKey,
+	type CachedKeyedRequestEvent,
+	type KeyedRequestEvent,
+	type RequestEvent,
+	type RequestManager,
+} from "./types/requestTypes";
+import type { IDRepository } from "./types/idTypes";
+import type { TriggerEvent } from "./types/controllerTypes";
+import { Effect, Either } from "effect";
+import { getCachedResultCachedCachedIdGet } from "@/api/endpoints/default/default";
+import { TimeoutException } from "effect/Cause";
+import {
+	CacheConflictException,
+	ConnectionException,
+	FatalException,
+	NoCacheEntryException,
+	NotFoundException,
+	NotReserveableException,
+	type AnyError,
+} from "./types/errors";
+import { request, retry } from "effect/Effect";
+import type { CacheEntry, CacheEntryResponse } from "@/api/models";
 
 const logger = createLogger("RequestManager");
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      reject(new TimeoutError(`Request timed out after ${timeoutMs} ms`));
-    }, timeoutMs);
-    promise
-      .then((result) => {
-        clearTimeout(timeoutId);
-        resolve(result);
-      })
-      .catch((err) => {
-        logger.error("Error occurred in withTimeout wrapper", {
-          error: err instanceof Error ? err : new Error(String(err)),
-        });
-        clearTimeout(timeoutId);
-        reject(err);
-      });
-  });
-}
-
-function getReservationList(request: KeyedRequestEvent): Reservation[] {
-  if (request.reservationRequest.wait) {
-    return request.reservationRequest.reserveList.call();
-  } else {
-    return request.reservationRequest.reserveList;
-  }
-}
 
 /**
  * Below is a brief outline of the behaviour of the request manager.
@@ -103,445 +82,324 @@ function getReservationList(request: KeyedRequestEvent): Reservation[] {
  * - The only edge case the author can think of at the moment is if a request is sent and received by the server, a cache conflict occurs, but the response from the server is lost due to connection issues. In this case, the request manager will place the request in the unknown state instead of the retry state. When the request manager pings the server about the status, it will see another request with the same key that has succeeded, when it should have retried the request. This leaves the frontend in an inconsistent state (if an error response was received instead, the frontend will see a fatal error and refresh). However, this is a very unlikely noncritical edge case and we will put off fixing it for now. Furthermore, we can mitigate this issue by making the request keys more collision resistant.
  */
 
-export function buildRequestManager(
-  idRepo: IDRepository,
-  setErrors: (errors: Error[] | null) => void,
-): RequestManager {
-  const requestQueue: KeyedRequestEvent[] = [];
-  let statusQueries: CachedKeyedRequestEvent[] = []; // requests for which we have sent the main request and are now polling for their status
-  let retryRequests: KeyedRequestEvent[] = []; // requests that have failed due to cache conflicts/known recoverable errors and should be retried
-  let userEventTimeout: ReturnType<typeof setTimeout> | null = null;
-  let debounceLock: boolean = false; // if true do not send any requests to server
-  let requestLoopRunning: boolean = false;
+export const buildRequestManager = (idRepo: IDRepository) => Effect.gen(function *() {
+	const requestQueue: KeyedRequestEvent[] = [];
+	const statusQueries: CachedKeyedRequestEvent[] = []; // requests for which we have sent the main request and are now polling for their status
+	const retryRequests: KeyedRequestEvent[] = []; // requests that have failed due to cache conflicts/known recoverable errors and should be retried
+	const startedMut = yield* Effect.makeSemaphore(1)
 
-  const isQueueEmpty = () =>
-    requestQueue.length === 0 && statusQueries.length === 0 && retryRequests.length === 0;
+	let userEventTimeout: number | null = null;
+	let debounceLock: boolean = false; // if true do not send any requests to server
 
-  const enqueueRequest = (request: RequestEvent) => {
-    requestQueue.push({ ...request, requestKey: crypto.randomUUID(), retries: 3 });
-  };
+	let raiseTriggerEvent: (event: TriggerEvent) => void = () => {};
 
-  let controllerSignalHandler: (signal: Signal) => void = () => {};
+	const attachTrigger = (raise: (event: TriggerEvent) => void) => {
+		raiseTriggerEvent = raise;
+	};
 
-  const passSignal = (signal: Signal) => {
-    controllerSignalHandler(signal);
-  };
+	const detachTrigger = () => {
+		raiseTriggerEvent = () => {};
+	};
 
-  const attachControllerSignalHandler = (handler: (signal: Signal) => void) => {
-    controllerSignalHandler = handler;
-  };
+	const isQueueEmpty = () =>
+		requestQueue.length === 0 && statusQueries.length === 0 && retryRequests.length === 0;
 
-  const detachControllerSignalHandler = () => {
-    controllerSignalHandler = () => {};
-  };
+	const enqueueRequest = (request: RequestEvent) => {
+		requestQueue.push({ ...request, requestKey: RequestKey(crypto.randomUUID()), retries: 3 });
+	};
 
-  const handleSignal = () => {
-    return;
-  };
+	const requestStatusQuery = (request: CachedKeyedRequestEvent) =>
+		Effect.gen(function* () {
+			const response = yield* Effect.tryPromise({
+				try: () => getCachedResultCachedCachedIdGet(request.requestKey),
+				catch: (err) => {
+					logger.error(`Failed to fetch status for request ${request.requestKey}`, {
+						error: err instanceof Error ? err : new Error(String(err)),
+					});
+					return new ConnectionException({ orig: err });
+				},
+			});
+			if (response.status === 404) {
+				return yield* Effect.fail(new NoCacheEntryException({ requestKey: request.requestKey }));
+			} else if (response.status === 422) {
+				return yield* Effect.fail(new FatalException({ orig: response }));
+			} else {
+				if (response.data.error && response.data.error.cacheConflict) {
+					return yield* Effect.fail(new CacheConflictException({ requestKey: request.requestKey }));
+				}
+				else if (response.data.error) {
+					return yield *Effect.fail(new FatalException({ orig: response })) ;
+				}
+				else {
+					return response.data.response;
+				}
+			}
+		});
 
-  const requestStatusQueries = (): Promise<CacheEntry>[] => {
-    return statusQueries.map((request) =>
-      withTimeout(
-        new Promise<CacheEntry>((resolve, reject) => {
-          void getCachedResultCachedCachedIdGet({
-            path: {
-              cachedId: request.requestKey,
-            },
-          })
-            .catch((err) => {
-              logger.error(`Failed to fetch status for request ${request.requestKey}`, {
-                error: err instanceof Error ? err : new Error(String(err)),
-              });
-              reject(
-                new ConnectionError(
-                  `Failed to fetch status for request ${request.requestKey}`,
-                  err,
-                ),
-              );
-            })
-            .then((response) => {
-              if (!response) {
-                reject(
-                  new FatalError(
-                    `No response received while fetching status for request ${request.requestKey}`,
-                  ),
-                );
-                return;
-              }
-              if (response.error) {
-                if (isDetailHttpErrorResponse(response.error)) {
-                  reject(
-                    new NoCacheEntryError(
-                      `No cache entry found for request ${request.requestKey}`,
-                      request.requestKey,
-                    ),
-                  );
-                } else {
-                  reject(
-                    new FatalError(
-                      `Unexpected error response while fetching status for request ${request.requestKey}: ${JSON.stringify(response.error)}`,
-                    ),
-                  );
-                }
-              } else {
-                resolve(response.data);
-              }
-            });
-        }),
-        10000,
-      ),
-    );
-  };
+	const reserveAction = (request: KeyedRequestEvent): Effect.Effect<"wait" | "skip" | "reserve", NotFoundException> => Effect.gen(function *() {
+		if (request.reservationRequest.skip()) {
+			return yield* Effect.succeed("skip" as "skip");
+		} else if (request.reservationRequest.wait()) {
+			return yield* Effect.succeed("wait" as "wait");
+		}
+		const results = Effect.forEach(
+			request.reservationRequest.reserveList(), 
+			(reservation) => idRepo.isReserveable(
+				reservation.kind, 
+				reservation.id, 
+				reservation.desiredState
+			)
+		);
+		const allResults = yield* results;
+		return yield* allResults.every((isReserveable) => isReserveable) ? Effect.succeed("reserve" as "reserve") : Effect.succeed("wait" as "wait");
+	})
 
-  const send = async () => {
-    const fromQueueRequests = [];
+	// rewrite with effect
+	const send = () =>
+		Effect.gen(function* () {
+			const fromQueueRequests = [];
 
-    let delay: number | null = 1000; // todo: implement exponential backoff for retries instead of fixed delay
-    if (
-      statusQueries.some((request) => request.retries < 0) ||
-      retryRequests.some((request) => request.retries < 0)
-    ) {
-      (statusQueries as KeyedRequestEvent[])
-        .concat(retryRequests)
-        .filter((request) => request.retries < 0)
-        .forEach((request) => {
-          getReservationList(request).forEach((reservation) =>
-            idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-          );
-          request.onFailure?.();
-        });
-      logger.error("One or more requests have exceeded the maximum number of retries", {
-        statusQueries: statusQueries.filter((request) => request.retries < 0),
-        retryRequests: retryRequests.filter((request) => request.retries < 0),
-      });
-      throw new FatalError("A request has exceeded the maximum number of retries");
-    }
-    while (
-      requestQueue.length > 0 &&
-      !requestQueue[0].reservationRequest.wait?.() &&
-      (requestQueue[0].reservationRequest.skip?.() ||
-        getReservationList(requestQueue[0]).every((reservation) =>
-          idRepo.isReserveable(reservation.kind, reservation.id, reservation.desiredState),
-        ))
-    ) {
-      const request = requestQueue.shift()!;
-      if (request.reservationRequest.skip?.()) {
-        continue;
-      }
-      const reservationRequest = request.reservationRequest;
-      if (reservationRequest.wait) {
-        reservationRequest.reserveList
-          .call()
-          .forEach((reservation) =>
-            idRepo.reserveIdObjState(reservation.kind, reservation.id, reservation.desiredState),
-          );
-      } else {
-        reservationRequest.reserveList.forEach((reservation) =>
-          idRepo.reserveIdObjState(reservation.kind, reservation.id, reservation.desiredState),
-        );
-      }
-      fromQueueRequests.push(request);
-    }
+			let delay: number = 1000; // todo: implement exponential backoff for retries instead of fixed delay
 
-    const statusQueryPromises = requestStatusQueries();
+			const limitExceeded: KeyedRequestEvent[] = [];
+			for (const request of [...statusQueries, ...retryRequests]) {
+				if (request.retries < 0) {
+					yield* Effect.forEach(request.reservationRequest.reserveList(), (reservation) =>
+						idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
+					);
+					request.onFailure();
+					logger.error(
+						`Request ${request.requestKey} has exceeded the maximum number of retries`,
+						{
+							request: request,
+						},
+					);
+					limitExceeded.push(request);
+				}
+			}
+			if (limitExceeded.length > 0) {
+				return yield* Effect.fail(
+					new Error(`${limitExceeded.length} requests have exceeded the maximum number of retries`),
+				);
+			}
+			while (requestQueue.length > 0) {
+				const action = yield *reserveAction(requestQueue[0]);
+				if (action === "wait") {
+					break;
+				}
+				const request = requestQueue.shift()!;
+				if (action === "skip") {
+					continue;
+				}
+				const reservationRequest = request.reservationRequest;
+				yield* Effect.forEach(reservationRequest.reserveList(), (reservation) =>
+					idRepo.reserveIdObjState(reservation.kind, reservation.id, reservation.desiredState),
+				);
+				request.preSend();
+				fromQueueRequests.push(request);
+			}
 
-    const newStatusQueries: CachedKeyedRequestEvent[] = [];
-    const newRetryRequests: KeyedRequestEvent[] = [];
-    const [fromQueueResult, statusQueryResult, retryResult] = await Promise.allSettled([
-      Promise.allSettled(
-        fromQueueRequests.map((request) =>
-          withTimeout(request.callback(request.requestKey), 10000),
-        ),
-      ),
-      Promise.allSettled(statusQueryPromises),
-      Promise.allSettled(
-        retryRequests.map((request) => withTimeout(request.callback(request.requestKey), 10000)),
-      ),
-    ]);
+			const sem = yield* Effect.makeSemaphore(10);
+			const handleReturn = <T, E>(request: KeyedRequestEvent) =>
+				Effect.mapBoth({
+					onFailure: (error: E): { error: E; request: KeyedRequestEvent } => ({
+						error,
+						request,
+					}),
+					onSuccess: (value: T) => ({ value, request }),
+				});
 
-    if (fromQueueResult.status === "rejected") {
-      logger.error("Error occurred in queue requests", {
-        error:
-          fromQueueResult.reason instanceof Error
-            ? fromQueueResult.reason
-            : new Error(String(fromQueueResult.reason)),
-      });
-      throw new FatalError(
-        "Error occured in queue requests: how the hell did that happen?",
-        fromQueueResult.reason instanceof Error
-          ? fromQueueResult.reason
-          : new Error(String(fromQueueResult.reason)),
-      );
-    }
-    if (statusQueryResult.status === "rejected") {
-      logger.error("Error occurred in status query requests", {
-        error:
-          statusQueryResult.reason instanceof Error
-            ? statusQueryResult.reason
-            : new Error(String(statusQueryResult.reason)),
-      });
-      throw new FatalError(
-        "Error occured in status query requests: how the hell did that happen?",
-        statusQueryResult.reason instanceof Error
-          ? statusQueryResult.reason
-          : new Error(String(statusQueryResult.reason)),
-      );
-    }
-    if (retryResult.status === "rejected") {
-      logger.error("Error occurred in retry requests", {
-        error:
-          retryResult.reason instanceof Error
-            ? retryResult.reason
-            : new Error(String(retryResult.reason)),
-      });
-      throw new FatalError(
-        "Error occured in retry requests: how the hell did that happen?",
-        retryResult.reason instanceof Error
-          ? retryResult.reason
-          : new Error(String(retryResult.reason)),
-      );
-    }
-    const errorsList = [];
-    for (let i = 0; i < fromQueueResult.value.length; i++) {
-      const result = fromQueueResult.value[i];
-      const request = fromQueueRequests[i];
-      if (result.status === "rejected") {
-        if (result.reason instanceof TimeoutError || result.reason instanceof ConnectionError) {
-          if (request.handleCachedResult) {
-            newStatusQueries.push({ ...request, retries: request.retries - 1 });
-          } else {
-            newRetryRequests.push({
-              ...request,
-              retries: request.retries - 1,
-              requestKey: crypto.randomUUID(),
-            });
-          }
-        } else if (result.reason instanceof CacheConflictError) {
-          newRetryRequests.push({
-            ...request,
-            retries: request.retries - 1,
-            requestKey: crypto.randomUUID(),
-          });
-        } else {
-          errorsList.push({ request: request, reason: result.reason });
-          getReservationList(request).forEach((reservation) =>
-            idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-          );
-          request.onFatalError?.(result.reason);
-        }
-      } else {
-        getReservationList(request).forEach((reservation) =>
-          idRepo.releaseIdObjStateOnSuccess(reservation.kind, reservation.id),
-        );
-        passSignal(result.value);
-        delay = null;
-      }
-    }
-    for (let i = 0; i < statusQueryResult.value.length; i++) {
-      const result = statusQueryResult.value[i];
-      const request = statusQueries[i];
-      if (result.status === "rejected") {
-        if (result.reason instanceof TimeoutError || result.reason instanceof ConnectionError) {
-          newStatusQueries.push({ ...request, retries: request.retries - 1 });
-        } else if (result.reason instanceof NoCacheEntryError) {
-          newRetryRequests.push({
-            ...request,
-            retries: request.retries - 1,
-            requestKey: crypto.randomUUID(),
-          });
-        } else {
-          errorsList.push({ request: request, reason: result.reason });
-          getReservationList(request).forEach((reservation) =>
-            idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-          );
-          request.onFatalError?.(result.reason);
-        }
-      } else {
-        try {
-          const { signal, status, error } = request.handleCachedResult(
-            result.value,
-            request.requestKey,
-          );
-          if (status === "success") {
-            getReservationList(request).forEach((reservation) =>
-              idRepo.releaseIdObjStateOnSuccess(reservation.kind, reservation.id),
-            );
-            passSignal(signal);
-            delay = null;
-          } else if (status === "pending") {
-            newStatusQueries.push({ ...request, retries: request.retries - 1 });
-          } else {
-            if (error instanceof CacheConflictError || error instanceof NoCacheEntryError) {
-              newRetryRequests.push({
-                ...request,
-                retries: request.retries - 1,
-                requestKey: crypto.randomUUID(),
-              });
-            } else {
-              errorsList.push({ request: request, reason: error });
-              getReservationList(request).forEach((reservation) =>
-                idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-              );
-              request.onFatalError?.(error);
-            }
-          }
-        } catch (err) {
-          logger.error(
-            `Error occurred while handling cached result for request ${request.requestKey}`,
-            { error: err instanceof Error ? err : new Error(String(err)) },
-          );
-          errorsList.push({
-            request: request,
-            reason: err instanceof Error ? err : new Error(String(err)),
-          });
-          getReservationList(request).forEach((reservation) =>
-            idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-          );
-          request.onFatalError?.(err instanceof Error ? err : new Error(String(err)));
-        }
-      }
-    }
-    for (let i = 0; i < retryResult.value.length; i++) {
-      const result = retryResult.value[i];
-      const request = retryRequests[i];
-      if (result.status === "rejected") {
-        if (result.reason instanceof TimeoutError || result.reason instanceof ConnectionError) {
-          if (request.handleCachedResult) {
-            newStatusQueries.push({ ...request, retries: request.retries - 1 });
-          } else {
-            newRetryRequests.push({
-              ...request,
-              retries: request.retries - 1,
-              requestKey: crypto.randomUUID(),
-            });
-          }
-        } else if (result.reason instanceof CacheConflictError) {
-          newRetryRequests.push({
-            ...request,
-            retries: request.retries - 1,
-            requestKey: crypto.randomUUID(),
-          });
-        } else {
-          errorsList.push({ request: request, reason: result.reason });
-          getReservationList(request).forEach((reservation) =>
-            idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
-          );
-          request.onFatalError?.(result.reason);
-        }
-      } else {
-        getReservationList(request).forEach((reservation) =>
-          idRepo.releaseIdObjStateOnSuccess(reservation.kind, reservation.id),
-        );
-        passSignal(result.value);
-        delay = null;
-      }
-    }
-    if (errorsList.length > 0) {
-      setErrors(
-        errorsList.map(
-          (error) =>
-            new Error(
-              `Request with key ${error.request.requestKey} failed: ${error.reason instanceof Error ? error.reason.message : String(error.reason)}`,
-              error.reason instanceof Error ? error.reason : new Error(String(error.reason)),
-            ),
-        ),
-      );
-    } else {
-      setErrors(null);
-    }
-    statusQueries = newStatusQueries;
-    retryRequests = newRetryRequests;
+			const fromQueueEffect = Effect.partition(
+				fromQueueRequests,
+				(requestEvent) =>
+					sem
+						.withPermits(1)(requestEvent.send(requestEvent.requestKey))
+						.pipe(Effect.timeout("10 seconds"))
+						.pipe(handleReturn(requestEvent)),
+				{ concurrency: "unbounded" },
+			);
+			const statusQueriesEffect = Effect.partition(
+				statusQueries,
+				(requestEvent) =>
+					sem
+						.withPermits(1)(requestStatusQuery(requestEvent))
+						.pipe(Effect.timeout("10 seconds"))
+						.pipe(handleReturn(requestEvent)),
+				{ concurrency: "unbounded" },
+			);
 
-    return delay;
-  };
+			const retryRequestsEffect = Effect.partition(
+				retryRequests,
+				(requestEvent) =>
+					sem
+						.withPermits(1)(requestEvent.send(requestEvent.requestKey))
+						.pipe(Effect.timeout("10 seconds"))
+						.pipe(handleReturn(requestEvent)),
+				{ concurrency: "unbounded" },
+			);
 
-  const start = async () => {
-    if (requestLoopRunning) {
-      return;
-    }
-    requestLoopRunning = true;
+			const [
+				[fromQueueResultFail, fromQueueResultPass],
+				[statusQueryResultFail, statusQueryResultPass],
+				[retryResultFail, retryResultPass],
+			] = yield* Effect.all([fromQueueEffect, statusQueriesEffect, retryRequestsEffect], {
+				concurrency: "unbounded",
+			});
 
-    try {
-      while (!isQueueEmpty()) {
-        if (debounceLock) {
-          await new Promise((resolve) => {
-            setTimeout(resolve, 100);
-          });
-        } else {
-          const delay = await send();
-          if (delay) {
-            await new Promise((resolve) => {
-              setTimeout(resolve, delay);
-            });
-          }
-        }
-      }
-    } catch (err) {
-      if (err instanceof FatalError) {
-        logger.error("Fatal error occurred in request loop", { error: err });
-        setErrors([err]);
-      } else if (err instanceof TimeoutError || err instanceof ConnectionError) {
-        logger.error("Connection error occurred in request loop", { error: err });
-        setErrors([err]);
-      } else {
-        logger.error("Unexpected error occurred in request loop", {
-          error: err instanceof Error ? err : new Error(String(err)),
-        });
-        setErrors([
-          new Error(
-            "Unexpected error occurred in request loop",
-            err instanceof Error ? err : new Error(String(err)),
-          ),
-        ]);
-      }
-    } finally {
-      requestLoopRunning = false;
-    }
-  };
+			const fatalFailedRequests: { error: AnyError; request: KeyedRequestEvent }[] = [];
+			const otherFailedRequests: { error: AnyError; request: KeyedRequestEvent }[] = [];
 
-  const onUserEvent = (event: UserEvent) => {
-    logger.info("User event:", event);
-    if (
-      ["textOp", "labelOp", "addLabelGroup", "loadGroup", "switchMode"].includes(event.eventType)
-    ) {
-      debounceLock = true;
-      if (userEventTimeout) {
-        clearTimeout(userEventTimeout);
-      }
-      userEventTimeout = setTimeout(() => {
-        userEventTimeout = null;
-        debounceLock = false;
-      }, 1000);
-      if (!requestLoopRunning) {
-        void start();
-      }
-    }
-  };
+			const newStatusQueries: CachedKeyedRequestEvent[] = [];
+			const newRetryRequests: KeyedRequestEvent[] = [];
 
-  const waitFlush = async () => {
-    if (isQueueEmpty()) {
-      return;
-    }
-    if (!requestLoopRunning) {
-      await start();
-    } else {
-      while (requestLoopRunning) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 100);
-        });
-      }
-    }
-  };
+			const requeueRequest = (result: { error: AnyError; request: KeyedRequestEvent }) => {
+				const newRequest = consumeRetry(result.request);
+				if (result.error._tag === "CacheConflictException") {
+					newRetryRequests.push(regenerateKey(newRequest));
+					otherFailedRequests.push(result);
+				} else if (result.error._tag === "ConnectionException") {
+					newRetryRequests.push(newRequest);
+					otherFailedRequests.push(result);
+				} else if (result.error._tag === "TimeoutException") {
+					if (result.request.cached) {
+						newStatusQueries.push(result.request);
+					} else {
+						newRetryRequests.push(regenerateKey(newRequest));
+					}
+					otherFailedRequests.push(result);
+				} else if (result.error._tag === "NoCacheEntryException") {
+					newRetryRequests.push(regenerateKey(newRequest));
+					otherFailedRequests.push(result);
+				} else {
+					fatalFailedRequests.push(result);
+				}
+			};
 
-  return {
-    isQueueEmpty,
-    enqueueRequest,
-    handleSignal,
-    onUserEvent,
-    send,
-    start,
-    waitFlush,
-    attachControllerSignalHandler,
-    detachControllerSignalHandler,
-  };
-}
+			for (const result of [...fromQueueResultFail, ...statusQueryResultFail, ...retryResultFail]) {
+				requeueRequest(result);
+			}
+
+			
+			const postSendResult = yield *Effect.validateAll([...statusQueryResultPass, ...retryResultPass, ...fromQueueResultPass], 
+				({ value, request }) => Effect.either(
+					request.postSend(value)
+					.pipe(Effect.mapBoth({
+						onFailure: (err) => ({ error: err, request }),
+						onSuccess: () => request
+					}))
+				),
+			);
+			for (const result of postSendResult) {
+				if (Either.isLeft(result)) {
+					fatalFailedRequests.push(result.left);
+				}
+				else {
+					const request = result.right;
+					yield *Effect.forEach(request.reservationRequest.reserveList(), (reservation) =>
+						idRepo.releaseIdObjStateOnSuccess(reservation.kind, reservation.id),
+					);
+				}
+			}
+			for (const { request, error } of fatalFailedRequests) {
+				request.onFatalError(error);
+				yield *Effect.forEach(request.reservationRequest.reserveList(), (reservation) =>
+					idRepo.releaseIdObjStateOnFailure(reservation.kind, reservation.id),
+				);
+			}
+			retryRequests.length = 0 // empty the array
+			statusQueries.length = 0;
+			retryRequests.push(...newRetryRequests);
+			statusQueries.push(...newStatusQueries);
+
+			return delay;
+		});
+
+	const start = () => startedMut.withPermits(1)(
+		Effect.gen(function* () {
+			try {
+				while (!isQueueEmpty()) {
+					if (debounceLock) {
+						await new Promise((resolve) => {
+							setTimeout(resolve, 100);
+						});
+					} else {
+						const delay = await send();
+						if (delay) {
+							await new Promise((resolve) => {
+								setTimeout(resolve, delay);
+							});
+						}
+					}
+				}
+			} catch (err) {
+				if (err instanceof FatalError) {
+					logger.error("Fatal error occurred in request loop", { error: err });
+					setErrors([err]);
+				} else if (err instanceof TimeoutError || err instanceof ConnectionError) {
+					logger.error("Connection error occurred in request loop", { error: err });
+					setErrors([err]);
+				} else {
+					logger.error("Unexpected error occurred in request loop", {
+						error: err instanceof Error ? err : new Error(String(err)),
+					});
+					setErrors([
+						new Error(
+							"Unexpected error occurred in request loop",
+							err instanceof Error ? err : new Error(String(err)),
+						),
+					]);
+				}
+			} finally {
+				requestLoopRunning = false;
+			}
+		});
+	)
+		
+	};
+	// replace with debounce
+	const onUserEvent = (event: UserEvent) => {
+		logger.info("User event:", event);
+		if (
+			["textOp", "labelOp", "addLabelGroup", "loadGroup", "switchMode"].includes(event.eventType)
+		) {
+			debounceLock = true;
+			if (userEventTimeout) {
+				clearTimeout(userEventTimeout);
+			}
+			userEventTimeout = setTimeout(() => {
+				userEventTimeout = null;
+				debounceLock = false;
+			}, 1000);
+			if (!requestLoopRunning) {
+				void start();
+			}
+		}
+	};
+
+	const waitFlush = async () => {
+		if (isQueueEmpty()) {
+			return;
+		}
+		if (!requestLoopRunning) {
+			await start();
+		} else {
+			while (requestLoopRunning) {
+				await new Promise((resolve) => {
+					setTimeout(resolve, 100);
+				});
+			}
+		}
+	};
+
+	return {
+		isQueueEmpty,
+		enqueueRequest,
+		attachTrigger,
+		detachTrigger,
+		send,
+		start,
+		waitFlush,
+		attachControllerSignalHandler,
+		detachControllerSignalHandler,
+	};
+})

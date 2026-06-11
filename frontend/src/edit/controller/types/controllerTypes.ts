@@ -2,6 +2,8 @@ import type { LabelDataEntry, LabelOp } from "./dataTypes";
 import type { ProvId } from "./idTypes";
 import type { Prov } from "./helperTypes";
 import type { Chapter, ChapterContent, LabelGroup, TextOp } from "@/api/models";
+import { Effect } from "effect";
+import type { KeyedRequestEvent } from "./requestTypes";
 
 // Generics
 
@@ -11,7 +13,7 @@ import type { Chapter, ChapterContent, LabelGroup, TextOp } from "@/api/models";
 export type SubscriberFn<GettersT, TriggerEventT> = (
 	getters: GettersT,
 	event: TriggerEventT,
-) => void;
+) => Effect.Effect<void>;
 
 /**
  * Interface for controllers.
@@ -59,3 +61,12 @@ export type ChapterUserEvent =
 	| { eventType: "textOp"; op: TextOp }
 	| { eventType: "labelOp"; op: LabelOp; labelGroupId: ProvId }
 	| { eventType: "loadLabelData"; labelGroupId: ProvId };
+
+export type TriggerEvent =
+	| { eventType: "textChanged"; op: TextOp; chapterId: ProvId }
+	| { eventType: "labelChanged"; op: LabelOp; labelGroupId: ProvId; chapterId: ProvId }
+	| {
+			eventType: "errorOccured";
+			from: "requestManager";
+			data: { error: Error; request: KeyedRequestEvent }[];
+	  };

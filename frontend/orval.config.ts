@@ -23,6 +23,11 @@ export default defineConfig({
 			client: "effect",
 			target: "src/api/endpoints",
 			fileExtension: ".effect.ts",
+			override: {
+				effect: {
+					generateEachHttpStatus: true,
+				},
+			},
 		},
 	},
 });

@@ -1,13 +1,7 @@
 import type { InFlightIdStatus, Kind, ProvId } from "./idTypes";
 import { type IdempotentCallable } from "./helperTypes";
-import type { Effect } from "effect";
-import type { CacheConflictError, ConnectionError, FatalError } from "./errors";
-import type { CacheEntry } from "@/api/models";
-
-type CachedResultOutput =
-	| { status: "success"; error: null }
-	| { status: "pending"; error: null }
-	| { status: "failure"; error: Error };
+import { Brand, type Effect } from "effect";
+import type { CacheConflictException, ConnectionException, FatalException } from "./errors";
 
 export type RequestVariant =
 	| "addLabelGroup"
@@ -21,6 +15,10 @@ export type Reservation = {
 	id: ProvId;
 	desiredState: InFlightIdStatus;
 };
+
+export type RequestKey = string & Brand.Brand<"RequestKey">;
+
+export const RequestKey = Brand.nominal<RequestKey>();
 
 export type ReservationRequest = {
 	reserveList: IdempotentCallable<Reservation[]>;
@@ -42,34 +40,67 @@ export type BaseRequestEvent = {
 	retries: number;
 	active: boolean;
 };
-export type NoCachedRequestEvent = BaseRequestEvent & {
-	handleCachedResult?: never;
-	callback: (requestKey: string) => Effect.Effect<void, ConnectionError | FatalError>;
+
+type Sendable<E> = {
+	preSend: () => void;
+	send: (requestKey: RequestKey) => Effect.Effect<unknown, E>;
+	postSend: (data: unknown) => Effect.Effect<void, FatalException>;
 };
 
-export type CachedRequestEvent = BaseRequestEvent & {
-	handleCachedResult: (cachedResult: CacheEntry, requestKey: string) => CachedResultOutput;
-	callback: (
-		requestKey: string,
-	) => Effect.Effect<void, ConnectionError | FatalError | CacheConflictError>;
-};
+export type NoCachedRequestEvent = BaseRequestEvent &
+	Sendable<ConnectionException | FatalException> & { cached: false };
+
+export type CachedRequestEvent = BaseRequestEvent &
+	Sendable<ConnectionException | CacheConflictException | FatalException> & { cached: true };
 
 export type RequestEvent = CachedRequestEvent | NoCachedRequestEvent;
 
-export type NoCachedKeyedRequestEvent = NoCachedRequestEvent & { requestKey: string };
-export type CachedKeyedRequestEvent = CachedRequestEvent & { requestKey: string };
+export type NoCachedKeyedRequestEvent = NoCachedRequestEvent & { requestKey: RequestKey };
+export type CachedKeyedRequestEvent = CachedRequestEvent & { requestKey: RequestKey };
 
 export type KeyedRequestEvent = NoCachedKeyedRequestEvent | CachedKeyedRequestEvent;
 
+export const regenerateKey = <T extends BaseRequestEvent>(request: T) => {
+	return { ...request, requestKey: crypto.randomUUID() };
+};
+
+export const consumeRetry = <T extends BaseRequestEvent>(request: T) => {
+	return { ...request, retries: request.retries - 1 };
+};
+
 export type RequestManager<TriggerEventT> = {
+	/**
+	 * Returns true if there are no unfinished requests.
+	 */
 	isQueueEmpty: () => boolean;
+	/**
+	 * Enqueue a single request event.
+	 */
 	enqueueRequest: (request: RequestEvent) => void;
 
+	/**
+	 * Debounce the request queue.
+	 */
 	debounce: () => void;
-	send: () => Effect.Effect<number, number>; // returns null if no delay is needed or the delay until the next retry if a request was sent and needs to be retried
+	/**
+	 * Send a batch of requests. Returns the delay until the next retry.
+	 */
+	send: () => Effect.Effect<number, Error>;
+	/**
+	 * Send requests until the queue is empty.
+	 */
 	start: () => Effect.Effect<void>;
+	/**
+	 * Lock and wait until all requests are finished.
+	 */
 	waitFlush: () => Effect.Effect<void>; // await flush queue
 
+	/**
+	 * Attach a trigger function.
+	 */
 	attachTrigger: (trigger: (t: TriggerEventT) => void) => void;
+	/**
+	 * Detach the trigger function.
+	 */
 	detachTrigger: () => void;
 };
