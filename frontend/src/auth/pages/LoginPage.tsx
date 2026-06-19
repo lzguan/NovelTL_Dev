@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { loginForAccessTokenTokenPost } from "@/client";
+import { loginForAccessTokenTokenPost } from "@/api/endpoints/default/default";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,16 +56,14 @@ export function LoginPage() {
     setErrorMessage(null);
 
     const response = await loginForAccessTokenTokenPost({
-      body: {
-        username,
-        password,
-      },
+      username,
+      password,
     });
 
     setIsSubmitting(false);
 
-    if (!response.data?.access_token) {
-      setErrorMessage(formatLoginError(response.error));
+    if (response.status !== 200 || !response.data?.access_token) {
+      setErrorMessage(formatLoginError(response.data));
       return;
     }
 

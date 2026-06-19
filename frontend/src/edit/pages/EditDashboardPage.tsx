@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { readNovelsMineNovelsMineGet, type Novel } from "@/client";
+import { readNovelsMineNovelsMineGet } from "@/api/endpoints/default/default";
+import type { Novel } from "@/api/models";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,13 +69,13 @@ function EditDashboardPage() {
   useEffect(() => {
     let ignore = false;
 
-    readNovelsMineNovelsMineGet({ query: { editable: true } })
+    readNovelsMineNovelsMineGet({ editable: true })
       .then((res) => {
         if (ignore) return;
-        if (res.data) {
+        if (res.status === 200) {
           setNovels(res.data);
         } else {
-          setError(res.error ?? new Error("Failed to load novels."));
+          setError(res.data ?? new Error("Failed to load novels."));
         }
       })
       .catch((err) => {

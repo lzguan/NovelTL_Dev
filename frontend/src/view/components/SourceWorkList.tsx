@@ -1,4 +1,4 @@
-import type { SourceWorkDataOutput } from "@/client";
+import type { SourceWorkDataOutput } from "@/api/models";
 import { SourceWorkCard } from "./SourceWorkCard";
 
 function SourceWorkList({ data }: { data: SourceWorkDataOutput[] }) {

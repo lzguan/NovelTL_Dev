@@ -1,9 +1,8 @@
 import {
   readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet,
   readSourceWorkSourceWorksSourceWorkIdGet,
-  type Novel,
-  type SourceWork,
-} from "@/client";
+} from "@/api/endpoints/default/default";
+import type { Novel, SourceWork } from "@/api/models";
 import { NovelList } from "@/view/components/NovelList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,24 +61,16 @@ function SourceWorkDetailsPage() {
       setError(null);
 
       const [sourceWorkResponse, novelsResponse] = await Promise.all([
-        readSourceWorkSourceWorksSourceWorkIdGet({
-          path: {
-            sourceWorkId,
-          },
-        }),
-        readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet({
-          path: {
-            sourceWorkId,
-          },
-        }),
+        readSourceWorkSourceWorksSourceWorkIdGet(sourceWorkId),
+        readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet(sourceWorkId),
       ]);
 
       if (ignore) {
         return;
       }
 
-      if (sourceWorkResponse.error) {
-        setError(sourceWorkResponse.error);
+      if (sourceWorkResponse.status !== 200) {
+        setError(sourceWorkResponse.data);
         setSourceWork(null);
         setNovels([]);
         setLoading(false);
@@ -88,8 +79,8 @@ function SourceWorkDetailsPage() {
 
       setSourceWork(sourceWorkResponse.data);
 
-      if (novelsResponse.error) {
-        setError(novelsResponse.error);
+      if (novelsResponse.status !== 200) {
+        setError(novelsResponse.data);
         setNovels([]);
       } else {
         setNovels(novelsResponse.data ?? []);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
-import { readUserMeUsersMeGet, type User } from "@/client";
+import { readUserMeUsersMeGet } from "@/api/endpoints/default/default";
+import type { User } from "@/api/models";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

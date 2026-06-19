@@ -1,4 +1,4 @@
-import type { Novel } from "@/client";
+import type { Novel } from "@/api/models";
 import { NovelCard } from "./NovelCard";
 
 function NovelList({

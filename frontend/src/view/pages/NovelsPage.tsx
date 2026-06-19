@@ -1,4 +1,5 @@
-import { readNovelsMineNovelsMineGet, readNovelsNovelsGet, type Novel } from "@/client";
+import { readNovelsMineNovelsMineGet, readNovelsNovelsGet } from "@/api/endpoints/default/default";
+import type { Novel } from "@/api/models";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { routeTo, extractParams } from "@/routes";
@@ -40,17 +41,15 @@ function NovelsPage() {
       const response = mine
         ? await readNovelsMineNovelsMineGet()
         : await readNovelsNovelsGet({
-            query: {
-              titleContains: search,
-            },
+            titleContains: search,
           });
 
       if (ignore) {
         return;
       }
 
-      if (response.error) {
-        setError(response.error);
+      if (response.status !== 200) {
+        setError(response.data);
         setNovels([]);
       } else {
         setNovels(response.data ?? []);

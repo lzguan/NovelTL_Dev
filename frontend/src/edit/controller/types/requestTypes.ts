@@ -53,9 +53,10 @@ export type ReservationRequest = {
 	 */
 	skip: () => boolean;
 	/**
-	 * Wait to send this request until this function returns false. If not provided, the request manager will not delay this request.
+	 * Returns true if the request should wait (dependencies not ready), false if it can proceed.
+	 * NotFoundException indicates an invariant violation (ID not tracked) and is treated as fatal.
 	 */
-	wait: () => Effect.Effect<boolean, NotFoundException>; // we do not expect this to throw, but if it does we want to treat it as a fatal error and stop processing the request, so we allow for an unknown exception to be thrown
+	wait: () => Effect.Effect<boolean, NotFoundException>;
 };
 
 /**
@@ -80,11 +81,11 @@ export type BaseRequestEvent = {
 	 */
 	retries: number;
 	/**
-	 * A request is passive if one of the following conditions is satisfied:
-	 * - Does not modify the backend state
+	 * A request is passive (active = false) if it satisfies one of:
+	 * - Does not modify backend state (e.g., fetching/reloading data).
 	 * - Depends on the completion of another passive request.
 	 *
-	 * This is mainly used for lazy loading and is used by the data manager instead of the request manager. See data manager implementation for details.
+	 * Active events (active = true) modify backend state and are dispatched with priority over passive events.
 	 */
 	active: boolean;
 };
@@ -153,7 +154,7 @@ export type RequestManager = {
 	 */
 	isQueueEmpty: () => boolean;
 	/**
-	 * Enqueue a single request event.
+	 * Enqueue a single request event. Silently drops events if the request manager is shutting down.
 	 */
 	enqueueRequest: (request: RequestEvent) => void;
 

@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 
-import type { Chapter, DetailHttpErrorResponse, RequestConflictErrorResponse } from "@/client";
+import type { Chapter, DetailHTTPErrorResponse, RequestConflictErrorResponse } from "@/api/models";
 import type { Caret as EditorCaret } from "@/components/labeled-text-lib/react/DynamicLabeledText";
 
 export type EditorRect = {
@@ -264,7 +264,7 @@ export function measureSelectionRects(
   ];
 }
 
-export function isDetailHttpErrorResponse(error: unknown): error is DetailHttpErrorResponse {
+export function isDetailHttpErrorResponse(error: unknown): error is DetailHTTPErrorResponse {
   return (
     typeof error === "object" &&
     error !== null &&

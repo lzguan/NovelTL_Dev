@@ -99,7 +99,7 @@ export const buildRequestManager = (
 
 		const enqueueRequest = (request: RequestEvent) => {
 			if (shuttingDown) return;
-			requestQueue.push({ ...request, requestKey: RequestKey(crypto.randomUUID()), retries: 3 });
+			requestQueue.push({ ...request, requestKey: RequestKey(crypto.randomUUID()) });
 		};
 
 		const requestStatusQuery = (request: CachedKeyedRequestEvent) =>

@@ -1,9 +1,8 @@
 import {
   readChaptersByNovelChaptersGet,
   readNovelNovelsNovelIdGet,
-  type Chapter,
-  type Novel,
-} from "@/client";
+} from "@/api/endpoints/default/default";
+import type { Chapter, Novel } from "@/api/models";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -182,16 +181,12 @@ function NovelDetailsPage() {
       setLoading(true);
       setError(null);
 
-      const data = await readNovelNovelsNovelIdGet({
-        path: {
-          novelId,
-        },
-      });
+      const data = await readNovelNovelsNovelIdGet(novelId);
 
       if (ignore) return;
 
-      if (data.error) {
-        setError(data.error);
+      if (data.status !== 200) {
+        setError(data.data);
         setNovel(null);
         setChapters([]);
         setLoading(false);
@@ -202,17 +197,15 @@ function NovelDetailsPage() {
 
       const { start, end } = extractParams.view.novel(searchParams);
       const chapterData = await readChaptersByNovelChaptersGet({
-        query: {
-          novelId,
-          start: start ?? null,
-          end: end ?? null,
-        },
+        novelId,
+        start: start ?? null,
+        end: end ?? null,
       });
 
       if (ignore) return;
 
-      if (chapterData.error) {
-        setError(chapterData.error);
+      if (chapterData.status !== 200) {
+        setError(chapterData.data);
         setChapters([]);
       } else {
         setChapters(chapterData.data);

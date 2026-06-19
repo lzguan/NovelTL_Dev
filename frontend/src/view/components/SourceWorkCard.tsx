@@ -5,7 +5,7 @@ import { routeTo } from "@/routes";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/text/ExpandableText";
 import { truncateProducer } from "../utils/truncateProducer";
-import type { Novel, SourceWork } from "@/client";
+import type { Novel, SourceWork } from "@/api/models";
 import { Link } from "react-router-dom";
 
 const truncate = truncateProducer(300);

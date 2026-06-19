@@ -38,9 +38,11 @@ export function Prov<T>(value: Brand.Brand.Unbranded<Prov<T>>): Prov<T> {
 
 /**
  * Checks whether all entries in a ReserveList are reserveable for their desired states.
- * Short-circuits on the first non-reserveable entry.
+ * Short-circuits on first false.
  *
- * @returns true if all entries are reserveable, false if any is not.
+ * @param idRepo - ID repository to check reservation state against.
+ * @param list - Reserve list to validate.
+ * @returns true if all reserveable, false otherwise.
  */
 export const isAllReserveable = (
 	idRepo: IDRepository,
@@ -71,7 +73,12 @@ export const isAllReserveable = (
 	});
 
 /**
- * Most reservation requests can be specified at queue time using only a single array of provisional ids. This is a convenience function that returns a proper request event using some provided provisional ids. It is not meant to cover all use cases, and more complex reservation requests can be constructed manually using the {@link ReservationRequest} type.
+ * Convenience constructor for simple reservation requests where wait() = "are all IDs reserveable?".
+ * For complex cases (custom wait logic, dynamic reserve lists), construct ReservationRequest manually.
+ *
+ * @param idRepo - ID repository for reservation checks.
+ * @param reserveList - Static list of reservations. Wrapped in IdempotentCallable internally.
+ * @param skip - Optional predicate; if true, the request is skipped entirely. Defaults to () => false.
  */
 export function makeReservationRequest(
 	idRepo: IDRepository,

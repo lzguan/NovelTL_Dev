@@ -7,10 +7,8 @@ import {
   readChapterByIdChaptersChapterIdGet,
   readEditChapterDataEditChapterDataChapterIdGet,
   readNovelNovelsNovelIdGet,
-  type Chapter,
-  type EditChapterData,
-  type Novel,
-} from "@/client";
+} from "@/api/endpoints/default/default";
+import type { Chapter, EditChapterData, Novel } from "@/api/models";
 import type { Controller, LabelGroupView, EditorMode, Runtime } from "../controller/types";
 
 function EditNovelPage({ userId }: { userId: string }) {
@@ -48,14 +46,10 @@ function EditNovelPage({ userId }: { userId: string }) {
       return;
     }
     if (chapterId) {
-      readNovelNovelsNovelIdGet({
-        path: {
-          novelId: novelId,
-        },
-      })
+      readNovelNovelsNovelIdGet(novelId)
         .then((data) => {
-          if (data.error) {
-            throw data.error;
+          if (data.status !== 200) {
+            throw data.data;
           } else {
             setNovel(data.data);
             setError(null);
@@ -66,11 +60,7 @@ function EditNovelPage({ userId }: { userId: string }) {
           setNovel(null);
         })
         .then(() => {
-          return readChapterByIdChaptersChapterIdGet({
-            path: {
-              chapterId: chapterId,
-            },
-          });
+          return readChapterByIdChaptersChapterIdGet(chapterId);
         })
         .catch((err) => {
           setError(err);
@@ -79,8 +69,8 @@ function EditNovelPage({ userId }: { userId: string }) {
         .then((data) => {
           if (!data) {
             throw new Error("Unknown error");
-          } else if (data.error) {
-            throw data.error;
+          } else if (data.status !== 200) {
+            throw data.data;
           } else {
             setError(null);
             setChapter(data.data);
@@ -91,17 +81,12 @@ function EditNovelPage({ userId }: { userId: string }) {
           setChapter(null);
         })
         .then(() => {
-          return readEditChapterDataEditChapterDataChapterIdGet({
-            path: {
-              chapterId: chapterId,
-            },
-            query: {
-              novelId: novelId!,
-              labelGroupsNum: 3,
-            },
+          return readEditChapterDataEditChapterDataChapterIdGet(chapterId, {
+            novelId: novelId!,
+            labelGroupsNum: 3,
           }).then((data) => {
-            if (data.error) {
-              throw data.error;
+            if (data.status !== 200) {
+              throw data.data;
             }
             return data.data;
           });

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Effect } from "effect";
 import { buildNovelController } from "../controller";
 import type { NovelData } from "../dataManager";
@@ -35,24 +35,21 @@ function makeNovelData(): NovelData {
 }
 
 describe("buildNovelController", () => {
-	it("builds successfully", () => {
-		const controller = Effect.runSync(buildNovelController(makeNovelData()));
-		expect(controller).toBeDefined();
-		expect(controller.handleUserEvent).toBeTypeOf("function");
-		expect(controller.subscribe).toBeTypeOf("function");
-		expect(controller.start).toBeTypeOf("function");
-		expect(controller.stop).toBeTypeOf("function");
-	});
-
 	it("ignores events when not running", () => {
 		const controller = Effect.runSync(buildNovelController(makeNovelData()));
-		const subscriber = vi.fn();
-		controller.subscribe((_getters: NovelGetters, _event: TriggerEvent) => Effect.succeed(void 0));
+		const events: TriggerEvent[] = [];
+		controller.subscribe((_getters: NovelGetters, event: TriggerEvent) => {
+			events.push(event);
+			return Effect.succeed(void 0);
+		});
 
 		controller.handleUserEvent({
 			eventType: "addLabelGroup",
 			labelGroupName: "Test",
 		});
+
+		expect(events).toHaveLength(0);
+		expect(controller.getters.labelGroups()).toHaveLength(0);
 	});
 
 	it("raises error trigger event when chapter not loaded", () => {
@@ -110,8 +107,11 @@ describe("buildNovelController", () => {
 	it("provides getters with novel data", () => {
 		const controller = Effect.runSync(buildNovelController(makeNovelData()));
 
-		expect(controller.getters.id()).toBeDefined();
-		expect(controller.getters.chapters()).toHaveLength(1);
+		expect(controller.getters.id()).toBe(NOVEL_UUID);
+		const chapters = controller.getters.chapters();
+		expect(chapters).toHaveLength(1);
+		expect(chapters[0].chapterNum).toBe(1);
+		expect(chapters[0].chapterTitle).toBe("Chapter 1");
 		expect(controller.getters.labelGroups()).toHaveLength(0);
 	});
 

@@ -7,7 +7,7 @@ import type { KeyedRequestEvent } from "./requestTypes";
 // Generics
 
 /**
- * Function that takes a set of getters and a trigger event, and performs its own actions.
+ * Subscriber callback invoked on every trigger event with a fresh state snapshot and the event.
  */
 export type SubscriberFn<GettersT, TriggerEventT> = (
 	getters: GettersT,
@@ -15,21 +15,13 @@ export type SubscriberFn<GettersT, TriggerEventT> = (
 ) => Effect.Effect<void>;
 
 /**
- * Interface for controllers.
+ * Base controller interface. Events sent before start() are ignored.
+ * Subscribers are keyed by reference — the returned unsubscribe function removes that exact reference.
  */
 export interface BaseController<GettersT, UserEventT, TriggerEventT> {
-	/**
-	 * Handle an external event, such as a user action.
-	 */
 	handleUserEvent: (event: UserEventT) => void;
-	/**
-	 * Get internal data.
-	 */
 	getters: GettersT;
-	/**
-	 * Subscribe to trigger events, which are emitted when internal state changes or when certain actions occur.
-	 */
-	subscribe: (subscriberFn: SubscriberFn<GettersT, TriggerEventT>) => () => void; // returns an unsubscribe function
+	subscribe: (subscriberFn: SubscriberFn<GettersT, TriggerEventT>) => () => void;
 }
 
 /**
@@ -48,7 +40,7 @@ export interface NovelGetters {
  * - `addLabelGroup`: adding a label group.
  * - `loadLabelData`: loading label data for a chapter and label group.
  * - `openChapter`: opening a chapter (loading its content and label data).
- * - `closeChapter`: closing a chapter (unloading its content and label data).
+ * - `closeChapter`: closing a chapter (destroying the chapter data manager).
  * - `addChapter`: adding a chapter.
  */
 export type NovelUserEvent =
@@ -72,9 +64,9 @@ export type NovelUserEvent =
  * - `labelChanged`: when labels of a chapter successfully change.
  * - `labelGroupAdded`: when a label group is successfully added.
  * - `chapterAdded`: when a chapter is successfully added.
- * - `errorOccured`: when an error occurs. Appears in two variants:
- * 	- from request manager: when a request is raised due to some backend/network issue.
- * 	- from data manager: when a request unsuccessfully completes (for example, due to illegal operations).
+ * - `errorOccured`: when an error occurs. Two variants:
+ * 	- from request manager: batched errors from a single processing cycle (multiple requests can fail in one pass).
+ * 	- from data manager: a single action failed (e.g., invalid operation, chapter not loaded).
  */
 export type TriggerEvent =
 	| { eventType: "textChanged"; op: TextOp; chapterId: CProvId }
@@ -89,6 +81,11 @@ export type TriggerEvent =
 	| { eventType: "errorOccured"; from: "dataManager"; error: Error }
 	| { eventType: "chapterOpened"; chapterId: CProvId };
 
+/**
+ * Novel-level controller. Events are ignored until start() is called.
+ * stop() drains pending requests; after it resolves, handleUserEvent is a no-op.
+ * start() should not be called after stop().
+ */
 export interface NovelController extends BaseController<
 	NovelGetters,
 	NovelUserEvent,

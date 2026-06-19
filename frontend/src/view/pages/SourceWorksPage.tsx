@@ -5,7 +5,8 @@ import { SourceWorkList } from "../components/SourceWorkList";
 import { LoadingList } from "../components/LoadingList";
 import { StaticRouteInput } from "@/view/components/StaticRouteInput";
 import { routeTo } from "@/routes";
-import { readSourceWorksSourceWorksGet, type SourceWorkDataOutput } from "@/client";
+import { readSourceWorksSourceWorksGet } from "@/api/endpoints/default/default";
+import type { SourceWorkDataOutput } from "@/api/models";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 
 function SourceWorksPage() {
@@ -21,14 +22,14 @@ function SourceWorksPage() {
     async function loadSourceWorks() {
       setLoading(true);
       setError(null);
-      const data = await readSourceWorksSourceWorksGet({ query: { titleContains: search } });
+      const data = await readSourceWorksSourceWorksGet({ titleContains: search });
       if (ignore) {
         return;
       }
-      if (data.data) {
+      if (data.status === 200) {
         setSourceWorkData(data.data);
       } else {
-        setError(data.error);
+        setError(data.data);
         setSourceWorkData([]);
       }
       setLoading(false);

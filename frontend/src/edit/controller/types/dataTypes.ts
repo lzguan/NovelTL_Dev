@@ -27,19 +27,18 @@ type DataManager<ActionsT, GettersT> = ActionsT & {
 };
 
 /**
- * Holds data associated to an entire novel. Specifically, holds the following data:
- * - The list of label groups in the novel.
- * - The list of chapters in the novel.
- * - Any open chapter data through the chapter data manager interface.
+ * Manages novel-level state: label groups, chapters, and open chapter data managers.
  */
 export type NovelDataManager = DataManager<
 	{
 		/**
-		 * Add a label group to the novel.
+		 * @param labelGroupName - Display name for the new group. Backend enforces max 31 chars; frontend validation TODO.
 		 */
 		addLabelGroup: (labelGroupName: string) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Add a new chapter to the novel. Throws an error if chapterNum is not unique.
+		 * @param chapterNum - Must be unique across the novel.
+		 * @param chapterTitle - Display title.
+		 * @param chapterIsPublic - Visibility flag.
 		 */
 		addChapter: (
 			chapterNum: number,
@@ -47,7 +46,10 @@ export type NovelDataManager = DataManager<
 			chapterIsPublic: boolean,
 		) => Effect.Effect<RequestEvent[], UnknownException | DuplicateChapterNumException>;
 		/**
-		 * Load all data associated to a given chapter along with the required interfaces for data interaction and retrieval. Throws an error if chapter is already loaded. Lazy loads if now is false, and loads immediately if now is true.
+		 * Loads chapter data from server. On success, the chapter becomes accessible via getChapterDM().
+		 * @param chapterId - Chapter to open.
+		 * @param eager - Label groups whose labels should be fetched immediately (others are lazy-loaded on demand via reloadGroup).
+		 * @param now - If true, dispatches immediately. If false, deferred until the next flush or mutating action.
 		 */
 		openChapter: (
 			chapterId: CProvId,
@@ -58,11 +60,11 @@ export type NovelDataManager = DataManager<
 			NotFoundException | LoadingException | AlreadyOpenException | UnknownException
 		>;
 		/**
-		 * Flush any passive request events.
+		 * Returns any deferred passive request events that have been queued but not yet dispatched.
 		 */
 		flush: () => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Get the chapter data manager for a given chapter, or null if not loaded.
+		 * @param chapterId - Returns null if chapter is not open or still loading.
 		 */
 		getChapterDM: (chapterId: CProvId) => ChapterDataManager | null;
 	},
@@ -74,18 +76,26 @@ export type NovelDataManager = DataManager<
 >;
 
 /**
- * Holds data associated to a single chapter. Specifically, holds the following data:
- * - The content of the chapter.
- * - The labels associated to this chapter, organized by label group.
+ * Manages a single chapter's text content and per-label-group labels.
+ *
+ * Text ops and label ops cannot be batched together. Switching between them
+ * (e.g., calling insertTextAt after addLabel) auto-flushes the pending ops
+ * from the previous type, returning them as RequestEvents.
+ *
+ * All actions fail if the chapter has been destroyed via destroy().
+ * Getters are a placeholder — will be populated with chapter-level read accessors.
  */
 export type ChapterDataManager = DataManager<
 	{
 		/**
-		 * Add a label to a given label group for this chapter. Raises a trigger event with the new label's ProvId on success. Throws an error if one of the following occurs:
-		 * - The labels associated with the given label group is not loaded.
-		 * - The new label overlaps with an existing label.
-		 *
-		 * Returns any auto-flushed request events from a previous op type (e.g., pending text ops flushed when switching to label ops).
+		 * Fails if: label group not loaded, overlap with existing label, bounds invalid, or word doesn't match text at [startPos, endPos).
+		 * @param labelGroupId - Target label group.
+		 * @param startPos - Inclusive start index in chapter text.
+		 * @param endPos - Exclusive end index. Must satisfy startPos < endPos <= text.length.
+		 * @param word - Must equal text.slice(startPos, endPos).
+		 * @param entityGroup - Optional entity classification.
+		 * @param score - Optional confidence score in [0, 1].
+		 * @param dirty - Whether this label needs review. Defaults to true.
 		 */
 		addLabel: (
 			labelGroupId: LGProvId,
@@ -97,11 +107,10 @@ export type ChapterDataManager = DataManager<
 			dirty?: boolean,
 		) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Delete a label from a given chapter and label group. Raises a trigger event on success. Throws an error if one of the following occurs:
-		 * - The labels associated with the given label group is not loaded.
-		 * - The label to be deleted does not exist.
-		 *
-		 * Returns any auto-flushed request events from a previous op type.
+		 * Fails if: label group not loaded, or no label exists at [startPos, endPos).
+		 * @param labelGroupId - Target label group.
+		 * @param startPos - Exact start of label to delete.
+		 * @param endPos - Exact end of label to delete.
 		 */
 		deleteLabel: (
 			labelGroupId: LGProvId,
@@ -109,11 +118,14 @@ export type ChapterDataManager = DataManager<
 			endPos: number,
 		) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Update a label in a given chapter and label group, keyed by the label group id, start position, and end position. Raises a trigger event on success. Throws an error if one of the following occurs:
-		 * - The labels associated with the given label group is not loaded.
-		 * - The label to be updated does not exist.
-		 *
-		 * Returns any auto-flushed request events from a previous op type.
+		 * Updates a label keyed by its current [startPos, endPos). Pass null/undefined to keep a field unchanged. If bounds change, newWord is required. Fails if newWord is provided without changing bounds.
+		 * Fails if: label group not loaded, label not found, new bounds invalid, or new position overlaps.
+		 * @param labelGroupId - Target label group.
+		 * @param startPos - Current start of label to update.
+		 * @param endPos - Current end of label to update.
+		 * @param newStartPos - New start, or null to keep.
+		 * @param newEndPos - New end, or null to keep.
+		 * @param newWord - Required if bounds change. Must match text at new range.
 		 */
 		updateLabel: (
 			labelGroupId: LGProvId,
@@ -127,33 +139,35 @@ export type ChapterDataManager = DataManager<
 			dirty?: boolean,
 		) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Insert text at a given position in the chapter content. Raises a trigger event on success. Throws an error if the position is invalid.
-		 *
-		 * Returns any auto-flushed request events from a previous op type (e.g., pending label ops flushed when switching to text ops).
+		 * Labels straddling the insertion point are dropped; labels after are shifted. Affects all label groups. No-ops if text is empty.
+		 * @param pos - Insertion index. Must satisfy 0 <= pos <= text.length.
+		 * @param text - Text to insert.
 		 */
 		insertTextAt: (pos: number, text: string) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Delete text in a given range in the chapter content. Raises a trigger event on success. Throws an error if the range is invalid.
-		 *
-		 * Returns any auto-flushed request events from a previous op type.
+		 * Labels overlapping [startPos, endPos) are dropped; labels after are shifted backward. Affects all label groups.
+		 * @param startPos - Inclusive start of deletion range.
+		 * @param endPos - Exclusive end. Must satisfy 0 <= startPos < endPos <= text.length.
 		 */
 		deleteTextAt: (
 			startPos: number,
 			endPos: number,
 		) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Flush any passive request events from the current op queue.
+		 * Flushes any pending operations into RequestEvents. Returns [] if nothing is pending.
 		 */
 		flush: () => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Reload label data and labels for a given label group from the server. Passive request (read-only). If now is true, immediately flushes the dispatcher queue to dispatch the event; otherwise it remains queued until an active event or explicit flush triggers it.
+		 * Fetches fresh label data + labels from server for a label group. Read-only (does not modify backend state).
+		 * @param labelGroupId - Label group to reload.
+		 * @param now - If true, dispatches immediately. If false, deferred until the next flush or mutating action.
 		 */
 		reloadGroup(
 			labelGroupId: LGProvId,
 			now: boolean,
 		): Effect.Effect<RequestEvent[], UnknownException>;
 		/**
-		 * Cleans up internal state when the chapter is closed. Makes all other actions invalid after this is called. Throws an error if the chapter is already closed. Returns empty list (pending passive events are discarded).
+		 * Marks this chapter DM as destroyed. All subsequent actions will fail. Returns [].
 		 */
 		destroy: () => Effect.Effect<RequestEvent[], UnknownException>;
 	},

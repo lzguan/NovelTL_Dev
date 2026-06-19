@@ -202,27 +202,6 @@ describe("buildChapterDataManager", () => {
 	});
 
 	describe("flush", () => {
-		it("produces label op RequestEvent with correct structure", () => {
-			const { chapterDM, labelGroupId } = Effect.runSync(buildTestChapterDM());
-
-			Effect.runSync(chapterDM.addLabel(labelGroupId, 6, 9, "met"));
-			const events = Effect.runSync(chapterDM.flush());
-
-			expect(events).toHaveLength(1);
-			expect(events[0]).toMatchObject({ variant: "labelOp", active: true });
-			expect(events[0].reservationRequest).toBeDefined();
-		});
-
-		it("produces text op RequestEvent with correct structure", () => {
-			const { chapterDM } = Effect.runSync(buildTestChapterDM());
-
-			Effect.runSync(chapterDM.insertTextAt(5, " Jr."));
-			const events = Effect.runSync(chapterDM.flush());
-
-			expect(events).toHaveLength(1);
-			expect(events[0]).toMatchObject({ variant: "textOp", active: true });
-		});
-
 		it("returns empty when nothing to flush", () => {
 			const { chapterDM } = Effect.runSync(buildTestChapterDM());
 

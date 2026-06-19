@@ -5,7 +5,7 @@ import {
 import type { Controller, EditorMode, MyStyle } from "../controller/types";
 import type { StyledLabel } from "@/components/labeled-text-lib/core/types";
 import { useState } from "react";
-import type { Label, LabelGroup } from "@/client";
+import type { Label, LabelGroup } from "@/api/models";
 import type { Color } from "@/components/labeled-text-lib/builtin/colors";
 import type { SegmentManager } from "@/components/labeled-text-lib/core/segmentManager";
 import { makePlainBoxRenderer } from "@/components/labeled-text-lib/react/Renderer";

@@ -67,6 +67,7 @@ import type {
   User
 } from '../../models';
 
+import { customFetch } from '../../custom-fetch';
 
 export type readAutolabelsAutoLabelsGetResponse200 = {
   data: AutoLabelMeta[]
@@ -99,7 +100,7 @@ export const getReadAutolabelsAutoLabelsGetUrl = (params: ReadAutolabelsAutoLabe
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/auto-labels?${stringifiedParams}` : `/auto-labels`
+  return stringifiedParams.length > 0 ? `/api/auto-labels?${stringifiedParams}` : `/api/auto-labels`
 }
 
 /**
@@ -107,21 +108,14 @@ export const getReadAutolabelsAutoLabelsGetUrl = (params: ReadAutolabelsAutoLabe
  */
 export const readAutolabelsAutoLabelsGet = async (params: ReadAutolabelsAutoLabelsGetParams, options?: RequestInit): Promise<readAutolabelsAutoLabelsGetResponse> => {
 
-  const res = await fetch(getReadAutolabelsAutoLabelsGetUrl(params),
+  return customFetch<readAutolabelsAutoLabelsGetResponse>(getReadAutolabelsAutoLabelsGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readAutolabelsAutoLabelsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readAutolabelsAutoLabelsGetResponse
-}
+);}
 
 
 export type createAutolabelsAutoLabelsPostResponse200 = {
@@ -148,7 +142,7 @@ export const getCreateAutolabelsAutoLabelsPostUrl = () => {
 
 
 
-  return `/auto-labels`
+  return `/api/auto-labels`
 }
 
 /**
@@ -156,21 +150,14 @@ export const getCreateAutolabelsAutoLabelsPostUrl = () => {
  */
 export const createAutolabelsAutoLabelsPost = async (createAutoLabels: CreateAutoLabels, options?: RequestInit): Promise<createAutolabelsAutoLabelsPostResponse> => {
 
-  const res = await fetch(getCreateAutolabelsAutoLabelsPostUrl(),
+  return customFetch<createAutolabelsAutoLabelsPostResponse>(getCreateAutolabelsAutoLabelsPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createAutoLabels)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createAutolabelsAutoLabelsPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createAutolabelsAutoLabelsPostResponse
-}
+);}
 
 
 export type readAutolabelByIdAutoLabelsAutoLabelIdGetResponse200 = {
@@ -197,7 +184,7 @@ export const getReadAutolabelByIdAutoLabelsAutoLabelIdGetUrl = (autoLabelId: str
 
 
 
-  return `/auto-labels/${autoLabelId}`
+  return `/api/auto-labels/${autoLabelId}`
 }
 
 /**
@@ -211,21 +198,14 @@ export const getReadAutolabelByIdAutoLabelsAutoLabelIdGetUrl = (autoLabelId: str
  */
 export const readAutolabelByIdAutoLabelsAutoLabelIdGet = async (autoLabelId: string, options?: RequestInit): Promise<readAutolabelByIdAutoLabelsAutoLabelIdGetResponse> => {
 
-  const res = await fetch(getReadAutolabelByIdAutoLabelsAutoLabelIdGetUrl(autoLabelId),
+  return customFetch<readAutolabelByIdAutoLabelsAutoLabelIdGetResponse>(getReadAutolabelByIdAutoLabelsAutoLabelIdGetUrl(autoLabelId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readAutolabelByIdAutoLabelsAutoLabelIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readAutolabelByIdAutoLabelsAutoLabelIdGetResponse
-}
+);}
 
 
 export type getCachedResultCachedCachedIdGetResponse200 = {
@@ -257,7 +237,7 @@ export const getGetCachedResultCachedCachedIdGetUrl = (cachedId: string,) => {
 
 
 
-  return `/cached/${cachedId}`
+  return `/api/cached/${cachedId}`
 }
 
 /**
@@ -265,21 +245,14 @@ export const getGetCachedResultCachedCachedIdGetUrl = (cachedId: string,) => {
  */
 export const getCachedResultCachedCachedIdGet = async (cachedId: string, options?: RequestInit): Promise<getCachedResultCachedCachedIdGetResponse> => {
 
-  const res = await fetch(getGetCachedResultCachedCachedIdGetUrl(cachedId),
+  return customFetch<getCachedResultCachedCachedIdGetResponse>(getGetCachedResultCachedCachedIdGetUrl(cachedId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getCachedResultCachedCachedIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getCachedResultCachedCachedIdGetResponse
-}
+);}
 
 
 export type readChapterContentByIdChapterContentsChapterContentIdGetResponse200 = {
@@ -306,7 +279,7 @@ export const getReadChapterContentByIdChapterContentsChapterContentIdGetUrl = (c
 
 
 
-  return `/chapter-contents/${chapterContentId}`
+  return `/api/chapter-contents/${chapterContentId}`
 }
 
 /**
@@ -318,21 +291,14 @@ export const getReadChapterContentByIdChapterContentsChapterContentIdGetUrl = (c
  */
 export const readChapterContentByIdChapterContentsChapterContentIdGet = async (chapterContentId: string, options?: RequestInit): Promise<readChapterContentByIdChapterContentsChapterContentIdGetResponse> => {
 
-  const res = await fetch(getReadChapterContentByIdChapterContentsChapterContentIdGetUrl(chapterContentId),
+  return customFetch<readChapterContentByIdChapterContentsChapterContentIdGetResponse>(getReadChapterContentByIdChapterContentsChapterContentIdGetUrl(chapterContentId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChapterContentByIdChapterContentsChapterContentIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChapterContentByIdChapterContentsChapterContentIdGetResponse
-}
+);}
 
 
 export type readChaptersByNovelChaptersGetResponse200 = {
@@ -366,7 +332,7 @@ export const getReadChaptersByNovelChaptersGetUrl = (params: ReadChaptersByNovel
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/chapters?${stringifiedParams}` : `/chapters`
+  return stringifiedParams.length > 0 ? `/api/chapters?${stringifiedParams}` : `/api/chapters`
 }
 
 /**
@@ -378,21 +344,14 @@ export const getReadChaptersByNovelChaptersGetUrl = (params: ReadChaptersByNovel
  */
 export const readChaptersByNovelChaptersGet = async (params: ReadChaptersByNovelChaptersGetParams, options?: RequestInit): Promise<readChaptersByNovelChaptersGetResponse> => {
 
-  const res = await fetch(getReadChaptersByNovelChaptersGetUrl(params),
+  return customFetch<readChaptersByNovelChaptersGetResponse>(getReadChaptersByNovelChaptersGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChaptersByNovelChaptersGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChaptersByNovelChaptersGetResponse
-}
+);}
 
 
 export type deleteChapterChaptersChapterIdDeleteResponse200 = {
@@ -419,7 +378,7 @@ export const getDeleteChapterChaptersChapterIdDeleteUrl = (chapterId: string,) =
 
 
 
-  return `/chapters/${chapterId}`
+  return `/api/chapters/${chapterId}`
 }
 
 /**
@@ -433,21 +392,14 @@ export const getDeleteChapterChaptersChapterIdDeleteUrl = (chapterId: string,) =
  */
 export const deleteChapterChaptersChapterIdDelete = async (chapterId: string, options?: RequestInit): Promise<deleteChapterChaptersChapterIdDeleteResponse> => {
 
-  const res = await fetch(getDeleteChapterChaptersChapterIdDeleteUrl(chapterId),
+  return customFetch<deleteChapterChaptersChapterIdDeleteResponse>(getDeleteChapterChaptersChapterIdDeleteUrl(chapterId),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteChapterChaptersChapterIdDeleteResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteChapterChaptersChapterIdDeleteResponse
-}
+);}
 
 
 export type readChapterByIdChaptersChapterIdGetResponse200 = {
@@ -474,7 +426,7 @@ export const getReadChapterByIdChaptersChapterIdGetUrl = (chapterId: string,) =>
 
 
 
-  return `/chapters/${chapterId}`
+  return `/api/chapters/${chapterId}`
 }
 
 /**
@@ -486,21 +438,14 @@ export const getReadChapterByIdChaptersChapterIdGetUrl = (chapterId: string,) =>
  */
 export const readChapterByIdChaptersChapterIdGet = async (chapterId: string, options?: RequestInit): Promise<readChapterByIdChaptersChapterIdGetResponse> => {
 
-  const res = await fetch(getReadChapterByIdChaptersChapterIdGetUrl(chapterId),
+  return customFetch<readChapterByIdChaptersChapterIdGetResponse>(getReadChapterByIdChaptersChapterIdGetUrl(chapterId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChapterByIdChaptersChapterIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChapterByIdChaptersChapterIdGetResponse
-}
+);}
 
 
 export type updateChapterChaptersChapterIdPatchResponse200 = {
@@ -527,7 +472,7 @@ export const getUpdateChapterChaptersChapterIdPatchUrl = (chapterId: string,) =>
 
 
 
-  return `/chapters/${chapterId}`
+  return `/api/chapters/${chapterId}`
 }
 
 /**
@@ -542,21 +487,14 @@ export const getUpdateChapterChaptersChapterIdPatchUrl = (chapterId: string,) =>
 export const updateChapterChaptersChapterIdPatch = async (chapterId: string,
     updateChapter: UpdateChapter, options?: RequestInit): Promise<updateChapterChaptersChapterIdPatchResponse> => {
 
-  const res = await fetch(getUpdateChapterChaptersChapterIdPatchUrl(chapterId),
+  return customFetch<updateChapterChaptersChapterIdPatchResponse>(getUpdateChapterChaptersChapterIdPatchUrl(chapterId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateChapter)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateChapterChaptersChapterIdPatchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateChapterChaptersChapterIdPatchResponse
-}
+);}
 
 
 export type readChapterContentChaptersChapterIdContentGetResponse200 = {
@@ -583,7 +521,7 @@ export const getReadChapterContentChaptersChapterIdContentGetUrl = (chapterId: s
 
 
 
-  return `/chapters/${chapterId}/content`
+  return `/api/chapters/${chapterId}/content`
 }
 
 /**
@@ -595,21 +533,14 @@ export const getReadChapterContentChaptersChapterIdContentGetUrl = (chapterId: s
  */
 export const readChapterContentChaptersChapterIdContentGet = async (chapterId: string, options?: RequestInit): Promise<readChapterContentChaptersChapterIdContentGetResponse> => {
 
-  const res = await fetch(getReadChapterContentChaptersChapterIdContentGetUrl(chapterId),
+  return customFetch<readChapterContentChaptersChapterIdContentGetResponse>(getReadChapterContentChaptersChapterIdContentGetUrl(chapterId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChapterContentChaptersChapterIdContentGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChapterContentChaptersChapterIdContentGetResponse
-}
+);}
 
 
 export type updateChapterContentChaptersChapterIdContentPatchResponse200 = {
@@ -659,7 +590,7 @@ export const getUpdateChapterContentChaptersChapterIdContentPatchUrl = (chapterI
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/chapters/${chapterId}/content?${stringifiedParams}` : `/chapters/${chapterId}/content`
+  return stringifiedParams.length > 0 ? `/api/chapters/${chapterId}/content?${stringifiedParams}` : `/api/chapters/${chapterId}/content`
 }
 
 /**
@@ -677,21 +608,14 @@ export const updateChapterContentChaptersChapterIdContentPatch = async (chapterI
     updateChapterContent: UpdateChapterContent,
     params?: UpdateChapterContentChaptersChapterIdContentPatchParams, options?: RequestInit): Promise<updateChapterContentChaptersChapterIdContentPatchResponse> => {
 
-  const res = await fetch(getUpdateChapterContentChaptersChapterIdContentPatchUrl(chapterId,params),
+  return customFetch<updateChapterContentChaptersChapterIdContentPatchResponse>(getUpdateChapterContentChaptersChapterIdContentPatchUrl(chapterId,params),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateChapterContent)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateChapterContentChaptersChapterIdContentPatchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateChapterContentChaptersChapterIdContentPatchResponse
-}
+);}
 
 
 export type readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse200 = {
@@ -719,7 +643,7 @@ export const getReadChapterContentStatusChaptersChapterIdContentStatusChapterCon
 
 
 
-  return `/chapters/${chapterId}/content-status/${chapterContentId}`
+  return `/api/chapters/${chapterId}/content-status/${chapterContentId}`
 }
 
 /**
@@ -733,21 +657,14 @@ export const getReadChapterContentStatusChaptersChapterIdContentStatusChapterCon
 export const readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGet = async (chapterId: string,
     chapterContentId: string, options?: RequestInit): Promise<readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse> => {
 
-  const res = await fetch(getReadChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetUrl(chapterId,chapterContentId),
+  return customFetch<readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse>(getReadChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetUrl(chapterId,chapterContentId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChapterContentStatusChaptersChapterIdContentStatusChapterContentIdGetResponse
-}
+);}
 
 
 export type readChapterContentVersionsChaptersChapterIdContentVersionsGetResponse200 = {
@@ -774,7 +691,7 @@ export const getReadChapterContentVersionsChaptersChapterIdContentVersionsGetUrl
 
 
 
-  return `/chapters/${chapterId}/content-versions`
+  return `/api/chapters/${chapterId}/content-versions`
 }
 
 /**
@@ -784,21 +701,14 @@ export const getReadChapterContentVersionsChaptersChapterIdContentVersionsGetUrl
  */
 export const readChapterContentVersionsChaptersChapterIdContentVersionsGet = async (chapterId: string, options?: RequestInit): Promise<readChapterContentVersionsChaptersChapterIdContentVersionsGetResponse> => {
 
-  const res = await fetch(getReadChapterContentVersionsChaptersChapterIdContentVersionsGetUrl(chapterId),
+  return customFetch<readChapterContentVersionsChaptersChapterIdContentVersionsGetResponse>(getReadChapterContentVersionsChaptersChapterIdContentVersionsGetUrl(chapterId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readChapterContentVersionsChaptersChapterIdContentVersionsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readChapterContentVersionsChaptersChapterIdContentVersionsGetResponse
-}
+);}
 
 
 export type actionPublishChapterChaptersChapterIdPublishPostResponse200 = {
@@ -825,7 +735,7 @@ export const getActionPublishChapterChaptersChapterIdPublishPostUrl = (chapterId
 
 
 
-  return `/chapters/${chapterId}/publish`
+  return `/api/chapters/${chapterId}/publish`
 }
 
 /**
@@ -838,21 +748,14 @@ export const getActionPublishChapterChaptersChapterIdPublishPostUrl = (chapterId
  */
 export const actionPublishChapterChaptersChapterIdPublishPost = async (chapterId: string, options?: RequestInit): Promise<actionPublishChapterChaptersChapterIdPublishPostResponse> => {
 
-  const res = await fetch(getActionPublishChapterChaptersChapterIdPublishPostUrl(chapterId),
+  return customFetch<actionPublishChapterChaptersChapterIdPublishPostResponse>(getActionPublishChapterChaptersChapterIdPublishPostUrl(chapterId),
   {
     ...options,
     method: 'POST'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: actionPublishChapterChaptersChapterIdPublishPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as actionPublishChapterChaptersChapterIdPublishPostResponse
-}
+);}
 
 
 export type readEditChapterDataEditChapterDataChapterIdGetResponse200 = {
@@ -887,7 +790,7 @@ export const getReadEditChapterDataEditChapterDataChapterIdGetUrl = (chapterId: 
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/edit-chapter-data/${chapterId}?${stringifiedParams}` : `/edit-chapter-data/${chapterId}`
+  return stringifiedParams.length > 0 ? `/api/edit-chapter-data/${chapterId}?${stringifiedParams}` : `/api/edit-chapter-data/${chapterId}`
 }
 
 /**
@@ -905,21 +808,14 @@ export const getReadEditChapterDataEditChapterDataChapterIdGetUrl = (chapterId: 
 export const readEditChapterDataEditChapterDataChapterIdGet = async (chapterId: string,
     params: ReadEditChapterDataEditChapterDataChapterIdGetParams, options?: RequestInit): Promise<readEditChapterDataEditChapterDataChapterIdGetResponse> => {
 
-  const res = await fetch(getReadEditChapterDataEditChapterDataChapterIdGetUrl(chapterId,params),
+  return customFetch<readEditChapterDataEditChapterDataChapterIdGetResponse>(getReadEditChapterDataEditChapterDataChapterIdGetUrl(chapterId,params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readEditChapterDataEditChapterDataChapterIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readEditChapterDataEditChapterDataChapterIdGetResponse
-}
+);}
 
 
 export type readEditChapterLabelDataEditChapterDataChapterIdLabelDataGetResponse200 = {
@@ -954,7 +850,7 @@ export const getReadEditChapterLabelDataEditChapterDataChapterIdLabelDataGetUrl 
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/edit-chapter-data/${chapterId}/label-data?${stringifiedParams}` : `/edit-chapter-data/${chapterId}/label-data`
+  return stringifiedParams.length > 0 ? `/api/edit-chapter-data/${chapterId}/label-data?${stringifiedParams}` : `/api/edit-chapter-data/${chapterId}/label-data`
 }
 
 /**
@@ -969,21 +865,14 @@ export const getReadEditChapterLabelDataEditChapterDataChapterIdLabelDataGetUrl 
 export const readEditChapterLabelDataEditChapterDataChapterIdLabelDataGet = async (chapterId: string,
     params: ReadEditChapterLabelDataEditChapterDataChapterIdLabelDataGetParams, options?: RequestInit): Promise<readEditChapterLabelDataEditChapterDataChapterIdLabelDataGetResponse> => {
 
-  const res = await fetch(getReadEditChapterLabelDataEditChapterDataChapterIdLabelDataGetUrl(chapterId,params),
+  return customFetch<readEditChapterLabelDataEditChapterDataChapterIdLabelDataGetResponse>(getReadEditChapterLabelDataEditChapterDataChapterIdLabelDataGetUrl(chapterId,params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readEditChapterLabelDataEditChapterDataChapterIdLabelDataGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readEditChapterLabelDataEditChapterDataChapterIdLabelDataGetResponse
-}
+);}
 
 
 export type readFilterSchemasFiltersSchemasGetResponse200 = {
@@ -1003,7 +892,7 @@ export const getReadFilterSchemasFiltersSchemasGetUrl = () => {
 
 
 
-  return `/filters/schemas`
+  return `/api/filters/schemas`
 }
 
 /**
@@ -1015,21 +904,14 @@ export const getReadFilterSchemasFiltersSchemasGetUrl = () => {
  */
 export const readFilterSchemasFiltersSchemasGet = async ( options?: RequestInit): Promise<readFilterSchemasFiltersSchemasGetResponse> => {
 
-  const res = await fetch(getReadFilterSchemasFiltersSchemasGetUrl(),
+  return customFetch<readFilterSchemasFiltersSchemasGetResponse>(getReadFilterSchemasFiltersSchemasGetUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readFilterSchemasFiltersSchemasGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readFilterSchemasFiltersSchemasGetResponse
-}
+);}
 
 
 export type applyFilterFiltersFilterNameApplyPostResponse204 = {
@@ -1056,7 +938,7 @@ export const getApplyFilterFiltersFilterNameApplyPostUrl = (filterName: string,)
 
 
 
-  return `/filters/${filterName}/apply`
+  return `/api/filters/${filterName}/apply`
 }
 
 /**
@@ -1072,21 +954,14 @@ export const getApplyFilterFiltersFilterNameApplyPostUrl = (filterName: string,)
 export const applyFilterFiltersFilterNameApplyPost = async (filterName: string,
     instanceOptions: InstanceOptions, options?: RequestInit): Promise<applyFilterFiltersFilterNameApplyPostResponse> => {
 
-  const res = await fetch(getApplyFilterFiltersFilterNameApplyPostUrl(filterName),
+  return customFetch<applyFilterFiltersFilterNameApplyPostResponse>(getApplyFilterFiltersFilterNameApplyPostUrl(filterName),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(instanceOptions)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: applyFilterFiltersFilterNameApplyPostResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as applyFilterFiltersFilterNameApplyPostResponse
-}
+);}
 
 
 export type readDecisionsFiltersFilterNameDecideInstancesPostResponse200 = {
@@ -1113,7 +988,7 @@ export const getReadDecisionsFiltersFilterNameDecideInstancesPostUrl = (filterNa
 
 
 
-  return `/filters/${filterName}/decide-instances`
+  return `/api/filters/${filterName}/decide-instances`
 }
 
 /**
@@ -1129,21 +1004,14 @@ export const getReadDecisionsFiltersFilterNameDecideInstancesPostUrl = (filterNa
 export const readDecisionsFiltersFilterNameDecideInstancesPost = async (filterName: string,
     instanceContextOptions: InstanceContextOptions, options?: RequestInit): Promise<readDecisionsFiltersFilterNameDecideInstancesPostResponse> => {
 
-  const res = await fetch(getReadDecisionsFiltersFilterNameDecideInstancesPostUrl(filterName),
+  return customFetch<readDecisionsFiltersFilterNameDecideInstancesPostResponse>(getReadDecisionsFiltersFilterNameDecideInstancesPostUrl(filterName),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(instanceContextOptions)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readDecisionsFiltersFilterNameDecideInstancesPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readDecisionsFiltersFilterNameDecideInstancesPostResponse
-}
+);}
 
 
 export type readFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse200 = {
@@ -1170,7 +1038,7 @@ export const getReadFlaggedInstancesFiltersFilterNameFlagInstancesPostUrl = (fil
 
 
 
-  return `/filters/${filterName}/flag-instances`
+  return `/api/filters/${filterName}/flag-instances`
 }
 
 /**
@@ -1186,21 +1054,14 @@ export const getReadFlaggedInstancesFiltersFilterNameFlagInstancesPostUrl = (fil
 export const readFlaggedInstancesFiltersFilterNameFlagInstancesPost = async (filterName: string,
     readFlaggedInstancesFiltersFilterNameFlagInstancesPostBody: ReadFlaggedInstancesFiltersFilterNameFlagInstancesPostBody, options?: RequestInit): Promise<readFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse> => {
 
-  const res = await fetch(getReadFlaggedInstancesFiltersFilterNameFlagInstancesPostUrl(filterName),
+  return customFetch<readFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse>(getReadFlaggedInstancesFiltersFilterNameFlagInstancesPostUrl(filterName),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(readFlaggedInstancesFiltersFilterNameFlagInstancesPostBody)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readFlaggedInstancesFiltersFilterNameFlagInstancesPostResponse
-}
+);}
 
 
 export type readContextsFiltersFilterNameGetContextsPostResponse200 = {
@@ -1227,7 +1088,7 @@ export const getReadContextsFiltersFilterNameGetContextsPostUrl = (filterName: s
 
 
 
-  return `/filters/${filterName}/get-contexts`
+  return `/api/filters/${filterName}/get-contexts`
 }
 
 /**
@@ -1244,21 +1105,14 @@ export const getReadContextsFiltersFilterNameGetContextsPostUrl = (filterName: s
 export const readContextsFiltersFilterNameGetContextsPost = async (filterName: string,
     instanceOptions: InstanceOptions, options?: RequestInit): Promise<readContextsFiltersFilterNameGetContextsPostResponse> => {
 
-  const res = await fetch(getReadContextsFiltersFilterNameGetContextsPostUrl(filterName),
+  return customFetch<readContextsFiltersFilterNameGetContextsPostResponse>(getReadContextsFiltersFilterNameGetContextsPostUrl(filterName),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(instanceOptions)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readContextsFiltersFilterNameGetContextsPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readContextsFiltersFilterNameGetContextsPostResponse
-}
+);}
 
 
 export type readLabelDatasByGroupChaptersLabelDatasGetResponse200 = {
@@ -1292,7 +1146,7 @@ export const getReadLabelDatasByGroupChaptersLabelDatasGetUrl = (params: ReadLab
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-datas?${stringifiedParams}` : `/label-datas`
+  return stringifiedParams.length > 0 ? `/api/label-datas?${stringifiedParams}` : `/api/label-datas`
 }
 
 /**
@@ -1301,21 +1155,14 @@ export const getReadLabelDatasByGroupChaptersLabelDatasGetUrl = (params: ReadLab
  */
 export const readLabelDatasByGroupChaptersLabelDatasGet = async (params: ReadLabelDatasByGroupChaptersLabelDatasGetParams, options?: RequestInit): Promise<readLabelDatasByGroupChaptersLabelDatasGetResponse> => {
 
-  const res = await fetch(getReadLabelDatasByGroupChaptersLabelDatasGetUrl(params),
+  return customFetch<readLabelDatasByGroupChaptersLabelDatasGetResponse>(getReadLabelDatasByGroupChaptersLabelDatasGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelDatasByGroupChaptersLabelDatasGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelDatasByGroupChaptersLabelDatasGetResponse
-}
+);}
 
 
 export type readLabelDataLabelDatasLabelDataIdGetResponse200 = {
@@ -1342,7 +1189,7 @@ export const getReadLabelDataLabelDatasLabelDataIdGetUrl = (labelDataId: string,
 
 
 
-  return `/label-datas/${labelDataId}`
+  return `/api/label-datas/${labelDataId}`
 }
 
 /**
@@ -1354,21 +1201,14 @@ export const getReadLabelDataLabelDatasLabelDataIdGetUrl = (labelDataId: string,
  */
 export const readLabelDataLabelDatasLabelDataIdGet = async (labelDataId: string, options?: RequestInit): Promise<readLabelDataLabelDatasLabelDataIdGetResponse> => {
 
-  const res = await fetch(getReadLabelDataLabelDatasLabelDataIdGetUrl(labelDataId),
+  return customFetch<readLabelDataLabelDatasLabelDataIdGetResponse>(getReadLabelDataLabelDatasLabelDataIdGetUrl(labelDataId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelDataLabelDatasLabelDataIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelDataLabelDatasLabelDataIdGetResponse
-}
+);}
 
 
 export type updateLabelDataStreamLabelDatasLabelDataIdPatchResponse204 = {
@@ -1418,7 +1258,7 @@ export const getUpdateLabelDataStreamLabelDatasLabelDataIdPatchUrl = (labelDataI
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-datas/${labelDataId}?${stringifiedParams}` : `/label-datas/${labelDataId}`
+  return stringifiedParams.length > 0 ? `/api/label-datas/${labelDataId}?${stringifiedParams}` : `/api/label-datas/${labelDataId}`
 }
 
 /**
@@ -1434,21 +1274,14 @@ export const updateLabelDataStreamLabelDatasLabelDataIdPatch = async (labelDataI
     updateLabelDataStream: UpdateLabelDataStream,
     params?: UpdateLabelDataStreamLabelDatasLabelDataIdPatchParams, options?: RequestInit): Promise<updateLabelDataStreamLabelDatasLabelDataIdPatchResponse> => {
 
-  const res = await fetch(getUpdateLabelDataStreamLabelDatasLabelDataIdPatchUrl(labelDataId,params),
+  return customFetch<updateLabelDataStreamLabelDatasLabelDataIdPatchResponse>(getUpdateLabelDataStreamLabelDatasLabelDataIdPatchUrl(labelDataId,params),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateLabelDataStream)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateLabelDataStreamLabelDatasLabelDataIdPatchResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as updateLabelDataStreamLabelDatasLabelDataIdPatchResponse
-}
+);}
 
 
 export type readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse200 = {
@@ -1475,7 +1308,7 @@ export const getReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetUrl = (labelD
 
 
 
-  return `/label-datas/${labelDataId}/labels`
+  return `/api/label-datas/${labelDataId}/labels`
 }
 
 /**
@@ -1484,21 +1317,14 @@ export const getReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetUrl = (labelD
  */
 export const readLabelsByLabelDataLabelDatasLabelDataIdLabelsGet = async (labelDataId: string, options?: RequestInit): Promise<readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse> => {
 
-  const res = await fetch(getReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetUrl(labelDataId),
+  return customFetch<readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse>(getReadLabelsByLabelDataLabelDatasLabelDataIdLabelsGetUrl(labelDataId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelsByLabelDataLabelDatasLabelDataIdLabelsGetResponse
-}
+);}
 
 
 export type readLabelGroupsLabelGroupsGetResponse200 = {
@@ -1532,7 +1358,7 @@ export const getReadLabelGroupsLabelGroupsGetUrl = (params: ReadLabelGroupsLabel
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-groups?${stringifiedParams}` : `/label-groups`
+  return stringifiedParams.length > 0 ? `/api/label-groups?${stringifiedParams}` : `/api/label-groups`
 }
 
 /**
@@ -1541,21 +1367,14 @@ export const getReadLabelGroupsLabelGroupsGetUrl = (params: ReadLabelGroupsLabel
  */
 export const readLabelGroupsLabelGroupsGet = async (params: ReadLabelGroupsLabelGroupsGetParams, options?: RequestInit): Promise<readLabelGroupsLabelGroupsGetResponse> => {
 
-  const res = await fetch(getReadLabelGroupsLabelGroupsGetUrl(params),
+  return customFetch<readLabelGroupsLabelGroupsGetResponse>(getReadLabelGroupsLabelGroupsGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelGroupsLabelGroupsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelGroupsLabelGroupsGetResponse
-}
+);}
 
 
 export type createLabelGroupLabelGroupsPostResponse200 = {
@@ -1604,7 +1423,7 @@ export const getCreateLabelGroupLabelGroupsPostUrl = (params?: CreateLabelGroupL
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-groups?${stringifiedParams}` : `/label-groups`
+  return stringifiedParams.length > 0 ? `/api/label-groups?${stringifiedParams}` : `/api/label-groups`
 }
 
 /**
@@ -1618,21 +1437,14 @@ export const getCreateLabelGroupLabelGroupsPostUrl = (params?: CreateLabelGroupL
 export const createLabelGroupLabelGroupsPost = async (createLabelGroup: CreateLabelGroup,
     params?: CreateLabelGroupLabelGroupsPostParams, options?: RequestInit): Promise<createLabelGroupLabelGroupsPostResponse> => {
 
-  const res = await fetch(getCreateLabelGroupLabelGroupsPostUrl(params),
+  return customFetch<createLabelGroupLabelGroupsPostResponse>(getCreateLabelGroupLabelGroupsPostUrl(params),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createLabelGroup)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createLabelGroupLabelGroupsPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createLabelGroupLabelGroupsPostResponse
-}
+);}
 
 
 export type readLabelGroupsWithRoleLabelGroupsWithRoleGetResponse200 = {
@@ -1666,7 +1478,7 @@ export const getReadLabelGroupsWithRoleLabelGroupsWithRoleGetUrl = (params: Read
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-groups-with-role?${stringifiedParams}` : `/label-groups-with-role`
+  return stringifiedParams.length > 0 ? `/api/label-groups-with-role?${stringifiedParams}` : `/api/label-groups-with-role`
 }
 
 /**
@@ -1675,21 +1487,14 @@ export const getReadLabelGroupsWithRoleLabelGroupsWithRoleGetUrl = (params: Read
  */
 export const readLabelGroupsWithRoleLabelGroupsWithRoleGet = async (params: ReadLabelGroupsWithRoleLabelGroupsWithRoleGetParams, options?: RequestInit): Promise<readLabelGroupsWithRoleLabelGroupsWithRoleGetResponse> => {
 
-  const res = await fetch(getReadLabelGroupsWithRoleLabelGroupsWithRoleGetUrl(params),
+  return customFetch<readLabelGroupsWithRoleLabelGroupsWithRoleGetResponse>(getReadLabelGroupsWithRoleLabelGroupsWithRoleGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelGroupsWithRoleLabelGroupsWithRoleGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelGroupsWithRoleLabelGroupsWithRoleGetResponse
-}
+);}
 
 
 export type readLabelGroupLabelGroupsLabelGroupIdGetResponse200 = {
@@ -1716,7 +1521,7 @@ export const getReadLabelGroupLabelGroupsLabelGroupIdGetUrl = (labelGroupId: str
 
 
 
-  return `/label-groups/${labelGroupId}`
+  return `/api/label-groups/${labelGroupId}`
 }
 
 /**
@@ -1728,21 +1533,14 @@ export const getReadLabelGroupLabelGroupsLabelGroupIdGetUrl = (labelGroupId: str
  */
 export const readLabelGroupLabelGroupsLabelGroupIdGet = async (labelGroupId: string, options?: RequestInit): Promise<readLabelGroupLabelGroupsLabelGroupIdGetResponse> => {
 
-  const res = await fetch(getReadLabelGroupLabelGroupsLabelGroupIdGetUrl(labelGroupId),
+  return customFetch<readLabelGroupLabelGroupsLabelGroupIdGetResponse>(getReadLabelGroupLabelGroupsLabelGroupIdGetUrl(labelGroupId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelGroupLabelGroupsLabelGroupIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelGroupLabelGroupsLabelGroupIdGetResponse
-}
+);}
 
 
 export type updateLabelGroupLabelGroupsLabelGroupIdPatchResponse200 = {
@@ -1769,7 +1567,7 @@ export const getUpdateLabelGroupLabelGroupsLabelGroupIdPatchUrl = (labelGroupId:
 
 
 
-  return `/label-groups/${labelGroupId}`
+  return `/api/label-groups/${labelGroupId}`
 }
 
 /**
@@ -1783,21 +1581,14 @@ export const getUpdateLabelGroupLabelGroupsLabelGroupIdPatchUrl = (labelGroupId:
 export const updateLabelGroupLabelGroupsLabelGroupIdPatch = async (labelGroupId: string,
     updateLabelGroup: UpdateLabelGroup, options?: RequestInit): Promise<updateLabelGroupLabelGroupsLabelGroupIdPatchResponse> => {
 
-  const res = await fetch(getUpdateLabelGroupLabelGroupsLabelGroupIdPatchUrl(labelGroupId),
+  return customFetch<updateLabelGroupLabelGroupsLabelGroupIdPatchResponse>(getUpdateLabelGroupLabelGroupsLabelGroupIdPatchUrl(labelGroupId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateLabelGroup)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateLabelGroupLabelGroupsLabelGroupIdPatchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateLabelGroupLabelGroupsLabelGroupIdPatchResponse
-}
+);}
 
 
 export type readLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse200 = {
@@ -1824,7 +1615,7 @@ export const getReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetUrl =
 
 
 
-  return `/label-groups/${labelGroupId}/contributors`
+  return `/api/label-groups/${labelGroupId}/contributors`
 }
 
 /**
@@ -1833,21 +1624,14 @@ export const getReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetUrl =
  */
 export const readLabelContributorsLabelGroupsLabelGroupIdContributorsGet = async (labelGroupId: string, options?: RequestInit): Promise<readLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse> => {
 
-  const res = await fetch(getReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetUrl(labelGroupId),
+  return customFetch<readLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse>(getReadLabelContributorsLabelGroupsLabelGroupIdContributorsGetUrl(labelGroupId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLabelContributorsLabelGroupsLabelGroupIdContributorsGetResponse
-}
+);}
 
 
 export type createLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse200 = {
@@ -1892,7 +1676,7 @@ export const getCreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostUrl = (label
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/label-groups/${labelGroupId}/label-datas?${stringifiedParams}` : `/label-groups/${labelGroupId}/label-datas`
+  return stringifiedParams.length > 0 ? `/api/label-groups/${labelGroupId}/label-datas?${stringifiedParams}` : `/api/label-groups/${labelGroupId}/label-datas`
 }
 
 /**
@@ -1907,21 +1691,14 @@ export const createLabelDataLabelGroupsLabelGroupIdLabelDatasPost = async (label
     createLabelData: CreateLabelData,
     params?: CreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostParams, options?: RequestInit): Promise<createLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse> => {
 
-  const res = await fetch(getCreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostUrl(labelGroupId,params),
+  return customFetch<createLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse>(getCreateLabelDataLabelGroupsLabelGroupIdLabelDatasPostUrl(labelGroupId,params),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createLabelData)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createLabelDataLabelGroupsLabelGroupIdLabelDatasPostResponse
-}
+);}
 
 
 export type createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse200 = {
@@ -1948,7 +1725,7 @@ export const getCreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAut
 
 
 
-  return `/label-groups/${labelGroupId}/label-datas/auto-labels`
+  return `/api/label-groups/${labelGroupId}/label-datas/auto-labels`
 }
 
 /**
@@ -1958,21 +1735,14 @@ export const getCreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAut
 export const createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPost = async (labelGroupId: string,
     createLabelDataByAutoLabel: CreateLabelDataByAutoLabel, options?: RequestInit): Promise<createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse> => {
 
-  const res = await fetch(getCreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostUrl(labelGroupId),
+  return customFetch<createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse>(getCreateLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostUrl(labelGroupId),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createLabelDataByAutoLabel)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createLabelDatasByAutoLabelsLabelGroupsLabelGroupIdLabelDatasAutoLabelsPostResponse
-}
+);}
 
 
 export type readAllLanguagesLanguagesGetResponse200 = {
@@ -1992,7 +1762,7 @@ export const getReadAllLanguagesLanguagesGetUrl = () => {
 
 
 
-  return `/languages`
+  return `/api/languages`
 }
 
 /**
@@ -2004,21 +1774,14 @@ export const getReadAllLanguagesLanguagesGetUrl = () => {
  */
 export const readAllLanguagesLanguagesGet = async ( options?: RequestInit): Promise<readAllLanguagesLanguagesGetResponse> => {
 
-  const res = await fetch(getReadAllLanguagesLanguagesGetUrl(),
+  return customFetch<readAllLanguagesLanguagesGetResponse>(getReadAllLanguagesLanguagesGetUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readAllLanguagesLanguagesGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readAllLanguagesLanguagesGetResponse
-}
+);}
 
 
 export type readLanguageByCodeLanguagesLanguageCodeGetResponse200 = {
@@ -2045,7 +1808,7 @@ export const getReadLanguageByCodeLanguagesLanguageCodeGetUrl = (languageCode: s
 
 
 
-  return `/languages/${languageCode}`
+  return `/api/languages/${languageCode}`
 }
 
 /**
@@ -2058,21 +1821,14 @@ export const getReadLanguageByCodeLanguagesLanguageCodeGetUrl = (languageCode: s
  */
 export const readLanguageByCodeLanguagesLanguageCodeGet = async (languageCode: string, options?: RequestInit): Promise<readLanguageByCodeLanguagesLanguageCodeGetResponse> => {
 
-  const res = await fetch(getReadLanguageByCodeLanguagesLanguageCodeGetUrl(languageCode),
+  return customFetch<readLanguageByCodeLanguagesLanguageCodeGetResponse>(getReadLanguageByCodeLanguagesLanguageCodeGetUrl(languageCode),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readLanguageByCodeLanguagesLanguageCodeGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readLanguageByCodeLanguagesLanguageCodeGetResponse
-}
+);}
 
 
 export type readNovelsNovelsGetResponse200 = {
@@ -2106,7 +1862,7 @@ export const getReadNovelsNovelsGetUrl = (params?: ReadNovelsNovelsGetParams,) =
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/novels?${stringifiedParams}` : `/novels`
+  return stringifiedParams.length > 0 ? `/api/novels?${stringifiedParams}` : `/api/novels`
 }
 
 /**
@@ -2115,21 +1871,14 @@ export const getReadNovelsNovelsGetUrl = (params?: ReadNovelsNovelsGetParams,) =
  */
 export const readNovelsNovelsGet = async (params?: ReadNovelsNovelsGetParams, options?: RequestInit): Promise<readNovelsNovelsGetResponse> => {
 
-  const res = await fetch(getReadNovelsNovelsGetUrl(params),
+  return customFetch<readNovelsNovelsGetResponse>(getReadNovelsNovelsGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readNovelsNovelsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readNovelsNovelsGetResponse
-}
+);}
 
 
 export type createNovelNovelsPostResponse200 = {
@@ -2156,7 +1905,7 @@ export const getCreateNovelNovelsPostUrl = () => {
 
 
 
-  return `/novels`
+  return `/api/novels`
 }
 
 /**
@@ -2169,21 +1918,14 @@ export const getCreateNovelNovelsPostUrl = () => {
  */
 export const createNovelNovelsPost = async (createNovel: CreateNovel, options?: RequestInit): Promise<createNovelNovelsPostResponse> => {
 
-  const res = await fetch(getCreateNovelNovelsPostUrl(),
+  return customFetch<createNovelNovelsPostResponse>(getCreateNovelNovelsPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createNovel)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createNovelNovelsPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createNovelNovelsPostResponse
-}
+);}
 
 
 export type readNovelsMineNovelsMineGetResponse200 = {
@@ -2217,7 +1959,7 @@ export const getReadNovelsMineNovelsMineGetUrl = (params?: ReadNovelsMineNovelsM
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/novels/mine?${stringifiedParams}` : `/novels/mine`
+  return stringifiedParams.length > 0 ? `/api/novels/mine?${stringifiedParams}` : `/api/novels/mine`
 }
 
 /**
@@ -2226,21 +1968,14 @@ export const getReadNovelsMineNovelsMineGetUrl = (params?: ReadNovelsMineNovelsM
  */
 export const readNovelsMineNovelsMineGet = async (params?: ReadNovelsMineNovelsMineGetParams, options?: RequestInit): Promise<readNovelsMineNovelsMineGetResponse> => {
 
-  const res = await fetch(getReadNovelsMineNovelsMineGetUrl(params),
+  return customFetch<readNovelsMineNovelsMineGetResponse>(getReadNovelsMineNovelsMineGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readNovelsMineNovelsMineGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readNovelsMineNovelsMineGetResponse
-}
+);}
 
 
 export type readNovelNovelsNovelIdGetResponse200 = {
@@ -2267,7 +2002,7 @@ export const getReadNovelNovelsNovelIdGetUrl = (novelId: string,) => {
 
 
 
-  return `/novels/${novelId}`
+  return `/api/novels/${novelId}`
 }
 
 /**
@@ -2279,21 +2014,14 @@ export const getReadNovelNovelsNovelIdGetUrl = (novelId: string,) => {
  */
 export const readNovelNovelsNovelIdGet = async (novelId: string, options?: RequestInit): Promise<readNovelNovelsNovelIdGetResponse> => {
 
-  const res = await fetch(getReadNovelNovelsNovelIdGetUrl(novelId),
+  return customFetch<readNovelNovelsNovelIdGetResponse>(getReadNovelNovelsNovelIdGetUrl(novelId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readNovelNovelsNovelIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readNovelNovelsNovelIdGetResponse
-}
+);}
 
 
 export type updateNovelNovelsNovelIdPatchResponse200 = {
@@ -2320,7 +2048,7 @@ export const getUpdateNovelNovelsNovelIdPatchUrl = (novelId: string,) => {
 
 
 
-  return `/novels/${novelId}`
+  return `/api/novels/${novelId}`
 }
 
 /**
@@ -2335,21 +2063,14 @@ export const getUpdateNovelNovelsNovelIdPatchUrl = (novelId: string,) => {
 export const updateNovelNovelsNovelIdPatch = async (novelId: string,
     updateNovel: UpdateNovel, options?: RequestInit): Promise<updateNovelNovelsNovelIdPatchResponse> => {
 
-  const res = await fetch(getUpdateNovelNovelsNovelIdPatchUrl(novelId),
+  return customFetch<updateNovelNovelsNovelIdPatchResponse>(getUpdateNovelNovelsNovelIdPatchUrl(novelId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateNovel)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateNovelNovelsNovelIdPatchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateNovelNovelsNovelIdPatchResponse
-}
+);}
 
 
 export type createChapterNovelsNovelIdChaptersPostResponse200 = {
@@ -2376,7 +2097,7 @@ export const getCreateChapterNovelsNovelIdChaptersPostUrl = (novelId: string,) =
 
 
 
-  return `/novels/${novelId}/chapters`
+  return `/api/novels/${novelId}/chapters`
 }
 
 /**
@@ -2391,21 +2112,14 @@ export const getCreateChapterNovelsNovelIdChaptersPostUrl = (novelId: string,) =
 export const createChapterNovelsNovelIdChaptersPost = async (novelId: string,
     createChapter: CreateChapter, options?: RequestInit): Promise<createChapterNovelsNovelIdChaptersPostResponse> => {
 
-  const res = await fetch(getCreateChapterNovelsNovelIdChaptersPostUrl(novelId),
+  return customFetch<createChapterNovelsNovelIdChaptersPostResponse>(getCreateChapterNovelsNovelIdChaptersPostUrl(novelId),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createChapter)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createChapterNovelsNovelIdChaptersPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createChapterNovelsNovelIdChaptersPostResponse
-}
+);}
 
 
 export type registerUserRegisterPostResponse200 = {
@@ -2432,7 +2146,7 @@ export const getRegisterUserRegisterPostUrl = () => {
 
 
 
-  return `/register`
+  return `/api/register`
 }
 
 /**
@@ -2446,21 +2160,14 @@ export const getRegisterUserRegisterPostUrl = () => {
  */
 export const registerUserRegisterPost = async (createUser: CreateUser, options?: RequestInit): Promise<registerUserRegisterPostResponse> => {
 
-  const res = await fetch(getRegisterUserRegisterPostUrl(),
+  return customFetch<registerUserRegisterPostResponse>(getRegisterUserRegisterPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createUser)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: registerUserRegisterPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as registerUserRegisterPostResponse
-}
+);}
 
 
 export type readSourceWorksSourceWorksGetResponse200 = {
@@ -2494,7 +2201,7 @@ export const getReadSourceWorksSourceWorksGetUrl = (params?: ReadSourceWorksSour
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/source-works?${stringifiedParams}` : `/source-works`
+  return stringifiedParams.length > 0 ? `/api/source-works?${stringifiedParams}` : `/api/source-works`
 }
 
 /**
@@ -2503,21 +2210,14 @@ export const getReadSourceWorksSourceWorksGetUrl = (params?: ReadSourceWorksSour
  */
 export const readSourceWorksSourceWorksGet = async (params?: ReadSourceWorksSourceWorksGetParams, options?: RequestInit): Promise<readSourceWorksSourceWorksGetResponse> => {
 
-  const res = await fetch(getReadSourceWorksSourceWorksGetUrl(params),
+  return customFetch<readSourceWorksSourceWorksGetResponse>(getReadSourceWorksSourceWorksGetUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readSourceWorksSourceWorksGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readSourceWorksSourceWorksGetResponse
-}
+);}
 
 
 export type createSourceWorkSourceWorksPostResponse200 = {
@@ -2544,7 +2244,7 @@ export const getCreateSourceWorkSourceWorksPostUrl = () => {
 
 
 
-  return `/source-works`
+  return `/api/source-works`
 }
 
 /**
@@ -2556,21 +2256,14 @@ export const getCreateSourceWorkSourceWorksPostUrl = () => {
  */
 export const createSourceWorkSourceWorksPost = async (createSourceWork: CreateSourceWork, options?: RequestInit): Promise<createSourceWorkSourceWorksPostResponse> => {
 
-  const res = await fetch(getCreateSourceWorkSourceWorksPostUrl(),
+  return customFetch<createSourceWorkSourceWorksPostResponse>(getCreateSourceWorkSourceWorksPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createSourceWork)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createSourceWorkSourceWorksPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createSourceWorkSourceWorksPostResponse
-}
+);}
 
 
 export type readSourceWorkSourceWorksSourceWorkIdGetResponse200 = {
@@ -2597,7 +2290,7 @@ export const getReadSourceWorkSourceWorksSourceWorkIdGetUrl = (sourceWorkId: str
 
 
 
-  return `/source-works/${sourceWorkId}`
+  return `/api/source-works/${sourceWorkId}`
 }
 
 /**
@@ -2609,21 +2302,14 @@ export const getReadSourceWorkSourceWorksSourceWorkIdGetUrl = (sourceWorkId: str
  */
 export const readSourceWorkSourceWorksSourceWorkIdGet = async (sourceWorkId: string, options?: RequestInit): Promise<readSourceWorkSourceWorksSourceWorkIdGetResponse> => {
 
-  const res = await fetch(getReadSourceWorkSourceWorksSourceWorkIdGetUrl(sourceWorkId),
+  return customFetch<readSourceWorkSourceWorksSourceWorkIdGetResponse>(getReadSourceWorkSourceWorksSourceWorkIdGetUrl(sourceWorkId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readSourceWorkSourceWorksSourceWorkIdGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readSourceWorkSourceWorksSourceWorkIdGetResponse
-}
+);}
 
 
 export type updateSourceWorkSourceWorksSourceWorkIdPatchResponse200 = {
@@ -2650,7 +2336,7 @@ export const getUpdateSourceWorkSourceWorksSourceWorkIdPatchUrl = (sourceWorkId:
 
 
 
-  return `/source-works/${sourceWorkId}`
+  return `/api/source-works/${sourceWorkId}`
 }
 
 /**
@@ -2665,21 +2351,14 @@ export const getUpdateSourceWorkSourceWorksSourceWorkIdPatchUrl = (sourceWorkId:
 export const updateSourceWorkSourceWorksSourceWorkIdPatch = async (sourceWorkId: string,
     updateSourceWork: UpdateSourceWork, options?: RequestInit): Promise<updateSourceWorkSourceWorksSourceWorkIdPatchResponse> => {
 
-  const res = await fetch(getUpdateSourceWorkSourceWorksSourceWorkIdPatchUrl(sourceWorkId),
+  return customFetch<updateSourceWorkSourceWorksSourceWorkIdPatchResponse>(getUpdateSourceWorkSourceWorksSourceWorkIdPatchUrl(sourceWorkId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateSourceWork)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateSourceWorkSourceWorksSourceWorkIdPatchResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateSourceWorkSourceWorksSourceWorkIdPatchResponse
-}
+);}
 
 
 export type readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse200 = {
@@ -2706,7 +2385,7 @@ export const getReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetUrl = (sou
 
 
 
-  return `/source-works/${sourceWorkId}/novels`
+  return `/api/source-works/${sourceWorkId}/novels`
 }
 
 /**
@@ -2718,21 +2397,14 @@ export const getReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetUrl = (sou
  */
 export const readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGet = async (sourceWorkId: string, options?: RequestInit): Promise<readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse> => {
 
-  const res = await fetch(getReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetUrl(sourceWorkId),
+  return customFetch<readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse>(getReadNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetUrl(sourceWorkId),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readNovelsBySourceWorkSourceWorksSourceWorkIdNovelsGetResponse
-}
+);}
 
 
 export type loginForAccessTokenTokenPostResponse200 = {
@@ -2764,7 +2436,7 @@ export const getLoginForAccessTokenTokenPostUrl = () => {
 
 
 
-  return `/token`
+  return `/api/token`
 }
 
 /**
@@ -2792,21 +2464,14 @@ if(bodyLoginForAccessTokenTokenPost.scope !== undefined) {
  }
 formUrlEncoded.append(`username`, bodyLoginForAccessTokenTokenPost.username);
 
-  const res = await fetch(getLoginForAccessTokenTokenPostUrl(),
+  return customFetch<loginForAccessTokenTokenPostResponse>(getLoginForAccessTokenTokenPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...options?.headers },
     body: formUrlEncoded
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: loginForAccessTokenTokenPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as loginForAccessTokenTokenPostResponse
-}
+);}
 
 
 export type createUserUsersPostResponse200 = {
@@ -2833,7 +2498,7 @@ export const getCreateUserUsersPostUrl = () => {
 
 
 
-  return `/users`
+  return `/api/users`
 }
 
 /**
@@ -2847,21 +2512,14 @@ export const getCreateUserUsersPostUrl = () => {
  */
 export const createUserUsersPost = async (createUser: CreateUser, options?: RequestInit): Promise<createUserUsersPostResponse> => {
 
-  const res = await fetch(getCreateUserUsersPostUrl(),
+  return customFetch<createUserUsersPostResponse>(getCreateUserUsersPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createUser)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createUserUsersPostResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createUserUsersPostResponse
-}
+);}
 
 
 export type deleteUserMeUsersMeDeleteResponse200 = {
@@ -2881,7 +2539,7 @@ export const getDeleteUserMeUsersMeDeleteUrl = () => {
 
 
 
-  return `/users/me`
+  return `/api/users/me`
 }
 
 /**
@@ -2890,21 +2548,14 @@ export const getDeleteUserMeUsersMeDeleteUrl = () => {
  */
 export const deleteUserMeUsersMeDelete = async ( options?: RequestInit): Promise<deleteUserMeUsersMeDeleteResponse> => {
 
-  const res = await fetch(getDeleteUserMeUsersMeDeleteUrl(),
+  return customFetch<deleteUserMeUsersMeDeleteResponse>(getDeleteUserMeUsersMeDeleteUrl(),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteUserMeUsersMeDeleteResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteUserMeUsersMeDeleteResponse
-}
+);}
 
 
 export type readUserMeUsersMeGetResponse200 = {
@@ -2924,7 +2575,7 @@ export const getReadUserMeUsersMeGetUrl = () => {
 
 
 
-  return `/users/me`
+  return `/api/users/me`
 }
 
 /**
@@ -2936,21 +2587,14 @@ export const getReadUserMeUsersMeGetUrl = () => {
  */
 export const readUserMeUsersMeGet = async ( options?: RequestInit): Promise<readUserMeUsersMeGetResponse> => {
 
-  const res = await fetch(getReadUserMeUsersMeGetUrl(),
+  return customFetch<readUserMeUsersMeGetResponse>(getReadUserMeUsersMeGetUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readUserMeUsersMeGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readUserMeUsersMeGetResponse
-}
+);}
 
 
 export type deleteUserUsersUserIdDeleteResponse200 = {
@@ -2977,7 +2621,7 @@ export const getDeleteUserUsersUserIdDeleteUrl = (userId: string,) => {
 
 
 
-  return `/users/${userId}`
+  return `/api/users/${userId}`
 }
 
 /**
@@ -2986,21 +2630,14 @@ export const getDeleteUserUsersUserIdDeleteUrl = (userId: string,) => {
  */
 export const deleteUserUsersUserIdDelete = async (userId: string, options?: RequestInit): Promise<deleteUserUsersUserIdDeleteResponse> => {
 
-  const res = await fetch(getDeleteUserUsersUserIdDeleteUrl(userId),
+  return customFetch<deleteUserUsersUserIdDeleteResponse>(getDeleteUserUsersUserIdDeleteUrl(userId),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteUserUsersUserIdDeleteResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as deleteUserUsersUserIdDeleteResponse
-}
+);}
 
 
 export type readUserUsersUserNameGetResponse200 = {
@@ -3027,7 +2664,7 @@ export const getReadUserUsersUserNameGetUrl = (userName: string,) => {
 
 
 
-  return `/users/${userName}`
+  return `/api/users/${userName}`
 }
 
 /**
@@ -3040,20 +2677,13 @@ export const getReadUserUsersUserNameGetUrl = (userName: string,) => {
  */
 export const readUserUsersUserNameGet = async (userName: string, options?: RequestInit): Promise<readUserUsersUserNameGetResponse> => {
 
-  const res = await fetch(getReadUserUsersUserNameGetUrl(userName),
+  return customFetch<readUserUsersUserNameGetResponse>(getReadUserUsersUserNameGetUrl(userName),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: readUserUsersUserNameGetResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as readUserUsersUserNameGetResponse
-}
+);}
 
 

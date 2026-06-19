@@ -1,7 +1,7 @@
 import { Card, CardTitle, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { ExpandableText } from "@/components/text/ExpandableText";
 import { routeTo } from "@/routes";
-import type { Novel } from "@/client";
+import type { Novel } from "@/api/models";
 import { truncateProducer } from "../utils/truncateProducer";
 import { Link } from "react-router-dom";
 

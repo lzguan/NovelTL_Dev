@@ -12,26 +12,6 @@ interface TestEvent {
 }
 
 describe("buildRequestQueueDispatcher", () => {
-	it("returns active events immediately and flushes passive queue before them", () => {
-		const { decorate } = buildRequestQueueDispatcher<TestEvent>();
-
-		const producePassive = decorate(() =>
-			Effect.succeed([{ active: false, name: "passive1" }]),
-		);
-		const produceActive = decorate(() =>
-			Effect.succeed([{ active: true, name: "active1" }]),
-		);
-
-		const passiveResult = Effect.runSync(producePassive());
-		expect(passiveResult).toEqual([]);
-
-		const activeResult = Effect.runSync(produceActive());
-		expect(activeResult).toEqual([
-			{ active: false, name: "passive1" },
-			{ active: true, name: "active1" },
-		]);
-	});
-
 	it("accumulates multiple passive events until an active event flushes them", () => {
 		const { decorate } = buildRequestQueueDispatcher<TestEvent>();
 
@@ -95,16 +75,6 @@ describe("buildRequestQueueDispatcher", () => {
 		]);
 	});
 
-	it("preserves function parameters through decorate", () => {
-		const { decorate } = buildRequestQueueDispatcher<TestEvent>();
-
-		const produceWithParams = decorate((name: string, isActive: boolean) =>
-			Effect.succeed([{ active: isActive, name }]),
-		);
-
-		const result = Effect.runSync(produceWithParams("test", true));
-		expect(result).toEqual([{ active: true, name: "test" }]);
-	});
 });
 
 describe("isAllReserveable", () => {

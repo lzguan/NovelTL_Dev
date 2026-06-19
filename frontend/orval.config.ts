@@ -11,6 +11,13 @@ export default defineConfig({
 			client: "fetch",
 			target: "src/api/endpoints",
 			schemas: "src/api/models",
+			baseUrl: "/api",
+			override: {
+				mutator: {
+					path: "./src/api/custom-fetch.ts",
+					name: "customFetch",
+				},
+			},
 		},
 	},
 	// Effect schema generation

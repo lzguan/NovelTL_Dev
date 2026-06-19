@@ -27,7 +27,7 @@ function App() {
       </Route>
       <Route element={<EditShell />}>
         <Route path={AppRoutes.EDIT.DASHBOARD} element={<EditDashboardPage />} />
-        <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelPage loadLabelsNum={3} />} />
+        <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelPage userId="" />} />
       </Route>
     </Routes>
   );

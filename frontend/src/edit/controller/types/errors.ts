@@ -63,6 +63,10 @@ export class AlreadyOpenException extends Data.TaggedError("AlreadyOpenException
 
 export class LoadingException extends Data.TaggedError("LoadingException")<{ id: ProvId }> {}
 
+/**
+ * Union of errors that can occur at the request processing level. DM-level errors
+ * (AlreadyOpenException, LoadingException, DuplicateIdException) are handled separately.
+ */
 export type AnyError =
 	| FatalException
 	| ConnectionException

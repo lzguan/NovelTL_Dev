@@ -11,6 +11,7 @@ import {
 import {
 	AlreadyOpenException,
 	ConnectionException,
+	DuplicateChapterNumException,
 	FatalException,
 	LoadingException,
 	NotFoundException,
@@ -221,7 +222,7 @@ export const buildNovelDataManager = (
 			chapterNum: number,
 			chapterTitle: string,
 			chapterIsPublic: boolean,
-		): Effect.Effect<RequestEvent[], UnknownException> =>
+		): Effect.Effect<RequestEvent[], UnknownException | DuplicateChapterNumException> =>
 			Effect.gen(function* () {
 				const newId = idRepo.newId("chapter");
 				const newChapter: ProvChapter = Prov({
@@ -234,9 +235,10 @@ export const buildNovelDataManager = (
 				yield* chaptersIndex
 					.new(newId, { chapter: newChapter })
 					.pipe(
-						Effect.mapError(
-							() => new UnknownException({ message: "Failed to add chapter to index" }),
-						),
+						Effect.mapError((err) => {
+							if (err._tag === "DuplicateChapterNumException") return err;
+							return new UnknownException({ message: "Failed to add chapter to index" });
+						}),
 					);
 				yield* chaptersIndex
 					.increment(newId)
@@ -820,11 +822,6 @@ export const buildChapterDataManager = (
 						new UnknownException({ message: "Label bounds are out of range" }),
 					);
 				}
-				if (word.length !== endPos - startPos) {
-					return yield* Effect.fail(
-						new UnknownException({ message: "Label word length must match bounds" }),
-					);
-				}
 				if (text.slice(startPos, endPos) !== word) {
 					return yield* Effect.fail(
 						new UnknownException({ message: "Label word must match text" }),
@@ -833,6 +830,11 @@ export const buildChapterDataManager = (
 				if (labels.some((l) => Math.max(l.labelStart, startPos) < Math.min(l.labelEnd, endPos))) {
 					return yield* Effect.fail(
 						new UnknownException({ message: "Label overlaps with existing label" }),
+					);
+				}
+				if (score != null && (score < 0 || score > 1)) {
+					return yield* Effect.fail(
+						new UnknownException({ message: "Label score must be between 0 and 1" }),
 					);
 				}
 
@@ -985,11 +987,6 @@ export const buildChapterDataManager = (
 				if (nextStart >= nextEnd || nextStart < 0 || nextEnd > text.length) {
 					return yield* Effect.fail(
 						new UnknownException({ message: "Updated label bounds out of range" }),
-					);
-				}
-				if (nextWord.length !== nextEnd - nextStart) {
-					return yield* Effect.fail(
-						new UnknownException({ message: "Updated word length must match bounds" }),
 					);
 				}
 				if (text.slice(nextStart, nextEnd) !== nextWord) {
