@@ -198,8 +198,8 @@ function NovelDetailsPage() {
       const { start, end } = extractParams.view.novel(searchParams);
       const chapterData = await readChaptersByNovelChaptersGet({
         novelId,
-        start: start ?? null,
-        end: end ?? null,
+        start: start,
+        end: end,
       });
 
       if (ignore) return;

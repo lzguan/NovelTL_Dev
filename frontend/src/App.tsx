@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppRoutes } from "./routes";
 import { Test } from "./Test";
 import { LoginPage } from "./auth/pages/LoginPage";
-import { EditNovelPage } from "./edit/pages/EditNovelPage";
 import { SourceWorksPage } from "./view/pages/SourceWorksPage";
 import { ViewShell, EditShell } from "./components/navigation/AppShell";
 import { DashboardPage } from "./dashboard/pages/DashboardPage";
@@ -27,7 +26,6 @@ function App() {
       </Route>
       <Route element={<EditShell />}>
         <Route path={AppRoutes.EDIT.DASHBOARD} element={<EditDashboardPage />} />
-        <Route path={AppRoutes.EDIT.NOVEL} element={<EditNovelPage userId="" />} />
       </Route>
     </Routes>
   );
