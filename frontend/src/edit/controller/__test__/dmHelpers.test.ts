@@ -15,12 +15,8 @@ describe("buildRequestQueueDispatcher", () => {
 	it("accumulates multiple passive events until an active event flushes them", () => {
 		const { decorate } = buildRequestQueueDispatcher<TestEvent>();
 
-		const producePassive = decorate(() =>
-			Effect.succeed([{ active: false, name: "p" }]),
-		);
-		const produceActive = decorate(() =>
-			Effect.succeed([{ active: true, name: "a" }]),
-		);
+		const producePassive = decorate(() => Effect.succeed([{ active: false, name: "p" }]));
+		const produceActive = decorate(() => Effect.succeed([{ active: true, name: "a" }]));
 
 		Effect.runSync(producePassive());
 		Effect.runSync(producePassive());
@@ -39,7 +35,10 @@ describe("buildRequestQueueDispatcher", () => {
 		const { decorate, flush } = buildRequestQueueDispatcher<TestEvent>();
 
 		const producePassive = decorate(() =>
-			Effect.succeed([{ active: false, name: "p1" }, { active: false, name: "p2" }]),
+			Effect.succeed([
+				{ active: false, name: "p1" },
+				{ active: false, name: "p2" },
+			]),
 		);
 
 		Effect.runSync(producePassive());
@@ -74,13 +73,10 @@ describe("buildRequestQueueDispatcher", () => {
 			{ active: true, name: "a2" },
 		]);
 	});
-
 });
 
 describe("isAllReserveable", () => {
-	function makeMockIdRepo(
-		reserveableMap: Map<string, boolean>,
-	): IDRepository {
+	function makeMockIdRepo(reserveableMap: Map<string, boolean>): IDRepository {
 		return {
 			isReserveable: (_kind: string, id: unknown, _desiredState: string) =>
 				Effect.gen(function* () {

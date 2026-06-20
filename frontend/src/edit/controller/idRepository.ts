@@ -186,7 +186,9 @@ export function buildIdRepository(): IDRepository {
 	) => {
 		const entry = identifiableKindMap[kind].get(provisionalId);
 		if (!entry) {
-			logger.error(`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`);
+			logger.error(
+				`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
+			);
 			return Effect.fail(new NotFoundException());
 		}
 		return Effect.sync(() => (entry.serverId = serverId));
@@ -203,7 +205,10 @@ export function buildIdRepository(): IDRepository {
 		return Effect.sync(() => (entry.serverExists = ServEx(true)));
 	};
 
-	function idObjState(kind: Kind, id: ProvTypes[Kind]): Effect.Effect<IdStatus, NotFoundException> {
+	function idObjState(
+		kind: Kind,
+		id: ProvTypes[Kind],
+	): Effect.Effect<IdStatus, NotFoundException> {
 		switch (kind) {
 			case "chapter":
 				const entry = identifiableKindMap["chapter"].get(id as CProvId);
@@ -251,23 +256,28 @@ export function buildIdRepository(): IDRepository {
 			switch (kind) {
 				case "chapter":
 					currentState = yield* idObjState("chapter", id as CProvId);
-					serverState = identifiableKindMap["chapter"].get(id as CProvId)?.serverId ?? null;
+					serverState =
+						identifiableKindMap["chapter"].get(id as CProvId)?.serverId ?? null;
 					break;
 				case "chapterContent":
 					currentState = yield* idObjState("chapterContent", id as CCProvId);
-					serverState = identifiableKindMap["chapterContent"].get(id as CCProvId)?.serverId ?? null;
+					serverState =
+						identifiableKindMap["chapterContent"].get(id as CCProvId)?.serverId ?? null;
 					break;
 				case "labelGroup":
 					currentState = yield* idObjState("labelGroup", id as LGProvId);
-					serverState = identifiableKindMap["labelGroup"].get(id as LGProvId)?.serverId ?? null;
+					serverState =
+						identifiableKindMap["labelGroup"].get(id as LGProvId)?.serverId ?? null;
 					break;
 				case "labelData":
 					currentState = yield* idObjState("labelData", id as LDProvId);
-					serverState = identifiableKindMap["labelData"].get(id as LDProvId)?.serverId ?? null;
+					serverState =
+						identifiableKindMap["labelData"].get(id as LDProvId)?.serverId ?? null;
 					break;
 				case "label":
 					currentState = yield* idObjState("label", id as LProvId);
-					serverState = existableKindMap["label"].get(id as LProvId)?.serverExists ?? null;
+					serverState =
+						existableKindMap["label"].get(id as LProvId)?.serverExists ?? null;
 					break;
 				default:
 					return false;
@@ -277,7 +287,9 @@ export function buildIdRepository(): IDRepository {
 			} else if (desiredState === "updating" || desiredState === "idUpdating") {
 				return currentState === "clean" && serverState !== null;
 			} else if (desiredState === "locked") {
-				return (currentState === "clean" || currentState === "locked") && serverState !== null;
+				return (
+					(currentState === "clean" || currentState === "locked") && serverState !== null
+				);
 			} else if (desiredState === "deleting") {
 				return currentState === "clean" && serverState !== null;
 			} else if (desiredState === "detaching") {
@@ -337,7 +349,8 @@ export function buildIdRepository(): IDRepository {
 		});
 
 	const releaseIdObjState =
-		(post: (status: InFlightIdStatus) => GroundIdStatus) => (kind: Kind, id: ProvTypes[Kind]) => {
+		(post: (status: InFlightIdStatus) => GroundIdStatus) =>
+		(kind: Kind, id: ProvTypes[Kind]) => {
 			let entry:
 				| {
 						serverExists: ServEx | null;
@@ -390,27 +403,47 @@ export function buildIdRepository(): IDRepository {
 
 	const gc = () => {
 		identifiableKindMap.labelGroup.forEach((value, key) => {
-			if (value.status === "deleted" || value.status === "killed" || value.status === "detached") {
+			if (
+				value.status === "deleted" ||
+				value.status === "killed" ||
+				value.status === "detached"
+			) {
 				identifiableKindMap.labelGroup.delete(key);
 			}
 		});
 		identifiableKindMap.labelData.forEach((value, key) => {
-			if (value.status === "deleted" || value.status === "killed" || value.status === "detached") {
+			if (
+				value.status === "deleted" ||
+				value.status === "killed" ||
+				value.status === "detached"
+			) {
 				identifiableKindMap.labelData.delete(key);
 			}
 		});
 		identifiableKindMap.chapterContent.forEach((value, key) => {
-			if (value.status === "deleted" || value.status === "killed" || value.status === "detached") {
+			if (
+				value.status === "deleted" ||
+				value.status === "killed" ||
+				value.status === "detached"
+			) {
 				identifiableKindMap.chapterContent.delete(key);
 			}
 		});
 		identifiableKindMap.chapter.forEach((value, key) => {
-			if (value.status === "deleted" || value.status === "killed" || value.status === "detached") {
+			if (
+				value.status === "deleted" ||
+				value.status === "killed" ||
+				value.status === "detached"
+			) {
 				identifiableKindMap.chapter.delete(key);
 			}
 		});
 		existableKindMap.label.forEach((value, key) => {
-			if (value.status === "deleted" || value.status === "killed" || value.status === "detached") {
+			if (
+				value.status === "deleted" ||
+				value.status === "killed" ||
+				value.status === "detached"
+			) {
 				existableKindMap.label.delete(key);
 			}
 		});

@@ -8,42 +8,45 @@ import { Link } from "react-router-dom";
 const truncate = truncateProducer(1000);
 
 function NovelCard({
-  novel,
-  showDescription = false,
+	novel,
+	showDescription = false,
 }: {
-  novel: Novel;
-  showDescription?: boolean;
+	novel: Novel;
+	showDescription?: boolean;
 }) {
-  return (
-    <Card className="text-left">
-      <>
-        <CardHeader>
-          <CardTitle>
-            {
-              <Link className="hover:underline" to={routeTo.view.novel(novel.novelId)}>
-                {novel.novelTitle}
-              </Link>
-            }
-          </CardTitle>
-          <CardDescription>
-            <div style={{ fontStyle: novel.novelAuthor ? "normal" : "italic" }}>
-              {novel.novelAuthor || "Unknown Author"}
-            </div>
-          </CardDescription>
-        </CardHeader>
-        {showDescription && (
-          <CardContent>
-            <div style={{ fontStyle: novel.novelDescription ? "normal" : "italic" }}>
-              <ExpandableText
-                text={novel.novelDescription || "No description available."}
-                truncate={truncate}
-              />
-            </div>
-          </CardContent>
-        )}
-      </>
-    </Card>
-  );
+	return (
+		<Card className="text-left">
+			<>
+				<CardHeader>
+					<CardTitle>
+						{
+							<Link
+								className="hover:underline"
+								to={routeTo.view.novel(novel.novelId)}
+							>
+								{novel.novelTitle}
+							</Link>
+						}
+					</CardTitle>
+					<CardDescription>
+						<div style={{ fontStyle: novel.novelAuthor ? "normal" : "italic" }}>
+							{novel.novelAuthor || "Unknown Author"}
+						</div>
+					</CardDescription>
+				</CardHeader>
+				{showDescription && (
+					<CardContent>
+						<div style={{ fontStyle: novel.novelDescription ? "normal" : "italic" }}>
+							<ExpandableText
+								text={novel.novelDescription || "No description available."}
+								truncate={truncate}
+							/>
+						</div>
+					</CardContent>
+				)}
+			</>
+		</Card>
+	);
 }
 
 export { NovelCard };

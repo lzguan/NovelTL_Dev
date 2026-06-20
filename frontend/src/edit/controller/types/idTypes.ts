@@ -286,7 +286,10 @@ export interface IDRepository {
 	/**
 	 * Get the current id status of a provisional id.
 	 */
-	idObjState(kind: "chapter", id: ProvTypes["chapter"]): Effect.Effect<IdStatus, NotFoundException>;
+	idObjState(
+		kind: "chapter",
+		id: ProvTypes["chapter"],
+	): Effect.Effect<IdStatus, NotFoundException>;
 	idObjState(
 		kind: "chapterContent",
 		id: ProvTypes["chapterContent"],

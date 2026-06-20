@@ -77,12 +77,10 @@ describe("buildNovelController", () => {
 	it("subscribe returns working unsubscribe function", () => {
 		const controller = Effect.runSync(buildNovelController(makeNovelData()));
 		const events: TriggerEvent[] = [];
-		const unsubscribe = controller.subscribe(
-			(_getters: NovelGetters, event: TriggerEvent) => {
-				events.push(event);
-				return Effect.succeed(void 0);
-			},
-		);
+		const unsubscribe = controller.subscribe((_getters: NovelGetters, event: TriggerEvent) => {
+			events.push(event);
+			return Effect.succeed(void 0);
+		});
 		controller.start();
 
 		const fakeChapterId = CProvId("00000000-0000-0000-0000-ffffffffffff");

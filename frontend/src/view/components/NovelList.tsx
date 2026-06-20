@@ -2,19 +2,19 @@ import type { Novel } from "@/api/models";
 import { NovelCard } from "./NovelCard";
 
 function NovelList({
-  novels,
-  showDescription = false,
+	novels,
+	showDescription = false,
 }: {
-  novels: Novel[];
-  showDescription?: boolean;
+	novels: Novel[];
+	showDescription?: boolean;
 }) {
-  return (
-    <div className="flex flex-col flex-start gap-4">
-      {novels.map((novel) => (
-        <NovelCard key={novel.novelId} novel={novel} showDescription={showDescription} />
-      ))}
-    </div>
-  );
+	return (
+		<div className="flex flex-col flex-start gap-4">
+			{novels.map((novel) => (
+				<NovelCard key={novel.novelId} novel={novel} showDescription={showDescription} />
+			))}
+		</div>
+	);
 }
 
 export { NovelList };

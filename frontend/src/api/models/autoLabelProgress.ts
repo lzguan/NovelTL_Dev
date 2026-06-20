@@ -8,12 +8,11 @@
 /**
  * Status for an autolabel in database. One of 'failed', 'pending', 'processing', 'done'
  */
-export type AutoLabelProgress = typeof AutoLabelProgress[keyof typeof AutoLabelProgress];
-
+export type AutoLabelProgress = (typeof AutoLabelProgress)[keyof typeof AutoLabelProgress];
 
 export const AutoLabelProgress = {
-  failed: 'failed',
-  pending: 'pending',
-  processing: 'processing',
-  done: 'done',
+	failed: "failed",
+	pending: "pending",
+	processing: "processing",
+	done: "done",
 } as const;

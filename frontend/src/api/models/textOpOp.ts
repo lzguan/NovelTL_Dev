@@ -5,10 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type TextOpOp = typeof TextOpOp[keyof typeof TextOpOp];
-
+export type TextOpOp = (typeof TextOpOp)[keyof typeof TextOpOp];
 
 export const TextOpOp = {
-  insert: 'insert',
-  delete: 'delete',
+	insert: "insert",
+	delete: "delete",
 } as const;

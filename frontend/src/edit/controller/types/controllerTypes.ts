@@ -1,4 +1,4 @@
-import type { LabelOp } from "./dataTypes";
+import type { IDLabelOp, LabelOp } from "./dataTypes";
 import type { CProvId, LGProvId, ProvChapter, ProvLabelGroup, ServId } from "./idTypes";
 import type { TextOp } from "@/api/models";
 import { Effect } from "effect";
@@ -50,7 +50,12 @@ export type NovelUserEvent =
 	| { eventType: "loadLabelData"; labelGroupId: LGProvId; chapterId: CProvId }
 	| { eventType: "openChapter"; chapterId: CProvId }
 	| { eventType: "closeChapter"; chapterId: CProvId }
-	| { eventType: "addChapter"; chapterNum: number; chapterTitle: string; chapterIsPublic: boolean };
+	| {
+			eventType: "addChapter";
+			chapterNum: number;
+			chapterTitle: string;
+			chapterIsPublic: boolean;
+	  };
 
 /**
  * Type for any event triggered by the controller due to state change or completion of an action, which may be subscribed to. Will be updated.
@@ -70,7 +75,7 @@ export type NovelUserEvent =
  */
 export type TriggerEvent =
 	| { eventType: "textChanged"; op: TextOp; chapterId: CProvId }
-	| { eventType: "labelChanged"; op: LabelOp; labelGroupId: LGProvId; chapterId: CProvId }
+	| { eventType: "labelChanged"; op: IDLabelOp }
 	| { eventType: "labelGroupAdded"; labelGroup: ProvLabelGroup }
 	| { eventType: "chapterAdded"; chapter: ProvChapter }
 	| {

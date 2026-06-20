@@ -6,6 +6,8 @@ import { ServId } from "../types/idTypes";
 import type { TriggerEvent } from "../types/controllerTypes";
 import { Prov } from "../types/helperTypes";
 import { buildLabelGroupIndex } from "../dmHelpers";
+import { Visibility, type Novel } from "@/api/models";
+import type { Role } from "@/api/models/role";
 
 const UUID1 = "00000000-0000-0000-0000-000000000001";
 const UUID2 = "00000000-0000-0000-0000-000000000002";
@@ -14,6 +16,17 @@ const UUID4 = "00000000-0000-0000-0000-000000000004";
 const UUID5 = "00000000-0000-0000-0000-000000000005";
 const UUID6 = "00000000-0000-0000-0000-000000000006";
 const NOVEL_ID = "00000000-0000-0000-0000-00000000000a";
+const SOURCE_WORK_ID = "00000000-0000-0000-0000-00000000000b";
+
+const mockNovel: Novel = {
+	novelId: NOVEL_ID,
+	novelTitle: "Test Novel",
+	novelType: "original",
+	novelVisibility: Visibility.NUMBER_0,
+	languageCode: "en",
+	sourceWorkId: SOURCE_WORK_ID,
+};
+const mockRole: Role = "owner";
 
 function buildTestChapterDM() {
 	return Effect.gen(function* () {
@@ -48,7 +61,11 @@ function buildTestChapterDM() {
 			},
 			eagerLabelData: [
 				{
-					labelGroup: { labelGroupId: UUID3, labelGroupName: "Characters", novelId: NOVEL_ID },
+					labelGroup: {
+						labelGroupId: UUID3,
+						labelGroupName: "Characters",
+						novelId: NOVEL_ID,
+					},
 					labelData: { labelDataId: UUID4, labelGroupId: UUID3, chapterContentId: UUID2 },
 					labels: [
 						{
@@ -86,6 +103,8 @@ function buildTestChapterDM() {
 			{
 				labelGroupIds: () => labelGroupsIndex.getIds(),
 				labelGroup: (lgId) => labelGroupsIndex.get(lgId),
+				novel: () => Effect.succeed(mockNovel),
+				role: () => Effect.succeed(mockRole),
 			},
 		);
 
@@ -114,9 +133,7 @@ describe("buildChapterDataManager", () => {
 			const { chapterDM, labelGroupId } = Effect.runSync(buildTestChapterDM());
 
 			const result = Effect.runSync(
-				chapterDM.addLabel(labelGroupId, 3, 8, "ce me", "overlap").pipe(
-					Effect.either,
-				),
+				chapterDM.addLabel(labelGroupId, 3, 8, "ce me", "overlap").pipe(Effect.either),
 			);
 
 			expect(result._tag).toBe("Left");

@@ -12,23 +12,26 @@ import { NovelDetailsPage } from "./view/pages/NovelDetailsPage";
 import { NovelsPage } from "./view/pages/NovelsPage";
 
 function App() {
-  return (
-    <Routes>
-      <Route path={AppRoutes.ROOT} element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
-      <Route path={AppRoutes.LOGIN} element={<LoginPage />} />
-      <Route path={AppRoutes.TEST} element={<Test />} />
-      <Route element={<ViewShell />}>
-        <Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
-        <Route path={AppRoutes.VIEW.SOURCEWORKS} element={<SourceWorksPage />} />
-        <Route path={AppRoutes.VIEW.SOURCEWORK_DETAILS} element={<SourceWorkDetailsPage />} />
-        <Route path={AppRoutes.VIEW.NOVELS} element={<NovelsPage />} />
-        <Route path={AppRoutes.VIEW.NOVEL_DETAILS} element={<NovelDetailsPage />} />
-      </Route>
-      <Route element={<EditShell />}>
-        <Route path={AppRoutes.EDIT.DASHBOARD} element={<EditDashboardPage />} />
-      </Route>
-    </Routes>
-  );
+	return (
+		<Routes>
+			<Route path={AppRoutes.ROOT} element={<Navigate to={AppRoutes.DASHBOARD} replace />} />
+			<Route path={AppRoutes.LOGIN} element={<LoginPage />} />
+			<Route path={AppRoutes.TEST} element={<Test />} />
+			<Route element={<ViewShell />}>
+				<Route path={AppRoutes.DASHBOARD} element={<DashboardPage />} />
+				<Route path={AppRoutes.VIEW.SOURCEWORKS} element={<SourceWorksPage />} />
+				<Route
+					path={AppRoutes.VIEW.SOURCEWORK_DETAILS}
+					element={<SourceWorkDetailsPage />}
+				/>
+				<Route path={AppRoutes.VIEW.NOVELS} element={<NovelsPage />} />
+				<Route path={AppRoutes.VIEW.NOVEL_DETAILS} element={<NovelDetailsPage />} />
+			</Route>
+			<Route element={<EditShell />}>
+				<Route path={AppRoutes.EDIT.DASHBOARD} element={<EditDashboardPage />} />
+			</Route>
+		</Routes>
+	);
 }
 
 export { App };

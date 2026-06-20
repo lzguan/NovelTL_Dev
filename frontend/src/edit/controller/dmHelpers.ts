@@ -289,7 +289,10 @@ export const buildChapterIndex = (
 				if (!item) {
 					return Effect.fail(new NotFoundException());
 				}
-				if (numIndex.has(val.chapter.chapterNum) && numIndex.get(val.chapter.chapterNum) !== id) {
+				if (
+					numIndex.has(val.chapter.chapterNum) &&
+					numIndex.get(val.chapter.chapterNum) !== id
+				) {
 					return Effect.fail(new DuplicateChapterNumException());
 				} else if (val.chapter.chapterNum !== item.meta.chapter.chapterNum) {
 					numIndex.delete(item.meta.chapter.chapterNum);

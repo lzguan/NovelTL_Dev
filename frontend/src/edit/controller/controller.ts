@@ -88,7 +88,12 @@ export const buildNovelController = (
 					if (event.op.op === "insert") {
 						dispatch(chapterDM.insertTextAt(event.op.start, event.op.text));
 					} else {
-						dispatch(chapterDM.deleteTextAt(event.op.start, event.op.start + event.op.text.length));
+						dispatch(
+							chapterDM.deleteTextAt(
+								event.op.start,
+								event.op.start + event.op.text.length,
+							),
+						);
 					}
 					break;
 				}
@@ -115,7 +120,13 @@ export const buildNovelController = (
 							),
 						);
 					} else if (event.op.op === "delete") {
-						dispatch(chapterDM.deleteLabel(event.labelGroupId, event.op.startPos, event.op.endPos));
+						dispatch(
+							chapterDM.deleteLabel(
+								event.labelGroupId,
+								event.op.startPos,
+								event.op.endPos,
+							),
+						);
 					} else {
 						dispatch(
 							chapterDM.updateLabel(
@@ -138,7 +149,13 @@ export const buildNovelController = (
 					break;
 				}
 				case "addChapter": {
-					dispatch(novelDM.addChapter(event.chapterNum, event.chapterTitle, event.chapterIsPublic));
+					dispatch(
+						novelDM.addChapter(
+							event.chapterNum,
+							event.chapterTitle,
+							event.chapterIsPublic,
+						),
+					);
 					break;
 				}
 				case "openChapter": {

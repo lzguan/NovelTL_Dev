@@ -1,4 +1,4 @@
-import type { CProvId, LGProvId, ProvChapter, ProvLabelGroup, ServId } from "./idTypes";
+import type { CProvId, LGProvId, LProvId, ProvChapter, ProvLabelGroup, ServId } from "./idTypes";
 import type { RequestEvent } from "./requestTypes";
 import type { AddLabelOp, DeleteLabelOp, UpdateLabelOp } from "@/api/models";
 import type { Effect } from "effect";
@@ -11,6 +11,8 @@ import type {
 } from "./errors";
 
 export type LabelOp = AddLabelOp | DeleteLabelOp | UpdateLabelOp;
+
+export type IDLabelOp = LabelOp & { labelId: LProvId; labelGroupId: LGProvId; chapterId: CProvId };
 /**
  * A data manager is a data structure that maintains the state of some defined data. It provides a set of actions that can be performed on the data and a set of getters to retrieve the data. The intended use of a data manager is to manage the internal state of the application and provide a clear interface for performing operations on the data and retrieving the data, while abstracting away the details of how the data is stored and updated.
  *
@@ -143,7 +145,10 @@ export type ChapterDataManager = DataManager<
 		 * @param pos - Insertion index. Must satisfy 0 <= pos <= text.length.
 		 * @param text - Text to insert.
 		 */
-		insertTextAt: (pos: number, text: string) => Effect.Effect<RequestEvent[], UnknownException>;
+		insertTextAt: (
+			pos: number,
+			text: string,
+		) => Effect.Effect<RequestEvent[], UnknownException>;
 		/**
 		 * Labels overlapping [startPos, endPos) are dropped; labels after are shifted backward. Affects all label groups.
 		 * @param startPos - Inclusive start of deletion range.

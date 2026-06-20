@@ -4,12 +4,12 @@
  * FastAPI
  * OpenAPI spec version: 0.1.0
  */
-import type { LabelData } from './labelData';
-import type { LabelGroup } from './labelGroup';
-import type { LabelRole } from './labelRole';
+import type { LabelData } from "./labelData";
+import type { LabelGroup } from "./labelGroup";
+import type { LabelRole } from "./labelRole";
 
 export interface LabelGroupListEntry {
-  labelData: LabelData | null;
-  labelGroup: LabelGroup;
-  role: LabelRole;
+	labelData: LabelData | null;
+	labelGroup: LabelGroup;
+	role: LabelRole;
 }
