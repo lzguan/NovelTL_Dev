@@ -18,6 +18,13 @@ export function EditorPanel({
 	onTextOp: (op: TextOp) => void;
 	labeling: LabelEditing;
 }) {
+	if (data.empty) {
+		return (
+			<div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+				No chapter selected
+			</div>
+		);
+	}
 	if (data.loading) {
 		return (
 			<div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">

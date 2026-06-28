@@ -13,37 +13,43 @@ export type Caret = {
 type SM = SegmentManager<LabelStyle, StyledLabel<LabelStyle>, LProvId>;
 
 export type EditorData =
-	| { loading: true }
-	| { loading: false; segmentManager: SM; chapterId: CProvId; caret: Caret | null };
+	| { empty: true }
+	| { loading: true; empty: false }
+	| { loading: false; segmentManager: SM; chapterId: CProvId; caret: Caret | null; empty: false };
 
 export type LoadingPayload =
-	| { loading: true }
-	| { loading: false; segmentManager: SM; chapterId: CProvId };
+	| { empty: true }
+	| { loading: true; empty: false }
+	| { loading: false; segmentManager: SM; chapterId: CProvId; empty: false };
 
 export function useEditorState() {
-	const [data, setData] = useState<EditorData>({ loading: true });
+	const [data, setData] = useState<EditorData>({ empty: true });
 	const [modeState, setModeState] = useState<EditorMode>("view");
 
-	const dataRef = useRef<EditorData>({ loading: true });
+	const dataRef = useRef<EditorData>({ empty: true });
 	const modeRef = useRef<EditorMode>("view");
 
 	dataRef.current = data;
 	modeRef.current = modeState;
 
 	const setLoading = useCallback((val: LoadingPayload) => {
-		const next: EditorData = val.loading
-			? { loading: true }
-			: {
-					loading: false,
-					segmentManager: val.segmentManager,
-					chapterId: val.chapterId,
-					caret: null,
-				};
+		const next: EditorData = val.empty
+			? { empty: true }
+			: val.loading
+				? { loading: true, empty: false }
+				: {
+						loading: false,
+						segmentManager: val.segmentManager,
+						chapterId: val.chapterId,
+						caret: null,
+						empty: false,
+					};
 		dataRef.current = next;
 		setData(next);
 	}, []);
 
 	const setCaret = useCallback((c: Caret | null) => {
+		if (dataRef.current.empty) return;
 		if (dataRef.current.loading) return;
 		const next: EditorData = { ...dataRef.current, caret: c };
 		dataRef.current = next;
