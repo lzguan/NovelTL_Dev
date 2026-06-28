@@ -1,9 +1,14 @@
 import { useCallback, useRef, useState } from "react";
-import type { SegmentManager } from "@/components/labeled-text-lib/core/segmentManager";
-import type { StyledLabel } from "@/components/labeled-text-lib/core/types";
-import type { Caret } from "@/components/labeled-text-lib/react/DynamicLabeledText";
+import type { SegmentManager } from "@/edit/lib/text-model/core/segmentManager";
+import type { StyledLabel } from "@/edit/lib/text-model/core/types";
 import type { LabelStyle, EditorMode } from "../managers/editorManager";
 import type { CProvId, LProvId } from "../controller/types/idTypes";
+
+export type Caret = {
+	anchor: number;
+	focus: number;
+	visible: boolean;
+};
 
 type SM = SegmentManager<LabelStyle, StyledLabel<LabelStyle>, LProvId>;
 

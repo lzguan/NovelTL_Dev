@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import type { TextOp } from "@/api/models";
-import { makeBasicSegmentManager } from "@/components/labeled-text-lib/core/segmentManager";
-import type { ColorStyle, ProductStyle } from "@/components/labeled-text-lib/builtin/reducers";
+import { makeBasicSegmentManager } from "@/edit/lib/text-model/core/segmentManager";
+import type { ColorStyle, ProductStyle } from "@/edit/lib/text-model/builtin/reducers";
 import type {
 	NovelGetters,
 	NovelUserEvent,

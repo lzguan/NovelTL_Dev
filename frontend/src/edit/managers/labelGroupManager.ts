@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import type { Color } from "@/components/labeled-text-lib/builtin/colors";
-import { generateRandomColor } from "@/components/labeled-text-lib/builtin/colors";
+import type { Color } from "@/edit/lib/text-model/builtin/colors";
+import { generateRandomColor } from "@/edit/lib/text-model/builtin/colors";
 import type {
 	NovelGetters,
 	NovelUserEvent,

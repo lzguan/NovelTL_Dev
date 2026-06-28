@@ -78,7 +78,7 @@ Labeling is factored behind a small swappable seam, defined in [labeling/types.t
 
 The default source ([activeGroupLabelSource.ts](../../frontend/src/edit/labeling/activeGroupLabelSource.ts)) resolves only the *active* label group, hit-testing through the segment manager's `active` style flag so it needs no separate label-to-group index. Because the editor only depends on the `LabelSource`/`LabelSink` interfaces, this resolver can be swapped for a richer one (e.g. one that returns every overlapping group) without touching the editor, menu, or form.
 
-Text edits enter through a related seam: [editorCallbacks.ts](../../frontend/src/edit/utils/editorCallbacks.ts) translates raw keyboard, pointer, and clipboard events on the editor surface into `TextOp`s (and caret updates), which it hands to `editorManager.textOp`. As with the labeling contract, this chapter is concerned with *what* those handlers emit; the DOM/caret mechanics belong to the [Rendering](./rendering.md) chapter.
+Text edits originate in the editor surface itself — today, CodeMirror (see the [Rendering](./rendering.md) chapter). Its update listener translates document changes into `TextOp`s and hands them to `editorManager.textOp`. As with the labeling contract, this chapter is concerned with *what* gets emitted; the editor and rendering mechanics belong to the Rendering chapter.
 
 ## Wiring it together: the page
 
@@ -112,8 +112,8 @@ Today this "one submanager per (hook, trigger event)" rule is enforced only by c
 **A keystroke in edit mode:**
 
 ```
-Key pressed in editor
-    → editorCallbacks translates it to a TextOp
+Key pressed in CodeMirror (edit mode)
+    → its update listener emits a TextOp
     → editorManager.textOp(op)            (guarded on edit mode)
         → controllerUserEvent({ eventType: "textOp", op, chapterId })
     → controller applies the optimistic update and publishes "textChanged"
@@ -137,4 +137,4 @@ In both cases the manager's handler only *sends* the user event; the visible cha
 
 ## Boundaries
 
-The following belong to the [Rendering](./rendering.md) chapter, not this one: the internals of the `SegmentManager` and the labeled-text library, the CodeMirror / dynamic-labeled-text rendering, the caret and DOM mechanics inside `editorCallbacks`, and the visual context menu and add-label form. This chapter stops at the point where a manager has updated a hook or built/mutated a segment manager, and where the labeling contracts are defined.
+The following belong to the [Rendering](./rendering.md) chapter, not this one: the internals of the `SegmentManager` (the text/label model), the CodeMirror editing surface and how it renders text, labels, and the caret, and the visual context menu and add-label form. This chapter stops at the point where a manager has updated a hook or built/mutated a segment manager, and where the labeling contracts are defined.

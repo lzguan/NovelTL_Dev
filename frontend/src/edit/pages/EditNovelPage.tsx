@@ -6,7 +6,7 @@ import { buildNovelController } from "../controller/controller";
 import type { NovelData } from "../controller/dataManager";
 import { Prov } from "../controller/types/helperTypes";
 import type { ProvChapter } from "../controller/types/idTypes";
-import { generateRandomColor } from "@/components/labeled-text-lib/builtin/colors";
+import { generateRandomColor } from "@/edit/lib/text-model/builtin/colors";
 import { useEditorState } from "../hooks/useEditorState";
 import { useChapterList } from "../hooks/useChapterList";
 import { useTrackedLabelGroups } from "../hooks/useTrackedLabelGroups";
