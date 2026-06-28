@@ -28,7 +28,7 @@ graph TD
     E --> C
     C --> API
     V --> API
-    API -- OpenAPI / Hey API --> FA
+    API -- OpenAPI / Orval --> FA
     FA --> PG
     FA --> Q
     FA --> T
@@ -44,7 +44,7 @@ We use [uv](https://docs.astral.sh/uv/) as package manager, [Pyrefly](https://py
 
 The frontend is written in Typescript and uses React and ShadCN for the component library. We use pnpm for our package manager.
 
-The frontend and backend are synchronized using FastAPI's OpenAPI generation capabilities and [Hey API](https://heyapi.dev/openapi-ts/get-started) to convert OpenAPI schema to typescript.
+The frontend and backend are synchronized using FastAPI's OpenAPI generation capabilities and [Orval](https://orval.dev/) to convert OpenAPI schema to typescript.
 
 We use pytest for backend testing and Vitest for frontend testing. We plan to use Playwright for integration testing.
 
