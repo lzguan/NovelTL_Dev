@@ -4,7 +4,8 @@ from typing import Protocol
 from arq import ArqRedis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
-from .config import ModelName
+from src.autolabels.params import NERParams
+
 from .exceptions import EnqueueFailedException, QueueFullException
 
 
@@ -17,8 +18,7 @@ class AutoLabelDispatcher(Protocol):
         self,
         job_id: str,
         auto_label_id: uuid.UUID,
-        model_name: ModelName,
-        model_params: dict[str, str | int | float | bool],
+        params: NERParams,
     ) -> None:
         """
         Enqueue a request.
@@ -26,8 +26,7 @@ class AutoLabelDispatcher(Protocol):
         Args:
             job_id: String id to queue job with.
             auto_label_id: Integer identifier for the AutoLabel being operated on in db.
-            model_name: Name of NER model.
-            model_params: Params passed into NER model.
+            params: Parameters for the NER model.
 
         Raises:
             QueueFullException: Queue is full.
@@ -44,13 +43,10 @@ class ArqDispatcher(AutoLabelDispatcher):
         self,
         job_id: str,
         auto_label_id: uuid.UUID,
-        model_name: ModelName,
-        model_params: dict[str, str | int | float | bool],
+        params: NERParams,
     ) -> None:
         try:
-            await self.redis.enqueue_job(
-                "autolabel_infer", job_id, auto_label_id, model_name, model_params, _job_id=job_id
-            )
+            await self.redis.enqueue_job("autolabel_infer", job_id, auto_label_id, params, _job_id=job_id)
         except (ConnectionError, TimeoutError, OSError) as e:
             raise EnqueueFailedException(f"Redis connection failed: {str(e)}") from e
         except ResponseError as e:

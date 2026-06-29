@@ -1,7 +1,9 @@
 from typing import Any, Protocol, TypedDict, cast
 
+from src.autolabels.params import CluenerParams
+
 from ...labels.schemas import LabelBase
-from ..schemas import CluenerModelParams, NERModelParamsBase
+from ..params import NERModelParamsBase
 from .interfaces import NERModel, Tokenizer
 from .utils import chunk_text
 
@@ -35,14 +37,14 @@ class CluenerRawNERResult(TypedDict):
     entity_group: str
 
 
-class CluenerModel(NERModel[CluenerModelParams]):
+class CluenerModel(NERModel[CluenerParams]):
     def __init__(self, pipeline: PipelineType):
         self.pipeline = pipeline
         self.model_name = "uer/roberta-base-finetuned-cluener2020-chinese"  # maybe change this later
         self.is_deterministic = True
         self.tokenizer = CluenerTokenizer(pipeline.tokenizer)
 
-    def predict(self, text: str, params: CluenerModelParams) -> tuple[list[LabelBase], list[CluenerRawNERResult]]:
+    def predict(self, text: str, params: CluenerParams) -> tuple[list[LabelBase], list[CluenerRawNERResult]]:
         chunks = chunk_text(text, params.separators, self.tokenizer, params.chunk_size, force_chunk=params.force_chunk)
         ret: list[LabelBase] = []
         err: list[CluenerRawNERResult] = []
@@ -74,7 +76,7 @@ class CluenerModel(NERModel[CluenerModelParams]):
         return text.lower()
 
     def validate(self, params: dict[str, str | int | float | bool]) -> NERModelParamsBase:
-        return CluenerModelParams.model_validate(params, context={"skip_default_values": True})
+        return CluenerParams.model_validate(params, context={"skip_default_values": True})
 
 
 class Cluener:
@@ -88,4 +90,4 @@ class Cluener:
         )
         if self.pipeline.tokenizer is None:
             raise ValueError("Failed to load model")
-        self.model: NERModel[CluenerModelParams] = CluenerModel(self.pipeline)  # pyrefly: ignore
+        self.model: NERModel[CluenerParams] = CluenerModel(self.pipeline)  # pyrefly: ignore

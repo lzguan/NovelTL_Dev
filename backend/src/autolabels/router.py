@@ -8,9 +8,9 @@ from ..auth.dependencies import get_current_user
 from ..auth.models import User
 from ..database import get_db
 from . import schemas
-from .config import ModelName
 from .dependencies import get_arq_dispatcher
 from .exceptions import AutoLabelDuplicateException, AutoLabelNotFoundException
+from .params import ModelName
 from .service import insert_auto_labels, query_auto_label_by_id, query_auto_labels
 from .utils import AutoLabelDispatcher
 

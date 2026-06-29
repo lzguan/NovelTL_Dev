@@ -2,12 +2,13 @@ import asyncio
 import uuid
 from typing import Any, cast
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 from sqlalchemy import CursorResult, select, update
 from sqlalchemy.exc import NoResultFound
 
+from src.autolabels.params import ModelName, NERParams
+
 from ...novels.models import ChapterContent
-from ..config import ModelName
 from ..constants import AutoLabelProgress
 from ..models import AutoLabel
 from .config import SessionLocal
@@ -23,20 +24,19 @@ def get_ner_model(model_name: ModelName) -> NERModel[Any]:
     raise ValueError(f"Model {model_name} not found in registry.")
 
 
-async def autolabel_infer(
-    ctx: Any, job_id: str, auto_label_id: uuid.UUID, model_name: ModelName, model_params: dict[str, Any]
-) -> None:
+async def autolabel_infer(ctx: Any, job_id: str, auto_label_id: uuid.UUID, model_params: dict[str, Any]) -> None:
     base_update = (
         update(AutoLabel)
         .where(AutoLabel.auto_label_id == auto_label_id)
         .where(AutoLabel.auto_label_last_job_id == job_id)
     )  # don't modify this variable
     try:
+        params = TypeAdapter(NERParams).validate_python(model_params)
+        model_name = params.model_name
         ner_model = get_ner_model(model_name)
-        params = ner_model.validate(model_params)
     except ValidationError as e:
         stmt = base_update.values(
-            auto_label_status=AutoLabelProgress.FAILED, auto_label_message=f"'{model_name}' is not a valid model name."
+            auto_label_status=AutoLabelProgress.FAILED, auto_label_message=f"Invalid model parameters: {str(e)}"
         )
         with SessionLocal() as db:
             db.execute(stmt)
@@ -44,7 +44,7 @@ async def autolabel_infer(
         raise e
     except ValueError as e:
         stmt = base_update.values(
-            auto_label_status=AutoLabelProgress.FAILED, auto_label_message=f"'{model_name}' is not a valid model name."
+            auto_label_status=AutoLabelProgress.FAILED, auto_label_message=f"Invalid model parameters: {str(e)}"
         )
         with SessionLocal() as db:
             db.execute(stmt)

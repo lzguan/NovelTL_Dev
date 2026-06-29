@@ -15,10 +15,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session, defer
 
+from src.autolabels.params import ModelName
+
 from ..auth.models import User
 from ..novels import models as novel_models
 from . import models, schemas
-from .config import ModelName
 from .constants import AutoLabelProgress
 from .exceptions import AutoLabelDuplicateException, AutoLabelNotFoundException
 from .permissions import auto_label_mod_access_insert, auto_label_mod_access_select
@@ -119,8 +120,8 @@ async def insert_auto_labels(
     ]
     q = (
         select(
-            literal(request.auto_label_model_name),
-            literal(request.auto_label_model_params, type_=JSONB),
+            literal(request.params.model_name),
+            literal(request.params.model_dump(mode="json"), type_=JSONB),
             literal(AutoLabelProgress.PENDING),
             literal("Waiting to be queued."),
             novel_models.ChapterContent.chapter_content_id,
@@ -151,8 +152,8 @@ async def insert_auto_labels(
                 select(models.AutoLabel).where(
                     and_(
                         models.AutoLabel.chapter_content_id == novel_models.ChapterContent.chapter_content_id,
-                        models.AutoLabel.auto_label_model_name == request.auto_label_model_name,
-                        models.AutoLabel.auto_label_model_params == request.auto_label_model_params,
+                        models.AutoLabel.auto_label_model_name == request.params.model_name,
+                        models.AutoLabel.auto_label_model_params == request.params.model_dump(mode="json"),
                     )
                 )
             )
@@ -178,11 +179,7 @@ async def insert_auto_labels(
     for autolabel in result_rows:
         job_id = str(uuid4())
         autolabel.auto_label_last_job_id = job_id
-        tasks.append(
-            dispatcher.enqueue(
-                job_id, autolabel.auto_label_id, request.auto_label_model_name, request.auto_label_model_params
-            )
-        )
+        tasks.append(dispatcher.enqueue(job_id, autolabel.auto_label_id, request.params))
     try:
         db.commit()
     except Exception:
