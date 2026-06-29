@@ -7,11 +7,10 @@ from typing import Annotated, Literal, Self
 
 from pydantic import ConfigDict, Field, model_validator
 
+from src.autolabels.params import NERParams
 from src.labels.constants import LabelRole
 
-from ..autolabels.config import ModelName
-from ..autolabels.constants import MAX_PARAMS_FIELDS
-from ..autolabels.validators import SmallDict
+from ..autolabels.params import ModelName
 from ..schemas import Model
 from .constants import MAX_LABEL_ENTITY_GROUP_NAME_LEN, MAX_LABEL_GROUP_NAME_LEN, MAX_LABEL_WORD_LEN
 
@@ -272,7 +271,7 @@ class CreateLabelDataByAutoLabel(Model):
     """
 
     model_name: ModelName
-    model_params: SmallDict = Field(max_length=MAX_PARAMS_FIELDS)
+    model_params: NERParams = Field(discriminator="model_name")
     chapter_ids: list[uuid.UUID] | None = None
     start: int | None = None
     end: int | None = None

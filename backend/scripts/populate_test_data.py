@@ -46,12 +46,13 @@ MODEL_LOADERS: dict[str, Callable[[], Any]] = {
 def _resolve_params(model_name: str, config: dict[str, Any]) -> Any:
     if model_name == "cluener":
         from src.autolabels.constants import SepPriority
-        from src.autolabels.schemas import CluenerModelParams
+        from src.autolabels.params import CluenerParams
 
         sep_map = {"high": SepPriority.HIGH, "med": SepPriority.MED, "low": SepPriority.LOW}
         processed = dict(config)
+        processed["model_name"] = model_name
         processed["separators"] = {str(k): sep_map[str(v).lower()] for k, v in config.get("separators", {}).items()}
-        return CluenerModelParams.model_validate(processed)
+        return CluenerParams.model_validate(processed)
     raise KeyError(f"No params class registered for model '{model_name}'")
 
 

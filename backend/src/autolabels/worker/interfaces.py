@@ -2,7 +2,7 @@ import logging
 from typing import Any, Protocol, TypeVar
 
 from ...labels.schemas import LabelBase
-from .. import schemas
+from .. import params
 
 my_logger = logging.getLogger(__name__)
 my_logger.propagate = True
@@ -32,7 +32,7 @@ class Tokenizer(Protocol):
         ...
 
 
-P = TypeVar("P", contravariant=True, bound=schemas.NERModelParamsBase)
+P = TypeVar("P", contravariant=True, bound=params.NERModelParamsBase)
 
 
 class NERModel(Protocol[P]):
@@ -83,7 +83,7 @@ class NERModel(Protocol[P]):
         """
         ...
 
-    def validate(self, params: dict[str, str | int | float | bool]) -> schemas.NERModelParamsBase:
+    def validate(self, params: dict[str, str | int | float | bool]) -> params.NERModelParamsBase:
         """
         Validates an arbitrary dictionary of parameters. Raises an error if validation fails.
 

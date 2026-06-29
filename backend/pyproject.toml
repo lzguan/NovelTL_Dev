@@ -41,6 +41,7 @@ dev = [
     "pyrefly>=1.0.0",
     "types-psycopg2>=2.9.21.20260408",
     "pyyaml>=6.0.3",
+    "types-pyyaml>=6.0.12.20260518",
 ]
 
 [tool.uv]
@@ -105,7 +106,7 @@ branch = true
 source = ["src"]
 
 [tool.pyrefly]
-project-includes = ["src"]
+project-includes = ["src", "tests", "scripts"]
 project-excludes = [
     "**/node_modules",
     "**/__pycache__",
