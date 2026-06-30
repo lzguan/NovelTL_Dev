@@ -322,6 +322,7 @@ def update_label_data_stream(
 @router.post(
     "/label-groups/{labelGroupId}/label-datas/auto-labels", response_model=schemas.CreateLabelDataByAutoLabelStatus
 )
+@ttl_cache(ttl=60, cache=redis_cache)
 def create_label_datas_by_auto_labels(
     label_group_id: Annotated[uuid.UUID, Path(alias="labelGroupId")],
     request: schemas.CreateLabelDataByAutoLabel,
