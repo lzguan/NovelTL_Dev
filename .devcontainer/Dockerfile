@@ -27,6 +27,7 @@ RUN chown node:node ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml
 RUN mkdir -p /home/node/.cache && chown node:node /home/node/.cache -R
 RUN mkdir -p /home/node/.pnpm-store && chown node:node /home/node/.pnpm-store
 RUN mkdir -p /pnpm && chown node:node /pnpm -R
+RUN mkdir -p /home/node/.config/gh && chown node:node /home/node/.config/gh -R
 RUN chown node:node ${PROJECT_ROOT} -R
 RUN mkdir -p /home/node/.local && chown node:node /home/node/.local -R
 RUN mkdir -p ${PROJECT_ROOT}/frontend/node_modules && chown node:node ${PROJECT_ROOT}/frontend/node_modules -R

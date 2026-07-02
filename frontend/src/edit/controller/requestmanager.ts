@@ -377,7 +377,8 @@ export const buildRequestManager = (
 					if (
 						result.request.cached &&
 						(result.error._tag === "TimeoutException" ||
-							result.error._tag === "PendingException")
+							result.error._tag === "PendingException" ||
+							result.error._tag === "CacheConflictException")
 					) {
 						const newRequest = consumeRetry(result.request);
 						newStatusQueries.push(newRequest);
