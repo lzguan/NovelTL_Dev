@@ -56,14 +56,22 @@ def main() -> None:
 
     session_local = sessionmaker(autoflush=False, bind=engine)
     chapter_text = "Alice went to the market."
+    second_chapter_text = "Bob stayed home to read."
     username = "e2e-user"
     password = "e2e-password"
+    other_username = "e2e-other-user"
+    other_password = "e2e-other-password"
 
     with session_local() as db:
         en = Language(language_name="English", language_code="en")
         source_work = SourceWork(source_work_title="E2E Source Work")
-        user = User(user_name=username, user_hashed_password=hash_password(password), user_type=UserType.ADMIN)
-        db.add_all([en, source_work, user])
+        user = User(user_name=username, user_hashed_password=hash_password(password), user_type=UserType.USER)
+        other_user = User(
+            user_name=other_username,
+            user_hashed_password=hash_password(other_password),
+            user_type=UserType.USER,
+        )
+        db.add_all([en, source_work, user, other_user])
         db.commit()
 
         novel = Novel(
@@ -93,7 +101,21 @@ def main() -> None:
             chapter_content_text=chapter_text,
             chapter_content_version=1,
         )
-        db.add(content)
+        second_chapter = Chapter(
+            novel_id=novel.novel_id,
+            chapter_num=2,
+            chapter_title="The Return",
+            chapter_is_public=True,
+        )
+        db.add(second_chapter)
+        db.commit()
+
+        second_content = ChapterContent(
+            chapter_id=second_chapter.chapter_id,
+            chapter_content_text=second_chapter_text,
+            chapter_content_version=1,
+        )
+        db.add_all([content, second_content])
         db.commit()
 
         label_group = LabelGroup(label_group_name="E2E Labels", novel_id=novel.novel_id)
@@ -116,17 +138,26 @@ def main() -> None:
         db.commit()
         db.refresh(novel)
         db.refresh(chapter)
+        db.refresh(second_chapter)
         db.refresh(content)
+        db.refresh(second_content)
 
         seed = {
             "user": {"username": username, "password": password},
+            "otherUser": {"username": other_username, "password": other_password},
             "novelId": str(novel.novel_id),
             "chapterId": str(chapter.chapter_id),
             "chapterTitle": chapter.chapter_title,
             "chapterText": chapter_text,
             "chapterContentId": str(content.chapter_content_id),
             "chapterContentVersion": content.chapter_content_version,
+            "secondChapterId": str(second_chapter.chapter_id),
+            "secondChapterTitle": second_chapter.chapter_title,
+            "secondChapterText": second_chapter_text,
+            "secondChapterContentId": str(second_content.chapter_content_id),
+            "secondChapterContentVersion": second_content.chapter_content_version,
             "labelGroupId": str(label_group.label_group_id),
+            "labelGroupName": label_group.label_group_name,
         }
 
     seed_file.write_text(json.dumps(seed, indent=2) + "\n", encoding="utf-8")

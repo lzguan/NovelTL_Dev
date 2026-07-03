@@ -2,6 +2,11 @@ import type { APIRequestContext, Page } from "@playwright/test";
 
 import { readSeed } from "./seed";
 
+type Credentials = {
+  username: string;
+  password: string;
+};
+
 type TokenResponse = {
   access_token: string;
   token_type: string;
@@ -11,6 +16,15 @@ type ChapterContentResponse = {
   chapterContentId: string;
   chapterContentText: string;
   chapterContentVersion: number;
+};
+
+type LabelGroupWithRoleResponse = {
+  labelGroup: {
+    labelGroupId: string;
+    labelGroupName: string;
+    novelId: string;
+  };
+  role: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -34,17 +48,30 @@ function isChapterContentResponse(value: unknown): value is ChapterContentRespon
   );
 }
 
+function isLabelGroupWithRoleResponse(value: unknown): value is LabelGroupWithRoleResponse {
+  return (
+    isRecord(value) &&
+    isRecord(value.labelGroup) &&
+    typeof value.labelGroup.labelGroupId === "string" &&
+    typeof value.labelGroup.labelGroupName === "string" &&
+    typeof value.labelGroup.novelId === "string" &&
+    typeof value.role === "string"
+  );
+}
+
 export function apiUrl(path: string): string {
   const baseUrl = process.env.E2E_API_URL ?? "http://127.0.0.1:8001";
   return new URL(path, baseUrl).toString();
 }
 
-export async function loginByApi(page: Page, request: APIRequestContext): Promise<string> {
-  const seed = readSeed();
+export async function loginToken(
+  request: APIRequestContext,
+  credentials: Credentials,
+): Promise<TokenResponse> {
   const response = await request.post(apiUrl("/token"), {
     form: {
-      username: seed.user.username,
-      password: seed.user.password,
+      username: credentials.username,
+      password: credentials.password,
     },
   });
 
@@ -57,12 +84,45 @@ export async function loginByApi(page: Page, request: APIRequestContext): Promis
     throw new Error("Login response did not match the expected token shape.");
   }
 
+  return body;
+}
+
+export async function loginByApi(
+  page: Page,
+  request: APIRequestContext,
+  credentials: Credentials = readSeed().user,
+): Promise<string> {
+  const body = await loginToken(request, credentials);
+
   await page.addInitScript((token) => {
     window.localStorage.setItem("access_token", token.access_token);
     window.localStorage.setItem("token_type", token.token_type);
   }, body);
 
   return body.access_token;
+}
+
+export async function labelGroupsWithRole(
+  request: APIRequestContext,
+  token: string,
+  novelId: string,
+): Promise<LabelGroupWithRoleResponse[]> {
+  const response = await request.get(apiUrl(`/label-groups-with-role?novelId=${novelId}`), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok()) {
+    throw new Error(`Label groups request failed with status ${response.status()}: ${await response.text()}`);
+  }
+
+  const body = await response.json();
+  if (!Array.isArray(body) || !body.every(isLabelGroupWithRoleResponse)) {
+    throw new Error("Label groups response did not match the expected shape.");
+  }
+
+  return body;
 }
 
 export async function latestChapterContent(
