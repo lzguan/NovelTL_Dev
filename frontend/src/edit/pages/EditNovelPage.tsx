@@ -7,7 +7,7 @@ import {
 } from "@/api/endpoints/default/default";
 import type { Chapter, LabelGroupWithRole, Novel } from "@/api/models";
 import { buildNovelController } from "../controller/controller";
-import type { NovelData } from "../controller/dataManager";
+import type { NovelData } from "../controller/novelDataManager";
 import { Prov } from "../controller/types/helperTypes";
 import type { ProvChapter } from "../controller/types/idTypes";
 import { generateRandomColor } from "@/edit/lib/text-model/builtin/colors";

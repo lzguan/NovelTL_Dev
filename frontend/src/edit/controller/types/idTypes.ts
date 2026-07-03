@@ -1,6 +1,6 @@
 import { Brand, Effect } from "effect";
 import type { Prov } from "./helperTypes";
-import type { NotFoundException, NotReserveableException } from "./errors";
+import type { DuplicateIdException, NotFoundException, NotReserveableException } from "./errors";
 import type { Chapter, ChapterContent, Label, LabelData, LabelGroup } from "@/api/models";
 
 /**
@@ -33,6 +33,18 @@ export const CProvId = Brand.nominal<CProvId>();
 export type LProvId = ProvId & Brand.Brand<"L">;
 export const LProvId = Brand.nominal<LProvId>();
 
+// server ids
+export type LGServId = ServId & Brand.Brand<"LG">;
+export const LGServId = Brand.nominal<LGServId>();
+export type LDServId = ServId & Brand.Brand<"LD">;
+export const LDServId = Brand.nominal<LDServId>();
+export type CCServId = ServId & Brand.Brand<"CC">;
+export const CCServId = Brand.nominal<CCServId>();
+export type CServId = ServId & Brand.Brand<"C">;
+export const CServId = Brand.nominal<CServId>();
+export type LServEx = ServEx & Brand.Brand<"L">;
+export const LServEx = Brand.nominal<LServEx>();
+
 export type ProvTypes = {
 	labelGroup: LGProvId;
 	labelData: LDProvId;
@@ -47,6 +59,22 @@ export const ProvTypes = {
 	chapterContent: CCProvId,
 	chapter: CProvId,
 	label: LProvId,
+} as const;
+
+export type ServTypes = {
+	labelGroup: LGServId;
+	labelData: LDServId;
+	chapterContent: CCServId;
+	chapter: CServId;
+	label: LServEx;
+};
+
+export const ServTypes = {
+	labelGroup: LGServId,
+	labelData: LDServId,
+	chapterContent: CCServId,
+	chapter: CServId,
+	label: LServEx,
 } as const;
 
 // Provisional data types
@@ -216,10 +244,10 @@ export interface IDRepository {
 	/**
 	 * Create a new id, bind it to the given server id, and manage it in the repository.
 	 */
-	newIdAndBindId(kind: "chapter", serverId: ServId): ProvTypes["chapter"];
-	newIdAndBindId(kind: "chapterContent", serverId: ServId): ProvTypes["chapterContent"];
-	newIdAndBindId(kind: "labelGroup", serverId: ServId): ProvTypes["labelGroup"];
-	newIdAndBindId(kind: "labelData", serverId: ServId): ProvTypes["labelData"];
+	newIdAndBindId(kind: "chapter", serverId: CServId): ProvTypes["chapter"];
+	newIdAndBindId(kind: "chapterContent", serverId: CCServId): ProvTypes["chapterContent"];
+	newIdAndBindId(kind: "labelGroup", serverId: LGServId): ProvTypes["labelGroup"];
+	newIdAndBindId(kind: "labelData", serverId: LDServId): ProvTypes["labelData"];
 	/**
 	 * Create a new id and bind it to the given server existence flag, and manage it in the repository.
 	 */
@@ -231,50 +259,50 @@ export interface IDRepository {
 	getServerId(
 		kind: "chapter",
 		provisionalId: ProvTypes["chapter"],
-	): Effect.Effect<ServId | null, NotFoundException>;
+	): Effect.Effect<CServId | null, NotFoundException>;
 	getServerId(
 		kind: "chapterContent",
 		provisionalId: ProvTypes["chapterContent"],
-	): Effect.Effect<ServId | null, NotFoundException>;
+	): Effect.Effect<CCServId | null, NotFoundException>;
 	getServerId(
 		kind: "labelGroup",
 		provisionalId: ProvTypes["labelGroup"],
-	): Effect.Effect<ServId | null, NotFoundException>;
+	): Effect.Effect<LGServId | null, NotFoundException>;
 	getServerId(
 		kind: "labelData",
 		provisionalId: ProvTypes["labelData"],
-	): Effect.Effect<ServId | null, NotFoundException>;
+	): Effect.Effect<LDServId | null, NotFoundException>;
 	/**
 	 * Get the server existence flag corresponding to a provisional id. If existence flag has not been bound yet, return null.
 	 */
 	getServerExists(
 		kind: "label",
 		provisionalId: ProvTypes["label"],
-	): Effect.Effect<ServEx | null, NotFoundException>;
+	): Effect.Effect<LServEx | null, NotFoundException>;
 
 	/**
-	 * Bind a provisional id to a server id, so that the controller can update the corresponding entry with the new server id when it receives the signal from the request event.
+	 * Bind a provisional id to a server id, so that the controller can update the corresponding entry with the new server id when it receives the signal from the request event. Raises DuplicateIdException if the server id is already bound to another provisional id.
 	 */
 	bindServerId(
 		kind: "chapter",
 		provisionalId: ProvTypes["chapter"],
-		serverId: ServId,
-	): Effect.Effect<void, NotFoundException>;
+		serverId: CServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
 	bindServerId(
 		kind: "chapterContent",
 		provisionalId: ProvTypes["chapterContent"],
-		serverId: ServId,
-	): Effect.Effect<void, NotFoundException>;
+		serverId: CCServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
 	bindServerId(
 		kind: "labelGroup",
 		provisionalId: ProvTypes["labelGroup"],
-		serverId: ServId,
-	): Effect.Effect<void, NotFoundException>;
+		serverId: LGServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
 	bindServerId(
 		kind: "labelData",
 		provisionalId: ProvTypes["labelData"],
-		serverId: ServId,
-	): Effect.Effect<void, NotFoundException>;
+		serverId: LDServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
 	/**
 	 * Bind a provisional id to a server existence flag, so that the controller can update the corresponding entry with the new server existence flag when it receives the signal from the request event.
 	 */

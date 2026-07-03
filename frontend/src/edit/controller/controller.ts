@@ -5,7 +5,7 @@ import type {
 	NovelUserEvent,
 	TriggerEvent,
 } from "./types/controllerTypes";
-import { type NovelData, buildNovelDataManager } from "./dataManager";
+import { type NovelData, buildNovelDataManager } from "./novelDataManager";
 import { buildRequestManager } from "./requestmanager";
 import { buildIdRepository } from "./idRepository";
 import type { RequestEvent } from "./types/requestTypes";

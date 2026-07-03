@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { Effect } from "effect";
-import { buildChapterDataManager } from "../dataManager";
+import { buildChapterDataManager } from "../chapterDataManager";
 import { buildIdRepository } from "../idRepository";
-import { ServId } from "../types/idTypes";
+import { CServId, LGServId } from "../types/idTypes";
 import type { TriggerEvent } from "../types/controllerTypes";
 import { Prov } from "../types/helperTypes";
 import { buildLabelGroupIndex } from "../dmHelpers";
@@ -47,8 +47,8 @@ function buildTestChapterDM() {
 				triggerEvents.push(event);
 			});
 
-		const chapterId = idRepo.newIdAndBindId("chapter", ServId(UUID1));
-		const labelGroupProvId = idRepo.newIdAndBindId("labelGroup", ServId(UUID3));
+		const chapterId = idRepo.newIdAndBindId("chapter", CServId(UUID1));
+		const labelGroupProvId = idRepo.newIdAndBindId("labelGroup", LGServId(UUID3));
 
 		const labelGroupsIndex = yield* buildLabelGroupIndex([
 			[

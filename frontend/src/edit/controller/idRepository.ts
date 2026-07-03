@@ -20,42 +20,50 @@ import {
 	LGProvId,
 	LDProvId,
 	LProvId,
+	CServId,
+	CCServId,
+	LGServId,
+	LDServId,
+	LServEx,
+	ServTypes,
 } from "./types/idTypes";
-import { NotFoundException, NotReserveableException } from "./types/errors";
+import { DuplicateIdException, NotFoundException, NotReserveableException } from "./types/errors";
 import { Effect } from "effect";
 
 // TODO: figure out how to remove boilerplate
 
 const logger = createLogger("IdRepository");
 
-// Convenience types
-type IdentifiableKindMap = {
-	[K in IdentifiableKind]: Map<
-		ProvTypes[K],
-		{ serverId: ServId | null; status: IdStatus; lockCount: number }
-	>;
+type ServIdStatus<K extends IdentifiableKind> = {
+	serverId: ServTypes[K] | null;
+	status: IdStatus;
+	lockCount: number;
 };
-type ExistableKindMap = {
-	[K in ExistableKind]: Map<
-		ProvTypes[K],
-		{ serverExists: ServEx | null; status: IdStatus; lockCount: number }
-	>;
+type ServExistsStatus<K extends ExistableKind> = {
+	serverExists: ServTypes[K] | null;
+	status: IdStatus;
+	lockCount: number;
 };
 
-type ServIdStatus = { serverId: ServId | null; status: IdStatus; lockCount: number };
-type ServExistsStatus = { serverExists: ServEx | null; status: IdStatus; lockCount: number };
+// Convenience types
+type IdentifiableKindMap = {
+	[K in IdentifiableKind]: Map<ProvTypes[K], ServIdStatus<K>>;
+};
+type ExistableKindMap = {
+	[K in ExistableKind]: Map<ProvTypes[K], ServExistsStatus<K>>;
+};
 
 export function buildIdRepository(): IDRepository {
 	let counterRef = 0;
 	const identifiableKindMap: IdentifiableKindMap = {
-		labelGroup: new Map<ProvTypes["labelGroup"], ServIdStatus>(),
-		labelData: new Map<ProvTypes["labelData"], ServIdStatus>(),
-		chapterContent: new Map<ProvTypes["chapterContent"], ServIdStatus>(),
-		chapter: new Map<ProvTypes["chapter"], ServIdStatus>(),
+		labelGroup: new Map<ProvTypes["labelGroup"], ServIdStatus<"labelGroup">>(),
+		labelData: new Map<ProvTypes["labelData"], ServIdStatus<"labelData">>(),
+		chapterContent: new Map<ProvTypes["chapterContent"], ServIdStatus<"chapterContent">>(),
+		chapter: new Map<ProvTypes["chapter"], ServIdStatus<"chapter">>(),
 	};
 
 	const existableKindMap: ExistableKindMap = {
-		label: new Map<ProvTypes["label"], ServExistsStatus>(),
+		label: new Map<ProvTypes["label"], ServExistsStatus<"label">>(),
 	};
 
 	function newId(kind: "chapter"): ProvTypes["chapter"];
@@ -110,10 +118,13 @@ export function buildIdRepository(): IDRepository {
 		}
 	}
 
-	function newIdAndBindId(kind: "chapter", serverId: ServId): ProvTypes["chapter"];
-	function newIdAndBindId(kind: "chapterContent", serverId: ServId): ProvTypes["chapterContent"];
-	function newIdAndBindId(kind: "labelGroup", serverId: ServId): ProvTypes["labelGroup"];
-	function newIdAndBindId(kind: "labelData", serverId: ServId): ProvTypes["labelData"];
+	function newIdAndBindId(kind: "chapter", serverId: CServId): ProvTypes["chapter"];
+	function newIdAndBindId(
+		kind: "chapterContent",
+		serverId: CCServId,
+	): ProvTypes["chapterContent"];
+	function newIdAndBindId(kind: "labelGroup", serverId: LGServId): ProvTypes["labelGroup"];
+	function newIdAndBindId(kind: "labelData", serverId: LDServId): ProvTypes["labelData"];
 
 	function newIdAndBindId(kind: IdentifiableKind, serverId: ServId): ProvId {
 		const provId = ProvId(`provisional-${counterRef++}`);
@@ -121,7 +132,7 @@ export function buildIdRepository(): IDRepository {
 			case "chapter":
 				const id = ProvTypes["chapter"](provId);
 				identifiableKindMap[kind].set(id, {
-					serverId,
+					serverId: serverId as CServId,
 					status: "clean",
 					lockCount: 0,
 				});
@@ -129,7 +140,7 @@ export function buildIdRepository(): IDRepository {
 			case "chapterContent":
 				const id2 = ProvTypes["chapterContent"](provId);
 				identifiableKindMap[kind].set(id2, {
-					serverId,
+					serverId: serverId as CCServId,
 					status: "clean",
 					lockCount: 0,
 				});
@@ -137,7 +148,7 @@ export function buildIdRepository(): IDRepository {
 			case "labelGroup":
 				const id3 = ProvTypes["labelGroup"](provId);
 				identifiableKindMap[kind].set(id3, {
-					serverId,
+					serverId: serverId as LGServId,
 					status: "clean",
 					lockCount: 0,
 				});
@@ -145,7 +156,7 @@ export function buildIdRepository(): IDRepository {
 			case "labelData":
 				const id4 = ProvTypes["labelData"](provId);
 				identifiableKindMap[kind].set(id4, {
-					serverId,
+					serverId: serverId as LDServId,
 					status: "clean",
 					lockCount: 0,
 				});
@@ -156,45 +167,133 @@ export function buildIdRepository(): IDRepository {
 	function newIdAndBindExists(kind: "label"): ProvTypes["label"] {
 		const id = ProvTypes["label"](ProvId(`provisional-${counterRef++}`));
 		existableKindMap[kind].set(id, {
-			serverExists: ServEx(true),
+			serverExists: LServEx(true),
 			status: "clean",
 			lockCount: 0,
 		});
 		return id;
 	}
 
-	const getServerId = <K extends IdentifiableKind>(kind: K, provisionalId: ProvTypes[K]) => {
+	function getServerId(
+		kind: "chapter",
+		provisionalId: ProvTypes["chapter"],
+	): Effect.Effect<CServId | null, NotFoundException>;
+	function getServerId(
+		kind: "chapterContent",
+		provisionalId: ProvTypes["chapterContent"],
+	): Effect.Effect<CCServId | null, NotFoundException>;
+	function getServerId(
+		kind: "labelGroup",
+		provisionalId: ProvTypes["labelGroup"],
+	): Effect.Effect<LGServId | null, NotFoundException>;
+	function getServerId(
+		kind: "labelData",
+		provisionalId: ProvTypes["labelData"],
+	): Effect.Effect<LDServId | null, NotFoundException>;
+
+	function getServerId<K extends IdentifiableKind>(
+		kind: K,
+		provisionalId: ProvTypes[K],
+	): Effect.Effect<ServId | null, NotFoundException> {
 		const entry = identifiableKindMap[kind].get(provisionalId);
 		if (!entry) {
 			return Effect.fail(new NotFoundException());
 		}
 		return Effect.succeed(entry.serverId);
-	};
+	}
 
-	const getServerExists = <K extends ExistableKind>(kind: K, provisionalId: ProvTypes[K]) => {
+	function getServerExists(
+		kind: "label",
+		provisionalId: ProvTypes["label"],
+	): Effect.Effect<LServEx | null, NotFoundException>;
+
+	function getServerExists<K extends ExistableKind>(kind: K, provisionalId: ProvTypes[K]) {
 		const entry = existableKindMap[kind].get(provisionalId);
 		if (!entry) {
 			return Effect.fail(new NotFoundException());
 		}
 		return Effect.succeed(entry.serverExists);
-	};
+	}
 
-	const bindServerId = <K extends IdentifiableKind>(
-		kind: K,
-		provisionalId: ProvTypes[K],
+	function bindServerId(
+		kind: "chapter",
+		provisionalId: ProvTypes["chapter"],
+		serverId: CServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
+	function bindServerId(
+		kind: "chapterContent",
+		provisionalId: ProvTypes["chapterContent"],
+		serverId: CCServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
+	function bindServerId(
+		kind: "labelGroup",
+		provisionalId: ProvTypes["labelGroup"],
+		serverId: LGServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
+	function bindServerId(
+		kind: "labelData",
+		provisionalId: ProvTypes["labelData"],
+		serverId: LDServId,
+	): Effect.Effect<void, NotFoundException | DuplicateIdException>;
+
+	function bindServerId(
+		kind: IdentifiableKind,
+		provisionalId: ProvTypes[IdentifiableKind],
 		serverId: ServId,
-	) => {
-		const entry = identifiableKindMap[kind].get(provisionalId);
-		if (!entry) {
-			logger.error(
-				`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
-			);
-			return Effect.fail(new NotFoundException());
+	) {
+		switch (kind) {
+			case "chapter": {
+				const entry = identifiableKindMap[kind].get(provisionalId as ProvTypes["chapter"]);
+				if (!entry) {
+					logger.error(
+						`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
+					);
+					return Effect.fail(new NotFoundException());
+				}
+				return Effect.sync(() => (entry.serverId = serverId as ServTypes["chapter"]));
+			}
+			case "chapterContent": {
+				const entry = identifiableKindMap[kind].get(
+					provisionalId as ProvTypes["chapterContent"],
+				);
+				if (!entry) {
+					logger.error(
+						`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
+					);
+					return Effect.fail(new NotFoundException());
+				}
+				return Effect.sync(
+					() => (entry.serverId = serverId as ServTypes["chapterContent"]),
+				);
+			}
+			case "labelGroup": {
+				const entry = identifiableKindMap[kind].get(
+					provisionalId as ProvTypes["labelGroup"],
+				);
+				if (!entry) {
+					logger.error(
+						`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
+					);
+					return Effect.fail(new NotFoundException());
+				}
+				return Effect.sync(() => (entry.serverId = serverId as ServTypes["labelGroup"]));
+			}
+			case "labelData": {
+				const entry = identifiableKindMap[kind].get(
+					provisionalId as ProvTypes["labelData"],
+				);
+				if (!entry) {
+					logger.error(
+						`Provisional id ${provisionalId} not found for kind ${kind} in bindServerId`,
+					);
+					return Effect.fail(new NotFoundException());
+				}
+				return Effect.sync(() => (entry.serverId = serverId as ServTypes["labelData"]));
+			}
 		}
-		return Effect.sync(() => (entry.serverId = serverId));
-	};
+	}
 
-	const bindServerExists = <K extends ExistableKind>(kind: K, provisionalId: ProvTypes[K]) => {
+	function bindServerExists<K extends ExistableKind>(kind: K, provisionalId: ProvTypes[K]) {
 		const entry = existableKindMap[kind].get(provisionalId);
 		if (!entry) {
 			logger.error(
@@ -202,8 +301,8 @@ export function buildIdRepository(): IDRepository {
 			);
 			return Effect.fail(new NotFoundException());
 		}
-		return Effect.sync(() => (entry.serverExists = ServEx(true)));
-	};
+		return Effect.sync(() => (entry.serverExists = LServEx(true)));
+	}
 
 	function idObjState(
 		kind: Kind,

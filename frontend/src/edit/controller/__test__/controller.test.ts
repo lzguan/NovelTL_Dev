@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Effect } from "effect";
 import { buildNovelController } from "../controller";
-import type { NovelData } from "../dataManager";
+import type { NovelData } from "../novelDataManager";
 import { CProvId } from "../types/idTypes";
 import type { NovelGetters, TriggerEvent } from "../types/controllerTypes";
 
