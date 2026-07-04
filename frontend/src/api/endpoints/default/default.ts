@@ -16,6 +16,7 @@ import type {
   ChapterData,
   CreateAutoLabels,
   CreateAutoLabelsResponse,
+  CreateAutolabelsAutoLabelsPostParams,
   CreateChapter,
   CreateLabelData,
   CreateLabelDataByAutoLabel,
@@ -203,12 +204,19 @@ export type createAutolabelsAutoLabelsPostResponseError = (createAutolabelsAutoL
 
 export type createAutolabelsAutoLabelsPostResponse = (createAutolabelsAutoLabelsPostResponseSuccess | createAutolabelsAutoLabelsPostResponseError)
 
-export const getCreateAutolabelsAutoLabelsPostUrl = () => {
+export const getCreateAutolabelsAutoLabelsPostUrl = (params?: CreateAutolabelsAutoLabelsPostParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/auto-labels`
+  return stringifiedParams.length > 0 ? `/api/auto-labels?${stringifiedParams}` : `/api/auto-labels`
 }
 
 /**
@@ -218,9 +226,10 @@ export const getCreateAutolabelsAutoLabelsPostUrl = () => {
  * matching chapter. Worker tasks are dispatched for each autolabel.
  * @summary Create Autolabels
  */
-export const createAutolabelsAutoLabelsPost = async (createAutoLabels: CreateAutoLabels, options?: RequestInit): Promise<createAutolabelsAutoLabelsPostResponse> => {
+export const createAutolabelsAutoLabelsPost = async (createAutoLabels: CreateAutoLabels,
+    params?: CreateAutolabelsAutoLabelsPostParams, options?: RequestInit): Promise<createAutolabelsAutoLabelsPostResponse> => {
 
-  return customFetch<createAutolabelsAutoLabelsPostResponse>(getCreateAutolabelsAutoLabelsPostUrl(),
+  return customFetch<createAutolabelsAutoLabelsPostResponse>(getCreateAutolabelsAutoLabelsPostUrl(params),
   {
     ...options,
     method: 'POST',

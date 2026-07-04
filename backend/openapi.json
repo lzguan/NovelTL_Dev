@@ -2393,15 +2393,39 @@
         "summary": "Create Autolabels",
         "description": "Create a new autolabel run and autolabels for matching chapters.\n\nThe run is created first, then autolabel entries are inserted for each\nmatching chapter. Worker tasks are dispatched for each autolabel.",
         "operationId": "create_autolabels_auto_labels_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Requestkey"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateAutoLabels"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2424,12 +2448,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/languages/{languageCode}": {

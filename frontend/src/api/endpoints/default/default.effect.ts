@@ -101,6 +101,10 @@ export const ReadAutoLabelsByRunAutoLabelRunsRunIdAutoLabelsGet422Response = S.S
  * matching chapter. Worker tasks are dispatched for each autolabel.
  * @summary Create Autolabels
  */
+export const CreateAutolabelsAutoLabelsPostQueryParams = S.Struct({
+  "requestKey": S.optional(S.Union(S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)), S.Null))
+})
+
 export const createAutolabelsAutoLabelsPostBodyParamsOneChunkSizeDefault = 500;
 export const createAutolabelsAutoLabelsPostBodyParamsOneChunkSizeExclusiveMin = 0;
 export const createAutolabelsAutoLabelsPostBodyParamsOneChunkSizeMax = 512;

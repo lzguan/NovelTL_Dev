@@ -1720,6 +1720,16 @@ paths:
 
         matching chapter. Worker tasks are dispatched for each autolabel.'
       operationId: create_autolabels_auto_labels_post
+      parameters:
+      - in: query
+        name: requestKey
+        required: false
+        schema:
+          anyOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+          title: Requestkey
       requestBody:
         content:
           application/json:

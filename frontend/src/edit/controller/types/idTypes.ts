@@ -1,7 +1,7 @@
 import { Brand, Effect } from "effect";
 import type { Prov } from "./helperTypes";
 import type {
-	DuplicateServIdException,
+	ResourceConflictException,
 	NotFoundException,
 	NotReserveableException,
 } from "./errors";
@@ -300,27 +300,27 @@ export interface IDRepository {
 	newIdAndBindId(
 		kind: "chapter",
 		serverId: CServId,
-	): Effect.Effect<ProvTypes["chapter"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["chapter"], ResourceConflictException>;
 	newIdAndBindId(
 		kind: "chapterContent",
 		serverId: CCServId,
-	): Effect.Effect<ProvTypes["chapterContent"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["chapterContent"], ResourceConflictException>;
 	newIdAndBindId(
 		kind: "labelGroup",
 		serverId: LGServId,
-	): Effect.Effect<ProvTypes["labelGroup"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["labelGroup"], ResourceConflictException>;
 	newIdAndBindId(
 		kind: "labelData",
 		serverId: LDServId,
-	): Effect.Effect<ProvTypes["labelData"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["labelData"], ResourceConflictException>;
 	newIdAndBindId(
 		kind: "autoLabel",
 		serverId: AServId,
-	): Effect.Effect<ProvTypes["autoLabel"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["autoLabel"], ResourceConflictException>;
 	newIdAndBindId(
 		kind: "autoLabelRun",
 		serverId: ALRServId,
-	): Effect.Effect<ProvTypes["autoLabelRun"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["autoLabelRun"], ResourceConflictException>;
 	/**
 	 * Create a new id and bind it to the given server existence flag, and manage it in the repository.
 	 */
@@ -368,32 +368,32 @@ export interface IDRepository {
 		kind: "chapter",
 		provisionalId: ProvTypes["chapter"],
 		serverId: CServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	bindServerId(
 		kind: "chapterContent",
 		provisionalId: ProvTypes["chapterContent"],
 		serverId: CCServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	bindServerId(
 		kind: "labelGroup",
 		provisionalId: ProvTypes["labelGroup"],
 		serverId: LGServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	bindServerId(
 		kind: "labelData",
 		provisionalId: ProvTypes["labelData"],
 		serverId: LDServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	bindServerId(
 		kind: "autoLabel",
 		provisionalId: ProvTypes["autoLabel"],
 		serverId: AServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	bindServerId(
 		kind: "autoLabelRun",
 		provisionalId: ProvTypes["autoLabelRun"],
 		serverId: ALRServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	/**
 	 * Bind a provisional id to a server existence flag, so that the controller can update the corresponding entry with the new server existence flag when it receives the signal from the request event.
 	 */

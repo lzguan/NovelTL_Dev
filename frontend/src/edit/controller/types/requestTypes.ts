@@ -19,7 +19,9 @@ export type RequestVariant =
 	| "labelOp"
 	| "addLabelData"
 	| "reloadGroup"
-	| "openChapter";
+	| "openChapter"
+	| "createAutoLabelRun"
+	| "promoteAutoLabelRun";
 
 /**
  * Type representing a desired reservation of a state transition for a given id and kind.

@@ -1,4 +1,4 @@
-import type { CProvId, LGProvId, LProvId } from "./idTypes";
+import type { CProvId, LGProvId, LProvId, ALRProvId } from "./idTypes";
 import type { RequestEvent } from "./requestTypes";
 import type { AddLabelOp, DeleteLabelOp, UpdateLabelOp } from "@/api/models";
 import type { Effect } from "effect";
@@ -6,10 +6,13 @@ import type { UnknownException } from "effect/Cause";
 import type {
 	AlreadyOpenException,
 	DuplicateChapterNumException,
+	FatalException,
 	LoadingException,
 	NotFoundException,
 } from "./errors";
-import type { ChapterGetters, NovelGetters } from "./controllerTypes";
+import type { ChapterGetters, ChapterFilter } from "./controllerTypes";
+import type { NovelGetters } from "./controllerTypes";
+import type { CluenerParams, DoNothingParams } from "@/api/models";
 
 export type LabelOp = AddLabelOp | DeleteLabelOp | UpdateLabelOp;
 
@@ -77,6 +80,22 @@ export type NovelDataManager = DataManager<
 		 * @param chapterId - Returns null if chapter is not open or still loading.
 		 */
 		getChapterDM: (chapterId: CProvId) => ChapterDataManager | null;
+		/**
+		 * Creates an autolabel run and dispatches workers.
+		 */
+		createAutoLabelRun: (
+			params: CluenerParams | DoNothingParams,
+			chapterFilter: ChapterFilter,
+		) => Effect.Effect<RequestEvent[], UnknownException | FatalException>;
+		/**
+		 * Promotes autolabel results from a run into a label group.
+		 * Locks both the run and the label group to prevent concurrent modification.
+		 */
+		promoteAutoLabelRun: (
+			runId: ALRProvId,
+			labelGroupId: LGProvId,
+			chapterFilter: ChapterFilter,
+		) => Effect.Effect<RequestEvent[], UnknownException | FatalException>;
 	},
 	NovelGetters
 >;

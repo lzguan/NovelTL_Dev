@@ -4,6 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
+from src.requests.cache import redis_cache
+from src.requests.decorators import attl_cache
+
 from ..auth.dependencies import get_current_user
 from ..auth.models import User
 from ..database import get_db
@@ -83,11 +86,13 @@ async def read_autolabel_by_id(
 
 
 @router.post("/auto-labels", response_model=schemas.CreateAutoLabelsResponse)
+@attl_cache(cache=redis_cache, ttl=60)
 async def create_autolabels(
     request: schemas.CreateAutoLabels,
     db: Annotated[Session, Depends(get_db)],
     dispatcher: Annotated[AutoLabelDispatcher, Depends(get_arq_dispatcher)],
     current_user: Annotated[User, Depends(get_current_user)],
+    request_key: Annotated[uuid.UUID | None, Query(alias="requestKey")] = None,
 ):
     """
     Create a new autolabel run and autolabels for matching chapters.

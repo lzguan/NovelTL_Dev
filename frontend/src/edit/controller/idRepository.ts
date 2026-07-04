@@ -33,7 +33,7 @@ import {
 	isTerminal,
 } from "./types/idTypes";
 import {
-	DuplicateServIdException,
+	ResourceConflictException,
 	NotFoundException,
 	NotReserveableException,
 } from "./types/errors";
@@ -162,38 +162,43 @@ export function buildIdRepository(): IDRepository {
 	function newIdAndBindId(
 		kind: "chapter",
 		serverId: CServId,
-	): Effect.Effect<ProvTypes["chapter"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["chapter"], ResourceConflictException>;
 	function newIdAndBindId(
 		kind: "chapterContent",
 		serverId: CCServId,
-	): Effect.Effect<ProvTypes["chapterContent"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["chapterContent"], ResourceConflictException>;
 	function newIdAndBindId(
 		kind: "labelGroup",
 		serverId: LGServId,
-	): Effect.Effect<ProvTypes["labelGroup"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["labelGroup"], ResourceConflictException>;
 	function newIdAndBindId(
 		kind: "labelData",
 		serverId: LDServId,
-	): Effect.Effect<ProvTypes["labelData"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["labelData"], ResourceConflictException>;
 	function newIdAndBindId(
 		kind: "autoLabel",
 		serverId: AServId,
-	): Effect.Effect<ProvTypes["autoLabel"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["autoLabel"], ResourceConflictException>;
 	function newIdAndBindId(
 		kind: "autoLabelRun",
 		serverId: ALRServId,
-	): Effect.Effect<ProvTypes["autoLabelRun"], DuplicateServIdException>;
+	): Effect.Effect<ProvTypes["autoLabelRun"], ResourceConflictException>;
 
 	function newIdAndBindId(
 		kind: IdentifiableKind,
 		serverId: ServId,
-	): Effect.Effect<ProvTypes[IdentifiableKind], DuplicateServIdException> {
+	): Effect.Effect<ProvTypes[IdentifiableKind], ResourceConflictException> {
 		const provId = ProvId(`provisional-${counterRef++}`);
 		switch (kind) {
-			case "chapter":
+			case "chapter": {
 				const id = ProvTypes["chapter"](provId);
-				if (revMap[kind].has(serverId as CServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as CServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id, {
 					serverId: serverId as CServId,
@@ -202,10 +207,16 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as CServId, id);
 				return Effect.succeed(id);
-			case "chapterContent":
+			}
+			case "chapterContent": {
 				const id2 = ProvTypes["chapterContent"](provId);
-				if (revMap[kind].has(serverId as CCServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as CCServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id2, {
 					serverId: serverId as CCServId,
@@ -214,10 +225,16 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as CCServId, id2);
 				return Effect.succeed(id2);
-			case "labelGroup":
+			}
+			case "labelGroup": {
 				const id3 = ProvTypes["labelGroup"](provId);
-				if (revMap[kind].has(serverId as LGServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as LGServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id3, {
 					serverId: serverId as LGServId,
@@ -226,10 +243,16 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as LGServId, id3);
 				return Effect.succeed(id3);
-			case "labelData":
+			}
+			case "labelData": {
 				const id4 = ProvTypes["labelData"](provId);
-				if (revMap[kind].has(serverId as LDServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as LDServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id4, {
 					serverId: serverId as LDServId,
@@ -238,10 +261,16 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as LDServId, id4);
 				return Effect.succeed(id4);
-			case "autoLabel":
+			}
+			case "autoLabel": {
 				const id5 = ProvTypes["autoLabel"](provId);
-				if (revMap[kind].has(serverId as AServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as AServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id5, {
 					serverId: serverId as AServId,
@@ -250,10 +279,16 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as AServId, id5);
 				return Effect.succeed(id5);
-			case "autoLabelRun":
+			}
+			case "autoLabelRun": {
 				const id6 = ProvTypes["autoLabelRun"](provId);
-				if (revMap[kind].has(serverId as ALRServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+				const existing = revMap[kind].get(serverId as ALRServId);
+				if (existing) {
+					const entry = identifiableKindMap[kind].get(existing);
+					if (entry && entry.status === "clean") {
+						return Effect.succeed(existing);
+					}
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				identifiableKindMap[kind].set(id6, {
 					serverId: serverId as ALRServId,
@@ -262,6 +297,7 @@ export function buildIdRepository(): IDRepository {
 				});
 				revMap[kind].set(serverId as ALRServId, id6);
 				return Effect.succeed(id6);
+			}
 		}
 	}
 
@@ -328,32 +364,32 @@ export function buildIdRepository(): IDRepository {
 		kind: "chapter",
 		provisionalId: ProvTypes["chapter"],
 		serverId: CServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	function bindServerId(
 		kind: "chapterContent",
 		provisionalId: ProvTypes["chapterContent"],
 		serverId: CCServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	function bindServerId(
 		kind: "labelGroup",
 		provisionalId: ProvTypes["labelGroup"],
 		serverId: LGServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	function bindServerId(
 		kind: "labelData",
 		provisionalId: ProvTypes["labelData"],
 		serverId: LDServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	function bindServerId(
 		kind: "autoLabel",
 		provisionalId: ProvTypes["autoLabel"],
 		serverId: AServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 	function bindServerId(
 		kind: "autoLabelRun",
 		provisionalId: ProvTypes["autoLabelRun"],
 		serverId: ALRServId,
-	): Effect.Effect<void, NotFoundException | DuplicateServIdException>;
+	): Effect.Effect<void, NotFoundException | ResourceConflictException>;
 
 	function bindServerId(
 		kind: IdentifiableKind,
@@ -364,7 +400,7 @@ export function buildIdRepository(): IDRepository {
 			case "chapter": {
 				const entry = identifiableKindMap[kind].get(provisionalId as ProvTypes["chapter"]);
 				if (revMap[kind].has(serverId as CServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -382,7 +418,7 @@ export function buildIdRepository(): IDRepository {
 					provisionalId as ProvTypes["chapterContent"],
 				);
 				if (revMap[kind].has(serverId as CCServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -403,7 +439,7 @@ export function buildIdRepository(): IDRepository {
 					provisionalId as ProvTypes["labelGroup"],
 				);
 				if (revMap[kind].has(serverId as LGServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -421,7 +457,7 @@ export function buildIdRepository(): IDRepository {
 					provisionalId as ProvTypes["labelData"],
 				);
 				if (revMap[kind].has(serverId as LDServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -439,7 +475,7 @@ export function buildIdRepository(): IDRepository {
 					provisionalId as ProvTypes["autoLabel"],
 				);
 				if (revMap[kind].has(serverId as AServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -457,7 +493,7 @@ export function buildIdRepository(): IDRepository {
 					provisionalId as ProvTypes["autoLabelRun"],
 				);
 				if (revMap[kind].has(serverId as ALRServId)) {
-					return Effect.fail(new DuplicateServIdException({ id: serverId }));
+					return Effect.fail(new ResourceConflictException({ id: serverId }));
 				}
 				if (!entry) {
 					logger.error(
@@ -701,7 +737,14 @@ export function buildIdRepository(): IDRepository {
 			}
 			entry.status = post(entry.status);
 			if (
-				["chapter", "chapterContent", "labelGroup", "labelData", "autoLabel", "autoLabelRun"].includes(kind) &&
+				[
+					"chapter",
+					"chapterContent",
+					"labelGroup",
+					"labelData",
+					"autoLabel",
+					"autoLabelRun",
+				].includes(kind) &&
 				isTerminal(entry.status) &&
 				"serverId" in entry
 			) {

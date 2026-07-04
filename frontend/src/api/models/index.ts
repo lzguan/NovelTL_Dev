@@ -23,6 +23,7 @@ export * from './chapterData';
 export * from './cluenerParams';
 export * from './cluenerParamsSeparators';
 export * from './createAutoLabels';
+export * from './createAutolabelsAutoLabelsPostParams';
 export * from './createAutoLabelsResponse';
 export * from './createChapter';
 export * from './createLabelData';

@@ -1,6 +1,15 @@
 import type { IDLabelOp, LabelOp } from "./dataTypes";
-import type { CProvId, LGProvId, ProvChapter, ProvLabelGroup } from "./idTypes";
-import type { Novel, TextOp } from "@/api/models";
+import type {
+	ALRProvId,
+	CCProvId,
+	CProvId,
+	LGProvId,
+	ProvAutoLabel,
+	ProvAutoLabelRun,
+	ProvChapter,
+	ProvLabelGroup,
+} from "./idTypes";
+import type { CluenerParams, DoNothingParams, Novel, TextOp } from "@/api/models";
 import { Effect } from "effect";
 import type { KeyedRequestEvent } from "./requestTypes";
 import type { NotFoundException } from "./errors";
@@ -51,6 +60,12 @@ export interface NovelGetters {
 	labelGroupSlot: (labelGroupId: LGProvId) => Effect.Effect<LabelGroupSlot, NotFoundException>;
 }
 
+export type ChapterFilter = {
+	readonly start?: number;
+	readonly end?: number;
+	readonly isPublic?: boolean;
+};
+
 /**
  * Type for any event triggered by the user which requires state updates. Will be updated.
  * - `textOp`: inserting/deleting text.
@@ -84,6 +99,17 @@ export type NovelUserEvent =
 			chapterNum: number;
 			chapterTitle: string;
 			chapterIsPublic: boolean;
+	  }
+	| {
+			eventType: "createAutoLabelRun";
+			params: CluenerParams | DoNothingParams;
+			chapterFilter: ChapterFilter;
+	  }
+	| {
+			eventType: "promoteAutoLabelRun";
+			runId: ALRProvId;
+			chapterFilter: ChapterFilter;
+			labelGroupId: LGProvId;
 	  };
 
 /**
@@ -120,6 +146,26 @@ export type TriggerEvent =
 			chapterId: CProvId;
 			labelGroupId: LGProvId;
 			wasDeleted: boolean;
+	  }
+	| {
+			eventType: "autoLabelRunCreated";
+			run: ProvAutoLabelRun;
+			autoLabels: Omit<ProvAutoLabel, "autoLabelData">[];
+	  }
+	| {
+			eventType: "autoLabelRunPromoted";
+			runId: ALRProvId;
+			labelGroupId: LGProvId;
+			chapterFilter: ChapterFilter;
+			success: readonly {
+				chapterId: CProvId;
+				chapterContentId: CCProvId;
+			}[];
+			errors: readonly {
+				chapterId: CProvId;
+				chapterContentId: CCProvId;
+				error: string;
+			}[];
 	  };
 
 /**

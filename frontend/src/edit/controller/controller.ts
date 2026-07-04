@@ -186,6 +186,22 @@ export const buildNovelController = (
 						yield* dispatch(chapterDM.reloadGroup(event.labelGroupId, true));
 						break;
 					}
+					case "createAutoLabelRun": {
+						yield* dispatch(
+							novelDM.createAutoLabelRun(event.params, event.chapterFilter),
+						);
+						break;
+					}
+					case "promoteAutoLabelRun": {
+						yield* dispatch(
+							novelDM.promoteAutoLabelRun(
+								event.runId,
+								event.labelGroupId,
+								event.chapterFilter,
+							),
+						);
+						break;
+					}
 				}
 
 				yield* requestManager.debounce();

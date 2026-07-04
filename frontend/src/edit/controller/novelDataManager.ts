@@ -41,6 +41,7 @@ import {
 import type { Role } from "@/api/models/role";
 import type { ChapterDataManager, NovelDataManager } from "./types/dataTypes";
 import { buildChapterDataManager } from "./chapterDataManager";
+import { buildAutolabelDataManager } from "./autolabelDataManager";
 
 export type NovelData = {
 	novel: Novel;
@@ -520,12 +521,20 @@ export const buildNovelDataManager = (
 			return slot.data.chapterData;
 		};
 
+		const autolabelDM = buildAutolabelDataManager(
+			novelData.novel.novelId,
+			(event) => raiseTriggerEvent(getters, event),
+			idRepo,
+		);
+
 		return {
 			addLabelGroup,
 			addChapter,
 			openChapter,
 			flush,
 			getChapterDM,
+			createAutoLabelRun: autolabelDM.createAutoLabelRun,
+			promoteAutoLabelRun: autolabelDM.promoteAutoLabelRun,
 			getters,
 		};
 	});
