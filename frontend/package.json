@@ -9,7 +9,9 @@
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
 		"format": "oxfmt",
-		"check": "tsgo -b --noEmit",
+		"check:node": "tsgo -p tsconfig.node.json --noEmit",
+		"check:app": "tsgo -p tsconfig.app.json --noEmit",
+		"check": "pnpm check:node && pnpm check:app",
 		"preview": "vite preview",
 		"test": "vitest --config vitest.config.ts"
 	},

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
 from src.requests.cache import redis_cache
-from src.requests.decorators import attl_cache
+from src.requests.decorators import attl_cache, serialize_response_model
 from src.schemas import DetailHTTPErrorResponse, RequestConflictErrorResponse
 
 from ..auth.dependencies import get_current_user
@@ -94,7 +94,7 @@ async def read_autolabel_by_id(
         409: {"model": RequestConflictErrorResponse, "description": "Request key conflict."},
     },
 )
-@attl_cache(cache=redis_cache, ttl=60)
+@attl_cache(cache=redis_cache, ttl=60, serialize_ret=serialize_response_model(schemas.CreateAutoLabelsResponse))
 async def create_autolabels(
     request: schemas.CreateAutoLabels,
     db: Annotated[Session, Depends(get_db)],

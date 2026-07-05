@@ -167,8 +167,9 @@ class TestCreateAutoLabelsRouter:
                 "modelName": "cluener",
             },
         }
+        request_key = uuid.uuid4()
         response = client.post(
-            "/auto-labels",
+            f"/auto-labels?requestKey={request_key}",
             json=body,
             headers=_auth_headers(user),
         )
@@ -186,6 +187,14 @@ class TestCreateAutoLabelsRouter:
         for al in payload["autolabels"]:
             assert al["autoLabelStatus"] == "pending"
             assert al["runId"] == run["runId"]
+
+        cached_response = client.get(f"/cached/{request_key}")
+        assert cached_response.status_code == status.HTTP_200_OK
+        cached_payload = cached_response.json()
+        assert cached_payload["status"] == "success"
+        assert cached_payload["status_code"] == status.HTTP_200_OK
+        assert cached_payload["response"] == payload
+        assert cached_payload["error"] is None
 
     @pytest.mark.dependency(name="autolabels::router::create_scifi_novel", scope="session")
     def test_create_autolabels_different_novel(
