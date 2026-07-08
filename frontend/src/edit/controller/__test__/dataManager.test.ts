@@ -690,16 +690,13 @@ describe("buildChapterDataManager", () => {
 		});
 
 		it("omits pending labelData from reloadGroup primary request for a newly added group", async () => {
-			const { chapterDM, idRepo, labelGroupId } =
-				await buildOpenedNovelWithAddedLabelGroup();
+			const { chapterDM, idRepo, labelGroupId } = await buildOpenedNovelWithAddedLabelGroup();
 
 			const reloadEvents = Effect.runSync(chapterDM.reloadGroup(labelGroupId, true));
 			expect(reloadEvents).toHaveLength(2);
 
 			const reserveList = reloadEvents[0].reservationRequest.reserveList();
-			const labelGroupReady = Effect.runSync(
-				idRepo.isReserveable(reserveList.labelGroup[0]),
-			);
+			const labelGroupReady = Effect.runSync(idRepo.isReserveable(reserveList.labelGroup[0]));
 			const cleanupReserveList = reloadEvents[1].reservationRequest.reserveList();
 
 			expect(labelGroupReady).toBe(true);

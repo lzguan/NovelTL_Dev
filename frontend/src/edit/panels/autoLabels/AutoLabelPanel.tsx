@@ -1,10 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 import type { CProvId, ProvChapter, LGProvId } from "../../controller/types/idTypes";
@@ -27,11 +23,7 @@ function AutoLabelSection({
 	const [open, setOpen] = useState(defaultOpen);
 
 	return (
-		<Collapsible
-			open={open}
-			onOpenChange={setOpen}
-			className="rounded-md border border-border"
-		>
+		<Collapsible open={open} onOpenChange={setOpen} className="rounded-md border border-border">
 			<div className="flex items-center border-b border-border px-2 py-1">
 				<CollapsibleTrigger asChild>
 					<Button

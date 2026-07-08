@@ -62,9 +62,8 @@ describe("buildAutolabelDataManager", () => {
 			initialSlot.data.autolabels[0].meta.autoLabel.autoLabelMeta.autoLabelId;
 
 		const reloadRequests = Effect.runSync(manager.reloadAutoLabelRun(runId));
+		expect(reloadRequests).toHaveLength(1);
 		Effect.runSync(reloadRequests[0].postSend([autoLabel]));
-
-		expect(reloadRequests[1].reservationRequest.skip()).toBe(true);
 
 		const slot = Effect.runSync(manager.getters.autoLabelRunSlot(runId));
 		expect(slot.status).toBe("ready");
@@ -86,19 +85,15 @@ describe("buildAutolabelDataManager", () => {
 		const initialSlot = Effect.runSync(manager.getters.autoLabelRunSlot(runId));
 		expect(initialSlot.status).toBe("ready");
 		if (initialSlot.status !== "ready") return;
-		const oldAutoLabelId =
-			initialSlot.data.autolabels[0].meta.autoLabel.autoLabelMeta.autoLabelId;
 
 		const reloadRequests = Effect.runSync(manager.reloadAutoLabelRun(runId));
+		expect(reloadRequests).toHaveLength(1);
 		Effect.runSync(reloadRequests[0].postSend([]));
 
-		expect(reloadRequests[1].reservationRequest.skip()).toBe(false);
-		expect(reloadRequests[1].reservationRequest.reserveList().autoLabel).toEqual([
-			{
-				id: oldAutoLabelId,
-				kind: "autoLabel",
-				desiredState: "detaching",
-			},
-		]);
+		const slot = Effect.runSync(manager.getters.autoLabelRunSlot(runId));
+		expect(slot.status).toBe("ready");
+		if (slot.status === "ready") {
+			expect(slot.data.autolabels).toHaveLength(0);
+		}
 	});
 });
