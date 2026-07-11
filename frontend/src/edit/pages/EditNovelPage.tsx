@@ -124,7 +124,8 @@ export function EditNovelPage() {
 
 	// Build controller + managers + seed hooks
 	useEffect(() => {
-		if (novel === null || chapters === null || labelGroups === null || autoLabelRuns === null) return;
+		if (novel === null || chapters === null || labelGroups === null || autoLabelRuns === null)
+			return;
 
 		const novelData: NovelData = {
 			novel: novel.novel,

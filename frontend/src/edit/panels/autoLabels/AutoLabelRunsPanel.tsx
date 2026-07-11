@@ -1,10 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { ChevronRight, RefreshCw } from "lucide-react";
 import { useMemo } from "react";
@@ -91,7 +87,9 @@ function RunRows({
 						Ch. {chapterNumById.get(al.chapterId) ?? "?"}
 					</span>
 					<Badge variant={statusVariant(al.autoLabelStatus)}>{al.autoLabelStatus}</Badge>
-					{al.autoLabelStatus === "done" && <span className="text-muted-foreground">OK</span>}
+					{al.autoLabelStatus === "done" && (
+						<span className="text-muted-foreground">OK</span>
+					)}
 					{al.autoLabelMessage && (
 						<span className="min-w-0 flex-1 truncate text-muted-foreground">
 							{al.autoLabelMessage}
@@ -146,12 +144,16 @@ export function AutoLabelRunsPanel({
 			</div>
 			<div className="flex flex-col gap-1">
 				{sortedRuns.length === 0 ? (
-					<div className="px-1 py-2 text-xs text-muted-foreground">No autolabel runs yet.</div>
+					<div className="px-1 py-2 text-xs text-muted-foreground">
+						No autolabel runs yet.
+					</div>
 				) : (
 					sortedRuns.map((run) => {
 						const selected = autoLabels.selectedRunId === run.run.runId;
 						const matchMap = autoLabels.chapterMatchMap.get(run.run.runId);
-						const currentStatus = currentChapterId ? matchMap?.get(currentChapterId) : undefined;
+						const currentStatus = currentChapterId
+							? matchMap?.get(currentChapterId)
+							: undefined;
 						return (
 							<Collapsible key={run.run.runId} open={selected}>
 								<div
@@ -175,12 +177,25 @@ export function AutoLabelRunsPanel({
 											>
 												<ChevronRight
 													data-icon="inline-start"
-													className={cn("transition-transform", selected && "rotate-90")}
+													className={cn(
+														"transition-transform",
+														selected && "rotate-90",
+													)}
 												/>
 												<MatchDot status={currentStatus} />
-												<span className="min-w-0 flex-1 truncate">{formatRunLabel(run)}</span>
-												<Badge variant={run.status === "ready" ? statusVariant(run.overallStatus) : "outline"}>
-													{run.status === "ready" ? run.overallStatus : run.status}
+												<span className="min-w-0 flex-1 truncate">
+													{formatRunLabel(run)}
+												</span>
+												<Badge
+													variant={
+														run.status === "ready"
+															? statusVariant(run.overallStatus)
+															: "outline"
+													}
+												>
+													{run.status === "ready"
+														? run.overallStatus
+														: run.status}
 												</Badge>
 											</button>
 										</CollapsibleTrigger>

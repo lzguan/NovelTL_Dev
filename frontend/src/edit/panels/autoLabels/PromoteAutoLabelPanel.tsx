@@ -58,7 +58,8 @@ export function PromoteAutoLabelPanel({
 	}, [labelGroups, targetLabelGroupId]);
 
 	const selectedRunId = autoLabels.selectedRunId;
-	const canPromote = selectedRunId !== null && targetLabelGroupId !== null && !autoLabels.promoting;
+	const canPromote =
+		selectedRunId !== null && targetLabelGroupId !== null && !autoLabels.promoting;
 
 	return (
 		<section className="flex flex-col gap-2 p-2">
