@@ -7,6 +7,7 @@ from test_support.test_data import load_catalog, load_novel, load_relation
 from test_support.test_data.errors import TestDataError as InvalidTestDataError
 
 DATASET_ROOT = Path(__file__).parents[1] / "test_data" / "datasets" / "synthetic-smoke"
+LEGACY_DATASET_ROOT = DATASET_ROOT.parent / "legacy-corpora"
 
 
 def test_catalog_load_is_lazy() -> None:
@@ -36,6 +37,15 @@ def test_relation_loads_its_novel_dependencies() -> None:
 
     assert relation.source_works[0].novels == ["xianxia-source", "xianxia-translation"]
     assert set(catalog.novels_cache) == {"xianxia-source", "xianxia-translation"}
+
+
+def test_authored_legacy_corpus_loads_sparse_metadata_defaults() -> None:
+    novel = load_novel(load_catalog(LEGACY_DATASET_ROOT), "legacy-xianxia-small")
+
+    assert [chapter.number for chapter in novel.chapters] == [1, 2]
+    assert novel.chapters[0].title == "Morning at Qingyun Mountain"
+    assert novel.chapters[1].title == "Chapter 2"
+    assert [version.number for chapter in novel.chapters for version in chapter.versions] == [1, 1]
 
 
 def test_artifact_offsets_are_validated(tmp_path: Path) -> None:

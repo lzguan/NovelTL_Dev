@@ -1,0 +1,48 @@
+{
+  "$schema": "../../schema/v1/json/catalog-lock.schema.json",
+  "schemaVersion": 1,
+  "kind": "testDataLock",
+  "datasetSchemaVersion": 1,
+  "files": {
+    "catalog.json": {
+      "kind": "testDataCatalog",
+      "size": 282,
+      "sha256": "7ddb66db7ec908f0ea72f09a291edf010cb29b57e6b2a50e302963476b5310ad"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0001/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 387,
+      "sha256": "5bf0367a8936afc932b6e96bc10941af66e5a82ef59222d745af213642a96918"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0001/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 260,
+      "sha256": "7086e866e0f3fd33f1f9217cab97be0a84935186050b2d1cff365b4a2c247367"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0001/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 814,
+      "sha256": "51803b96e2bdaedd10b93426978cb52e180791589159e77fb05ca2f00a709d23"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0002/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 369,
+      "sha256": "3c3e8a4731e1af560e7489b8c22d8b7c4453c100302012f15b33fb54fd1774d4"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0002/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 260,
+      "sha256": "f9ce4561cc0b7a03f909392b177870334defac8456f6309e09c27ba7ad144722"
+    },
+    "novels/legacy-xianxia-small/chapters/chapter-0002/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 987,
+      "sha256": "049d7b0f42d3b11168154812650038c390eb5565c6d4fa46d705112c2a262458"
+    },
+    "novels/legacy-xianxia-small/manifest.json": {
+      "kind": "novelManifest",
+      "size": 794,
+      "sha256": "537f1bfd9c59e2e8d455af1a976fae4365061ff9349dd4ce0cd5c17be8b10e5d"
+    }
+  }
+}
