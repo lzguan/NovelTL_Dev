@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -73,6 +73,19 @@ def parse_chapters(value: str) -> set[int]:
     return result
 
 
+def _normalize_cluener_errors(errors: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "word": error["word"],
+            "score": float(error["score"]),
+            "start": int(error["start"]),
+            "end": int(error["end"]),
+            "entity_group": error["entity_group"],
+        }
+        for error in errors
+    ]
+
+
 def _make_default_predictor(config: ModelConfigDocument) -> Predictor:
     from src.autolabels.constants import SepPriority
     from src.autolabels.params import CluenerParams
@@ -101,7 +114,7 @@ def _make_default_predictor(config: ModelConfigDocument) -> Predictor:
                 )
                 for label in labels
             ],
-            list(errors),
+            _normalize_cluener_errors(errors),
         )
 
     return predict

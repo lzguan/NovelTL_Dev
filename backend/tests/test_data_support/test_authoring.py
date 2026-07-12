@@ -2,10 +2,11 @@ import json
 import shutil
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from test_support.test_data import authoring, load_catalog, load_novel
-from test_support.test_data.authoring import add_novel, generate_autolabels, parse_chapters
+from test_support.test_data.authoring import _normalize_cluener_errors, add_novel, generate_autolabels, parse_chapters
 from test_support.test_data.errors import TestDataError as InvalidTestDataError
 from test_support.test_data.formats.v1 import authoring as v1_authoring
 from test_support.test_data.formats.v1.documents import AutoLabel, ModelConfigDocument
@@ -123,6 +124,15 @@ def test_add_novel_rejects_unsafe_explicit_id(dataset_copy: Path, tmp_path: Path
 
 def test_parse_chapter_selector() -> None:
     assert parse_chapters("1,3-5") == {1, 3, 4, 5}
+
+
+def test_cluener_errors_are_normalized_for_json() -> None:
+    normalized = _normalize_cluener_errors(
+        [{"word": "青云", "score": np.float32(0.5), "start": np.int64(0), "end": np.int64(2), "entity_group": "place"}]
+    )
+
+    assert normalized == [{"word": "青云", "score": 0.5, "start": 0, "end": 2, "entity_group": "place"}]
+    assert type(normalized[0]["score"]) is float
 
 
 def test_generate_autolabels_skips_existing_and_force_replaces(dataset_copy: Path) -> None:
