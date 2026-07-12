@@ -1,9 +1,9 @@
 """
 Data-driven integration tests for modify_chapter_content.
 
-Uses the chinese_xianxia_small_test populator to load real chapter text and
-autolabel data, then compares in-memory apply_text_ops results against the
-service function's DB output.
+Uses the committed synthetic catalog to load chapter text and autolabel data,
+then compares in-memory apply_text_ops results against the service function's
+DB output.
 """
 
 import pytest

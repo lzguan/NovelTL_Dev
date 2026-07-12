@@ -59,6 +59,12 @@ def test_authored_legacy_corpora_load() -> None:
         for chapter in novel.chapters
         for version in chapter.versions
     )
+    assert all(
+        len(version.artifacts) == 1
+        for novel in catalog.novels_cache.values()
+        for chapter in novel.chapters
+        for version in chapter.versions
+    )
 
 
 def test_artifact_offsets_are_validated(tmp_path: Path) -> None:

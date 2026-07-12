@@ -1,9 +1,8 @@
 """
 Tests for ScoreFilter using real-world Chinese xianxia autolabel data.
 
-These tests use the chinese_xianxia_small_test scenario bundle, which wraps the
-loader-backed dataset and a pre-populated label group built from cluener
-autolabels.
+These tests use the catalog-backed synthetic xianxia scenario and a
+pre-populated label group built from CLUENER autolabels.
 """
 
 import logging
