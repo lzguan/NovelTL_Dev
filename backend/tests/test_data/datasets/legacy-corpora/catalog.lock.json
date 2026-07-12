@@ -6,43 +6,208 @@
   "files": {
     "catalog.json": {
       "kind": "testDataCatalog",
-      "size": 282,
-      "sha256": "7ddb66db7ec908f0ea72f09a291edf010cb29b57e6b2a50e302963476b5310ad"
+      "size": 517,
+      "sha256": "b401d5751204fa34bd87056984065eeae15714aad23d67266174b01251fa50b4"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0001/manifest.json": {
+    "novels/qingyun/chapters/chapter-0001/manifest.json": {
       "kind": "chapterManifest",
-      "size": 387,
-      "sha256": "5bf0367a8936afc932b6e96bc10941af66e5a82ef59222d745af213642a96918"
+      "size": 343,
+      "sha256": "6b847e65a43a216110ebb66103236dd533824a7da06ca67129586ce88a586c7c"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0001/versions/v0001/manifest.json": {
+    "novels/qingyun/chapters/chapter-0001/versions/v0001/manifest.json": {
       "kind": "contentVersionManifest",
-      "size": 260,
-      "sha256": "7086e866e0f3fd33f1f9217cab97be0a84935186050b2d1cff365b4a2c247367"
+      "size": 247,
+      "sha256": "42f72e7f1a1043777c1611821381766dda9c795fbd1205fe60c65e08565623e4"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0001/versions/v0001/text.txt": {
+    "novels/qingyun/chapters/chapter-0001/versions/v0001/text.txt": {
       "kind": "chapterText",
       "size": 814,
       "sha256": "51803b96e2bdaedd10b93426978cb52e180791589159e77fb05ca2f00a709d23"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0002/manifest.json": {
+    "novels/qingyun/chapters/chapter-0002/manifest.json": {
       "kind": "chapterManifest",
-      "size": 369,
-      "sha256": "3c3e8a4731e1af560e7489b8c22d8b7c4453c100302012f15b33fb54fd1774d4"
+      "size": 343,
+      "sha256": "99d8c0f67f871013b917a028855c1517a46b9bd774e5f524fa4755f4ece33444"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0002/versions/v0001/manifest.json": {
+    "novels/qingyun/chapters/chapter-0002/versions/v0001/manifest.json": {
       "kind": "contentVersionManifest",
-      "size": 260,
-      "sha256": "f9ce4561cc0b7a03f909392b177870334defac8456f6309e09c27ba7ad144722"
+      "size": 247,
+      "sha256": "135143bb6f01011f82e684bae72a49a4e3f745fac49f5c0ecab8e501e94c69b9"
     },
-    "novels/legacy-xianxia-small/chapters/chapter-0002/versions/v0001/text.txt": {
+    "novels/qingyun/chapters/chapter-0002/versions/v0001/text.txt": {
       "kind": "chapterText",
       "size": 987,
       "sha256": "049d7b0f42d3b11168154812650038c390eb5565c6d4fa46d705112c2a262458"
     },
-    "novels/legacy-xianxia-small/manifest.json": {
+    "novels/qingyun/manifest.json": {
       "kind": "novelManifest",
-      "size": 794,
-      "sha256": "537f1bfd9c59e2e8d455af1a976fae4365061ff9349dd4ce0cd5c17be8b10e5d"
+      "size": 703,
+      "sha256": "d88de3d2c2af55326f15e9929e121d5c6e0c8f96c113c4d27b556f748bd86adc"
+    },
+    "novels/quantum-path/chapters/chapter-0001/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 353,
+      "sha256": "e555f6ae79e7cf18d77a628f9f72b27b791fe2e8ca49303ebf2f2c4369159781"
+    },
+    "novels/quantum-path/chapters/chapter-0001/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 252,
+      "sha256": "266b768b353d02d9813ef2248d1102475606d49aaa0d832649188683ae93dc1b"
+    },
+    "novels/quantum-path/chapters/chapter-0001/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1423,
+      "sha256": "c3b8981b0c492d2c772d360b8e443f3e3ca6a373340a5ea29f6b7db755ac35bb"
+    },
+    "novels/quantum-path/chapters/chapter-0002/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 353,
+      "sha256": "e80f849ea532db245bdead50dc8451c14b2523f07817e7dbefaf83d68f49f76f"
+    },
+    "novels/quantum-path/chapters/chapter-0002/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 252,
+      "sha256": "11f307f2b71f03888509f913987d0ed933fd9ca67b5479ff6e93facd73db1605"
+    },
+    "novels/quantum-path/chapters/chapter-0002/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1433,
+      "sha256": "229971780eae984196e070d931415ff1d5da288640cf53ce50ccfa1c59a62629"
+    },
+    "novels/quantum-path/manifest.json": {
+      "kind": "novelManifest",
+      "size": 739,
+      "sha256": "d1f5d0e6bd1853c29b50414ea1f51abed5a71a572a5acf2ad07dc9e28cbf0641"
+    },
+    "novels/silverleaf/chapters/chapter-0001/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 349,
+      "sha256": "1402a6956a947153c068841e0337a914cff328b6fccd2229cce8b89b243bd7d4"
+    },
+    "novels/silverleaf/chapters/chapter-0001/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 250,
+      "sha256": "f1bfaf0aaa1e4fcf416459a1cf023df1a3e39b0ba2477abdd02e175030aac606"
+    },
+    "novels/silverleaf/chapters/chapter-0001/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1344,
+      "sha256": "11d308b7b395f8c5378c18ee3c7f7db7d253ce97c1ad26192b97e4c63b8675f0"
+    },
+    "novels/silverleaf/chapters/chapter-0002/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 349,
+      "sha256": "4f954b55c22178cb2ef1a83e44cb72d65c21ac118fbd1ecc72b6e225786facaa"
+    },
+    "novels/silverleaf/chapters/chapter-0002/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 250,
+      "sha256": "8ef472d90271e5445589b656452adef35b0fd87d487a434747b93b50af6d9abd"
+    },
+    "novels/silverleaf/chapters/chapter-0002/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 3549,
+      "sha256": "d45ce3b2176e9e9e0a0c31d62eaf6f6a7d2940ef6a05cd400df06acb89b4c669"
+    },
+    "novels/silverleaf/chapters/chapter-0003/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 349,
+      "sha256": "180262ea5cfec03a72c3a5b229bf582611bb2ec3f780cef5980f0ae13393ed1f"
+    },
+    "novels/silverleaf/chapters/chapter-0003/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 250,
+      "sha256": "46a02464ed617e5f9246e4f5c6fbfcc7cb30658f43ee1a9fb3df6c79667ad10f"
+    },
+    "novels/silverleaf/chapters/chapter-0003/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1808,
+      "sha256": "2b244cfa9985dbcc117fb4a53aa08512b24955ef3ae4d9815799a7326d51a315"
+    },
+    "novels/silverleaf/chapters/chapter-0004/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 349,
+      "sha256": "50cf6b743ccbc89123887ea7efa73aee16c68f31ea4979198ec8313e376942f6"
+    },
+    "novels/silverleaf/chapters/chapter-0004/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 250,
+      "sha256": "818a50d40ff3ad0361ee7016fad0bf0e7749395618da7d86bb2f003ba54372ee"
+    },
+    "novels/silverleaf/chapters/chapter-0004/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 4809,
+      "sha256": "65d6940d03fd403e4f750fd42b5c0f684c534364e71cad0fd0291b374fdb8a67"
+    },
+    "novels/silverleaf/manifest.json": {
+      "kind": "novelManifest",
+      "size": 957,
+      "sha256": "c0a85c612edf2f21a85a3e76ba45233133497d0a23cc5d529f0c138796102b09"
+    },
+    "novels/starfall/chapters/chapter-0001/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 345,
+      "sha256": "3ae4b8da108d833d44f7a09628fcf4e5020ae88ab0e919b2aac989205d8f1bae"
+    },
+    "novels/starfall/chapters/chapter-0001/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 248,
+      "sha256": "7ce5f2ed172c009608681ce2ccd8fa6bb94e16e4f6652085840fd7a06cc5ba58"
+    },
+    "novels/starfall/chapters/chapter-0001/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 2705,
+      "sha256": "5362e20883d5b57bcb78dadb3e29825fb363dd31ce4c0b424ef0995877ef105d"
+    },
+    "novels/starfall/chapters/chapter-0002/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 345,
+      "sha256": "3f25ce76be28441c7335611b37da78ec255da4d6c5785fee9cb77be73040ed23"
+    },
+    "novels/starfall/chapters/chapter-0002/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 248,
+      "sha256": "fb61dff30524b90dc655ec7d4ae14c128544c09d69b8f6d73a3c32dcacf4e0d7"
+    },
+    "novels/starfall/chapters/chapter-0002/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1410,
+      "sha256": "c2848667342fbf1ada14608b12e5ca0b8273ae0e05d6a657e9d0febcfaf72873"
+    },
+    "novels/starfall/chapters/chapter-0003/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 345,
+      "sha256": "9fbe8caf27e2db9e3e56eae390e72222b6c2ff3a622ac055a7dc7c4b2b13955b"
+    },
+    "novels/starfall/chapters/chapter-0003/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 248,
+      "sha256": "30db8de131a1e505223a59778a403e9efc2199cada9b480029076fe25197e923"
+    },
+    "novels/starfall/chapters/chapter-0003/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 2985,
+      "sha256": "aa7eece67f6ced4d6cb4664ed1d12a674392c73d342386e40874edf9ab404257"
+    },
+    "novels/starfall/chapters/chapter-0004/manifest.json": {
+      "kind": "chapterManifest",
+      "size": 345,
+      "sha256": "4637ca744e3cedb6a2efcc2bfb78b72069e4080192e61df2c55b17936ebaaaba"
+    },
+    "novels/starfall/chapters/chapter-0004/versions/v0001/manifest.json": {
+      "kind": "contentVersionManifest",
+      "size": 248,
+      "sha256": "7db188219157fb8025507b40553448964dc865485d085d3683351a827f52c770"
+    },
+    "novels/starfall/chapters/chapter-0004/versions/v0001/text.txt": {
+      "kind": "chapterText",
+      "size": 1484,
+      "sha256": "18175c3d9139f5c093214bf8dba0bc57335183e5f4b9dc9ed107b7948f17d0b3"
+    },
+    "novels/starfall/manifest.json": {
+      "kind": "novelManifest",
+      "size": 959,
+      "sha256": "1db1a769ef912d78adcac1f4a7c9d2db98cc19dedcf61de1063de52e73282189"
     }
   }
 }

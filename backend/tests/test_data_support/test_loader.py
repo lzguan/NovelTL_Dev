@@ -39,13 +39,26 @@ def test_relation_loads_its_novel_dependencies() -> None:
     assert set(catalog.novels_cache) == {"xianxia-source", "xianxia-translation"}
 
 
-def test_authored_legacy_corpus_loads_sparse_metadata_defaults() -> None:
-    novel = load_novel(load_catalog(LEGACY_DATASET_ROOT), "legacy-xianxia-small")
+def test_authored_legacy_corpora_load() -> None:
+    catalog = load_catalog(LEGACY_DATASET_ROOT)
 
-    assert [chapter.number for chapter in novel.chapters] == [1, 2]
-    assert novel.chapters[0].title == "Morning at Qingyun Mountain"
-    assert novel.chapters[1].title == "Chapter 2"
-    assert [version.number for chapter in novel.chapters for version in chapter.versions] == [1, 1]
+    assert set(catalog.novels) == {"qingyun", "quantum-path", "silverleaf", "starfall"}
+    chapter_counts = {
+        novel_id: len(load_novel(catalog, novel_id).chapters)
+        for novel_id in catalog.novels
+    }
+    assert chapter_counts == {"qingyun": 2, "quantum-path": 2, "silverleaf": 4, "starfall": 4}
+    assert all(
+        chapter.title == f"Chapter {chapter.number}"
+        for novel in catalog.novels_cache.values()
+        for chapter in novel.chapters
+    )
+    assert all(
+        version.number == 1
+        for novel in catalog.novels_cache.values()
+        for chapter in novel.chapters
+        for version in chapter.versions
+    )
 
 
 def test_artifact_offsets_are_validated(tmp_path: Path) -> None:

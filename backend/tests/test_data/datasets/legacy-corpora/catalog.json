@@ -5,8 +5,20 @@
   "configs": [],
   "novels": [
     {
-      "id": "legacy-xianxia-small",
-      "path": "novels/legacy-xianxia-small/manifest.json"
+      "id": "qingyun",
+      "path": "novels/qingyun/manifest.json"
+    },
+    {
+      "id": "quantum-path",
+      "path": "novels/quantum-path/manifest.json"
+    },
+    {
+      "id": "silverleaf",
+      "path": "novels/silverleaf/manifest.json"
+    },
+    {
+      "id": "starfall",
+      "path": "novels/starfall/manifest.json"
     }
   ],
   "relations": []
