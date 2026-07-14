@@ -286,16 +286,24 @@ export function EditNovelPage() {
 						labeling={labeling}
 					/>
 					<div className="w-80 border-l shrink-0 flex flex-col min-h-0">
-						<RightPanel>
-							<AutoLabelPanel
-								autoLabels={autoLabels}
-								autoLabelManager={managers.autoLabelMgr}
-								chapters={chapterList.chapterList}
-								currentChapterId={currentChapterId}
-								labelGroups={trackedLabelGroups.labelGroups}
-								onSetActiveLabelGroup={managers.labelGroupMgr.setActive}
-							/>
-						</RightPanel>
+						<RightPanel
+							tabs={[
+								{
+									value: "auto-labels",
+									label: "Auto Labels",
+									content: (
+										<AutoLabelPanel
+											autoLabels={autoLabels}
+											autoLabelManager={managers.autoLabelMgr}
+											chapters={chapterList.chapterList}
+											currentChapterId={currentChapterId}
+											labelGroups={trackedLabelGroups.labelGroups}
+											onSetActiveLabelGroup={managers.labelGroupMgr.setActive}
+										/>
+									),
+								},
+							]}
+						/>
 					</div>
 				</div>
 			</div>
