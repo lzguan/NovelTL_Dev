@@ -187,6 +187,7 @@ function EditDashboardPage() {
 							...current.filter((item) => item.novelId !== novel.novelId),
 						]);
 						setNewNovelId(novel.novelId);
+						setError(null);
 					}}
 					onOpenChange={setCreateDialogOpen}
 					open={createDialogOpen}

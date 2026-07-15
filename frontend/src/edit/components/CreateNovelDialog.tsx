@@ -51,7 +51,13 @@ function CreateNovelDialog({ open, onOpenChange, onCreated }: CreateNovelDialogP
 		setLoadingLanguages(true);
 		readAllLanguagesLanguagesGet()
 			.then((response) => {
-				if (!ignore) setLanguages(response.data);
+				if (!ignore) {
+					if (response.status !== 200) {
+						setLanguagesError(true);
+						return;
+					}
+					setLanguages(response.data);
+				}
 			})
 			.catch(() => {
 				if (!ignore) setLanguagesError(true);
