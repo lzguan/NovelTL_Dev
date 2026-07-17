@@ -31,6 +31,7 @@ Seed database with language data:
 Maintain versioned test data:
 - Navigate to [`backend/`](../backend/)
 - Add a novel with `.venv/bin/python -m scripts.add_test_novel INPUT_DIR DATASET_DIR`
+- Export a bulk chapter upload with `.venv/bin/python -m scripts.export_test_chapter_upload DATASET_DIR NOVEL_ID OUTPUT_FILE [--format v1] [--content-version latest|N]`
 - Generate autolabels with `.venv/bin/python -m scripts.generate_test_autolabels DATASET_DIR NOVEL_ID --config CONFIG_ID`
 - Generate JSON Schemas with `.venv/bin/python -m scripts.generate_test_data_schema --version 1`
 - Generate or check locks with `.venv/bin/python -m scripts.lock_test_data DATASET_DIR --all [--check]`

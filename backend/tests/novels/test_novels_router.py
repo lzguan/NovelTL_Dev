@@ -3,6 +3,7 @@
 import json
 import uuid
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -18,6 +19,10 @@ from src.main import app
 from src.novels.constants import Role
 from src.novels.models import Chapter, ChapterContent, Novel
 from tests.gate_logging import log_gate
+
+STARFALL_UPLOAD_ARTIFACT = (
+    Path(__file__).parents[1] / "test_data" / "artifacts" / "chapter-upload" / "v1" / "starfall.json"
+)
 
 pytestmark = pytest.mark.dependency(
     depends=["gate::fixture_validation", "gate::novels::permissions"],
@@ -160,44 +165,27 @@ class TestCreateChaptersByUpload:
         p1_user_1: User,
     ) -> None:
         novel = p1_novels["prt"]
-        request = _chapter_upload(
-            [
-                {
-                    "chapterNum": 101,
-                    "chapterTitle": "Arrival",
-                    "chapterContentText": "The first uploaded chapter.",
-                    "chapterIsPublic": True,
-                },
-                {
-                    "chapterNum": 102,
-                    "chapterContentText": "",
-                },
-            ],
-        )
+        request = json.loads(STARFALL_UPLOAD_ARTIFACT.read_text(encoding="utf-8"))
 
         response = _post_chapter_upload(client, p1_user_1, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_200_OK
         response_by_num = {chapter["chapterNum"]: chapter for chapter in response.json()}
-        assert response_by_num[101]["chapterTitle"] == "Arrival"
-        assert response_by_num[101]["chapterIsPublic"] is True
-        assert response_by_num[102]["chapterTitle"] == "Chapter 102"
-        assert response_by_num[102]["chapterIsPublic"] is False
+        assert set(response_by_num) == {1, 2, 3, 4}
+        assert response_by_num[1]["chapterTitle"] == "Chapter 1"
+        assert response_by_num[1]["chapterIsPublic"] is True
 
         chapters = test_db.scalars(
             select(Chapter).where(Chapter.novel_id == novel.novel_id).order_by(Chapter.chapter_num)
         ).all()
-        assert [chapter.chapter_num for chapter in chapters] == [101, 102]
+        assert [chapter.chapter_num for chapter in chapters] == [1, 2, 3, 4]
 
         contents = test_db.scalars(
-            select(ChapterContent)
-            .where(ChapterContent.chapter_id.in_([chapter.chapter_id for chapter in chapters]))
-            .order_by(ChapterContent.chapter_content_text)
+            select(ChapterContent).where(ChapterContent.chapter_id.in_([chapter.chapter_id for chapter in chapters]))
         ).all()
-        assert {(content.chapter_content_text, content.chapter_content_version) for content in contents} == {
-            ("", 1),
-            ("The first uploaded chapter.", 1),
-        }
+        expected_texts = {chapter["chapterContentText"] for chapter in request["chapters"]}
+        assert {content.chapter_content_text for content in contents} == expected_texts
+        assert {content.chapter_content_version for content in contents} == {1}
 
     @pytest.mark.dependency(name="novels::router::chapter_upload_duplicate", scope="session")
     def test_duplicate_chapter_numbers_return_conflict_without_partial_insert(
@@ -218,9 +206,10 @@ class TestCreateChaptersByUpload:
         response = _post_chapter_upload(client, p1_user_1, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_409_CONFLICT
-        assert test_db.scalars(
-            select(Chapter).where(Chapter.novel_id == novel.novel_id, Chapter.chapter_num == 201)
-        ).all() == []
+        assert (
+            test_db.scalars(select(Chapter).where(Chapter.novel_id == novel.novel_id, Chapter.chapter_num == 201)).all()
+            == []
+        )
 
     @pytest.mark.dependency(name="novels::router::chapter_upload_permissions", scope="session")
     def test_viewer_cannot_upload_chapters(
@@ -236,9 +225,10 @@ class TestCreateChaptersByUpload:
         response = _post_chapter_upload(client, p1_user_2, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert test_db.scalars(
-            select(Chapter).where(Chapter.novel_id == novel.novel_id, Chapter.chapter_num == 301)
-        ).all() == []
+        assert (
+            test_db.scalars(select(Chapter).where(Chapter.novel_id == novel.novel_id, Chapter.chapter_num == 301)).all()
+            == []
+        )
 
     @pytest.mark.dependency(name="novels::router::chapter_upload_missing", scope="session")
     def test_admin_upload_to_missing_novel_returns_not_found(self, client: TestClient, p1_admin: User) -> None:
@@ -302,6 +292,7 @@ class TestCreateChaptersByUpload:
         assert set(multipart_schema["required"]) == {"novelId", "version", "file"}
         assert multipart_schema["properties"]["version"]["const"] == "v1"
         assert multipart_schema["properties"]["file"]["format"] == "binary"
+
 
 @pytest.mark.dependency(
     name="gate::novels::router",

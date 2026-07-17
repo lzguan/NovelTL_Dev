@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from scripts.add_test_novel import main as add_novel_main
+from scripts.export_test_chapter_upload import main as export_chapter_upload_main
 from scripts.generate_test_autolabels import main as generate_autolabels_main
 
 DATASET_ROOT = Path(__file__).parents[1] / "test_data" / "datasets" / "synthetic-smoke"
@@ -65,3 +66,27 @@ def test_generate_autolabels_cli_dry_run(tmp_path: Path, monkeypatch, capsys) ->
     generate_autolabels_main()
 
     assert capsys.readouterr().out == "Would generate 1 autolabel artifact(s).\n"
+
+
+def test_export_chapter_upload_cli(tmp_path: Path, monkeypatch, capsys) -> None:
+    output_file = tmp_path / "exports" / "xianxia-source.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "export_test_chapter_upload",
+            str(DATASET_ROOT),
+            "xianxia-source",
+            str(output_file),
+            "--format",
+            "v1",
+            "--content-version",
+            "1",
+        ],
+    )
+
+    export_chapter_upload_main()
+
+    assert capsys.readouterr().out == f"Exported 1 chapter(s) to {output_file}.\n"
+    document = json.loads(output_file.read_text(encoding="utf-8"))
+    assert document["chapters"][0]["chapterContentText"] == "林安来到青石城。"

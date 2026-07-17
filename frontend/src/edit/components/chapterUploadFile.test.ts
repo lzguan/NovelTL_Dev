@@ -1,6 +1,32 @@
+/// <reference types="node" />
+
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { parseChapterUploadV1 } from "./chapterUploadFile";
 
+const STARFALL_UPLOAD_ARTIFACT = resolve(
+	dirname(fileURLToPath(import.meta.url)),
+	"../../../../backend/tests/test_data/artifacts/chapter-upload/v1/starfall.json",
+);
+
 describe("parseChapterUploadV1", () => {
+	it("parses the shared Starfall V1 upload artifact", () => {
+		const result = parseChapterUploadV1(readFileSync(STARFALL_UPLOAD_ARTIFACT, "utf8"));
+
+		expect(result).toEqual({
+			ok: true,
+			summary: {
+				chapterCount: 4,
+				draftCount: 0,
+				maxChapterNum: 4,
+				minChapterNum: 1,
+				publicCount: 4,
+			},
+		});
+	});
+
 	it("summarizes a valid upload document", () => {
 		const result = parseChapterUploadV1(
 			JSON.stringify({

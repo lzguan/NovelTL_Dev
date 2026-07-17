@@ -172,6 +172,24 @@ All maintenance commands expose their complete option list through `--help`.
 Authoring dispatches through the target catalog's `schemaVersion`; the V1
 implementation lives with the V1 format rather than in the shared CLI layer.
 
+## Bulk Chapter Upload Artifacts
+
+Export a cataloged novel as a file accepted by the bulk chapter upload endpoint:
+
+```console
+.venv/bin/python -m scripts.export_test_chapter_upload \
+  tests/test_data/datasets/legacy-corpora \
+  starfall \
+  tests/test_data/artifacts/chapter-upload/v1/starfall.json
+```
+
+`DATASET_DIR` is the directory containing `catalog.json`, and `OUTPUT_FILE` is
+the complete destination filename. `--format v1` is the default upload
+contract. Chapters use their latest content by default; pass
+`--content-version N` to require the same explicit content version for every
+chapter. The upload format version remains a separate multipart field when the
+generated JSON is sent to the endpoint.
+
 ## Version 1 Decisions
 
 - `catalog.json` is the only discovery root.
