@@ -250,6 +250,26 @@ components:
       - createdAt
       title: AutoLabelRun
       type: object
+    Body_create_chapters_by_upload_chapters_upload_post:
+      properties:
+        file:
+          format: binary
+          title: File
+          type: string
+        novelId:
+          format: uuid
+          title: Novelid
+          type: string
+        version:
+          const: v1
+          title: Version
+          type: string
+      required:
+      - novelId
+      - version
+      - file
+      title: Body_create_chapters_by_upload_chapters_upload_post
+      type: object
     Body_login_for_access_token_token_post:
       properties:
         client_id:
@@ -1967,6 +1987,64 @@ paths:
       security:
       - OAuth2PasswordBearer: []
       summary: Read Chapters By Novel
+  /chapters/upload:
+    post:
+      description: "Create one or more chapters and their initial content versions\
+        \ atomically.\n\nRaises:\n    400: The upload request cannot be processed.\n\
+        \    401: Authentication failed or the user cannot add chapters to this novel.\n\
+        \    404: The authenticated user or requested novel was not found.\n    409:\
+        \ One or more chapter numbers already exist in this novel."
+      operationId: create_chapters_by_upload_chapters_upload_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_create_chapters_by_upload_chapters_upload_post'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Chapter'
+                title: Response Create Chapters By Upload Chapters Upload Post
+                type: array
+          description: Successful Response
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailHTTPErrorResponse'
+          description: The upload request cannot be processed.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailHTTPErrorResponse'
+          description: Authentication failed or the user cannot add chapters to this
+            novel.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailHTTPErrorResponse'
+          description: The authenticated user or requested novel was not found.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailHTTPErrorResponse'
+          description: One or more chapter numbers already exist in this novel.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+          description: Validation Error
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Create Chapters By Upload
   /chapters/{chapterId}:
     delete:
       description: "Delete a chapter from the database.\n\nRaises:\n    404: Chapter\

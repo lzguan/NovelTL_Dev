@@ -3,21 +3,23 @@ Router functions for novels service.
 """
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile, status
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from src.auth.dependencies import get_current_user, get_optional_user
+from src.auth.models import User
+from src.database import get_db
+from src.exceptions import DataTooLongException, InsufficientPermissionsException
+from src.languages.exceptions import LanguageNotFoundException
+from src.novels.imports import BulkChapterUploadV1, upload_v1
 from src.novels.service import query_novel_and_users_by_id
+from src.requests.cache import redis_cache
+from src.requests.decorators import attl_cache, serialize_response_model
+from src.schemas import DetailHTTPErrorResponse, OperationStatus, RequestConflictErrorResponse
 
-from ..auth.dependencies import get_current_user, get_optional_user
-from ..auth.models import User
-from ..database import get_db
-from ..exceptions import DataTooLongException, InsufficientPermissionsException
-from ..languages.exceptions import LanguageNotFoundException
-from ..requests.cache import redis_cache
-from ..requests.decorators import attl_cache, serialize_response_model
-from ..schemas import DetailHTTPErrorResponse, OperationStatus, RequestConflictErrorResponse
 from . import schemas
 from .exceptions import (
     ChapterContentNotFoundException,
@@ -601,3 +603,68 @@ async def update_chapter_content(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Insufficient permissions to modify this chapter."
         ) from e
     return result
+
+
+@router.post(
+    "/chapters/upload",
+    response_model=list[schemas.Chapter],
+    responses={
+        400: {
+            "model": DetailHTTPErrorResponse,
+            "description": "The upload request cannot be processed.",
+        },
+        401: {
+            "model": DetailHTTPErrorResponse,
+            "description": "Authentication failed or the user cannot add chapters to this novel.",
+        },
+        404: {
+            "model": DetailHTTPErrorResponse,
+            "description": "The authenticated user or requested novel was not found.",
+        },
+        409: {
+            "model": DetailHTTPErrorResponse,
+            "description": "One or more chapter numbers already exist in this novel.",
+        },
+    },
+)
+async def create_chapters_by_upload(
+    novelId: Annotated[uuid.UUID, Form()],
+    version: Annotated[Literal["v1"], Form()],
+    file: Annotated[UploadFile, File()],
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """
+    Create one or more chapters and their initial content versions atomically.
+
+    Raises:
+        400: The upload request cannot be processed.
+        401: Authentication failed or the user cannot add chapters to this novel.
+        404: The authenticated user or requested novel was not found.
+        409: One or more chapter numbers already exist in this novel.
+    """
+    try:
+        if version == "v1":
+            return upload_v1(db, current_user, novelId, BulkChapterUploadV1.model_validate_json(await file.read()))
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Unexpected: {version} is not a valid version for chapter upload.",
+            )
+    except NovelNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Novel not found.") from e
+    except ChapterNumDuplicateException as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Chapter with this chapter number already exists in this novel.",
+        ) from e
+    except InsufficientPermissionsException as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Insufficient permissions to perform this action."
+        ) from e
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid request data: {e.errors()}"
+        ) from e
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chapter title is too long.") from e

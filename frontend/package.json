@@ -5,7 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
 		"format": "oxfmt",
@@ -13,6 +12,7 @@
 		"check:node": "tsc -p tsconfig.node.json --noEmit",
 		"check:app": "tsc -p tsconfig.app.json --noEmit",
 		"check": "pnpm check:node && pnpm check:app",
+		"build": "pnpm check && vite build",
 		"preview": "vite preview",
 		"test": "vitest",
 		"test:ci": "vitest run"
