@@ -1,5 +1,6 @@
 """Router tests for novel endpoints."""
 
+import json
 import uuid
 from datetime import timedelta
 from typing import Any
@@ -7,6 +8,7 @@ from typing import Any
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
+from httpx import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -44,8 +46,23 @@ def _expected_contributors(novel: Novel, *users_and_roles: tuple[User, Role]) ->
     return {(str(user.user_id), str(novel.novel_id), role.value) for user, role in users_and_roles}
 
 
-def _chapter_upload(novel_id: uuid.UUID, chapters: list[dict[str, Any]]) -> dict[str, Any]:
-    return {"version": "v1", "novelId": str(novel_id), "chapters": chapters}
+def _chapter_upload(chapters: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"chapters": chapters}
+
+
+def _post_chapter_upload(
+    client: TestClient,
+    user: User,
+    novel_id: uuid.UUID,
+    document: dict[str, Any] | bytes,
+) -> Response:
+    content = document if isinstance(document, bytes) else json.dumps(document).encode()
+    return client.post(
+        "/chapters/upload",
+        data={"novelId": str(novel_id), "version": "v1"},
+        files={"file": ("chapters.json", content, "application/json")},
+        headers=_auth_headers(user),
+    )
 
 
 class TestReadNovelWithContributors:
@@ -144,7 +161,6 @@ class TestCreateChaptersByUpload:
     ) -> None:
         novel = p1_novels["prt"]
         request = _chapter_upload(
-            novel.novel_id,
             [
                 {
                     "chapterNum": 101,
@@ -159,7 +175,7 @@ class TestCreateChaptersByUpload:
             ],
         )
 
-        response = client.post("/chapters/upload", json=request, headers=_auth_headers(p1_user_1))
+        response = _post_chapter_upload(client, p1_user_1, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_200_OK
         response_by_num = {chapter["chapterNum"]: chapter for chapter in response.json()}
@@ -193,14 +209,13 @@ class TestCreateChaptersByUpload:
     ) -> None:
         novel = p1_novels["prt"]
         request = _chapter_upload(
-            novel.novel_id,
             [
                 {"chapterNum": 201, "chapterContentText": "First duplicate."},
                 {"chapterNum": 201, "chapterContentText": "Second duplicate."},
             ],
         )
 
-        response = client.post("/chapters/upload", json=request, headers=_auth_headers(p1_user_1))
+        response = _post_chapter_upload(client, p1_user_1, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_409_CONFLICT
         assert test_db.scalars(
@@ -216,9 +231,9 @@ class TestCreateChaptersByUpload:
         p1_user_2: User,
     ) -> None:
         novel = p1_novels["ov"]
-        request = _chapter_upload(novel.novel_id, [{"chapterNum": 301, "chapterContentText": "Denied."}])
+        request = _chapter_upload([{"chapterNum": 301, "chapterContentText": "Denied."}])
 
-        response = client.post("/chapters/upload", json=request, headers=_auth_headers(p1_user_2))
+        response = _post_chapter_upload(client, p1_user_2, novel.novel_id, request)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert test_db.scalars(
@@ -227,9 +242,10 @@ class TestCreateChaptersByUpload:
 
     @pytest.mark.dependency(name="novels::router::chapter_upload_missing", scope="session")
     def test_admin_upload_to_missing_novel_returns_not_found(self, client: TestClient, p1_admin: User) -> None:
-        request = _chapter_upload(uuid.uuid4(), [{"chapterNum": 401, "chapterContentText": "Missing."}])
+        missing_novel_id = uuid.uuid4()
+        request = _chapter_upload([{"chapterNum": 401, "chapterContentText": "Missing."}])
 
-        response = client.post("/chapters/upload", json=request, headers=_auth_headers(p1_admin))
+        response = _post_chapter_upload(client, p1_admin, missing_novel_id, request)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -240,9 +256,31 @@ class TestCreateChaptersByUpload:
         p1_novels: dict[str, Novel],
         p1_user_1: User,
     ) -> None:
+        response = _post_chapter_upload(client, p1_user_1, p1_novels["prt"].novel_id, _chapter_upload([]))
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.dependency(name="novels::router::chapter_upload_invalid_json", scope="session")
+    def test_invalid_json_upload_returns_bad_request(
+        self,
+        client: TestClient,
+        p1_novels: dict[str, Novel],
+        p1_user_1: User,
+    ) -> None:
+        response = _post_chapter_upload(client, p1_user_1, p1_novels["prt"].novel_id, b'{"chapters":')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.dependency(name="novels::router::chapter_upload_missing_file", scope="session")
+    def test_missing_file_field_returns_validation_error(
+        self,
+        client: TestClient,
+        p1_novels: dict[str, Novel],
+        p1_user_1: User,
+    ) -> None:
         response = client.post(
             "/chapters/upload",
-            json=_chapter_upload(p1_novels["prt"].novel_id, []),
+            data={"novelId": str(p1_novels["prt"].novel_id), "version": "v1"},
             headers=_auth_headers(p1_user_1),
         )
 
@@ -250,12 +288,20 @@ class TestCreateChaptersByUpload:
 
     @pytest.mark.dependency(name="novels::router::chapter_upload_contract", scope="session")
     def test_openapi_contract_documents_upload_responses(self) -> None:
-        operation = app.openapi()["paths"]["/chapters/upload"]["post"]
+        openapi = app.openapi()
+        operation = openapi["paths"]["/chapters/upload"]["post"]
 
         assert set(operation["responses"]) == {"200", "400", "401", "404", "409", "422"}
         for response_code in ("400", "401", "404", "409"):
             schema = operation["responses"][response_code]["content"]["application/json"]["schema"]
             assert schema == {"$ref": "#/components/schemas/DetailHTTPErrorResponse"}
+
+        request_schema = operation["requestBody"]["content"]["multipart/form-data"]["schema"]
+        schema_name = request_schema["$ref"].rsplit("/", maxsplit=1)[-1]
+        multipart_schema = openapi["components"]["schemas"][schema_name]
+        assert set(multipart_schema["required"]) == {"novelId", "version", "file"}
+        assert multipart_schema["properties"]["version"]["const"] == "v1"
+        assert multipart_schema["properties"]["file"]["format"] == "binary"
 
 @pytest.mark.dependency(
     name="gate::novels::router",
@@ -270,6 +316,8 @@ class TestCreateChaptersByUpload:
         "novels::router::chapter_upload_permissions",
         "novels::router::chapter_upload_missing",
         "novels::router::chapter_upload_validation",
+        "novels::router::chapter_upload_invalid_json",
+        "novels::router::chapter_upload_missing_file",
         "novels::router::chapter_upload_contract",
     ],
     scope="session",

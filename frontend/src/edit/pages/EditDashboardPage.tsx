@@ -15,8 +15,16 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { routeTo } from "@/routes";
-import { ArrowRightIcon, BookOpenIcon, LibraryIcon, PencilLineIcon, PlusIcon } from "lucide-react";
+import {
+	ArrowRightIcon,
+	BookOpenIcon,
+	LibraryIcon,
+	PencilLineIcon,
+	PlusIcon,
+	UploadIcon,
+} from "lucide-react";
 import { CreateNovelDialog } from "../components/CreateNovelDialog";
+import { UploadChaptersDialog } from "../components/UploadChaptersDialog";
 
 function formatLabel(value: string) {
 	return value
@@ -77,6 +85,7 @@ function EditDashboardPage() {
 	const [error, setError] = useState<unknown>(null);
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [newNovelId, setNewNovelId] = useState<string | null>(null);
+	const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
 	useEffect(() => {
 		let ignore = false;
@@ -112,10 +121,20 @@ function EditDashboardPage() {
 							Select a novel to start editing chapter content and managing labels.
 						</p>
 					</div>
-					<Button disabled={loading} onClick={() => setCreateDialogOpen(true)}>
-						<PlusIcon data-icon="inline-start" />
-						Create novel
-					</Button>
+					<div className="flex flex-wrap gap-2">
+						<Button
+							variant="outline"
+							disabled={loading || novels.length === 0}
+							onClick={() => setUploadDialogOpen(true)}
+						>
+							<UploadIcon data-icon="inline-start" />
+							Upload chapters
+						</Button>
+						<Button disabled={loading} onClick={() => setCreateDialogOpen(true)}>
+							<PlusIcon data-icon="inline-start" />
+							Create novel
+						</Button>
+					</div>
 				</header>
 
 				<Card>
@@ -191,6 +210,11 @@ function EditDashboardPage() {
 					}}
 					onOpenChange={setCreateDialogOpen}
 					open={createDialogOpen}
+				/>
+				<UploadChaptersDialog
+					novels={novels}
+					onOpenChange={setUploadDialogOpen}
+					open={uploadDialogOpen}
 				/>
 			</section>
 		</main>

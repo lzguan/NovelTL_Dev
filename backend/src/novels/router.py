@@ -3,9 +3,10 @@ Router functions for novels service.
 """
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile, status
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from src.auth.dependencies import get_current_user, get_optional_user
@@ -13,7 +14,7 @@ from src.auth.models import User
 from src.database import get_db
 from src.exceptions import DataTooLongException, InsufficientPermissionsException
 from src.languages.exceptions import LanguageNotFoundException
-from src.novels.imports import BulkChapterUpload, upload_v1
+from src.novels.imports import BulkChapterUploadV1, upload_v1
 from src.novels.service import query_novel_and_users_by_id
 from src.requests.cache import redis_cache
 from src.requests.decorators import attl_cache, serialize_response_model
@@ -626,8 +627,10 @@ async def update_chapter_content(
         },
     },
 )
-def create_chapters_by_upload(
-    request: BulkChapterUpload,
+async def create_chapters_by_upload(
+    novelId: Annotated[uuid.UUID, Form()],
+    version: Annotated[Literal["v1"], Form()],
+    file: Annotated[UploadFile, File()],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
@@ -636,18 +639,17 @@ def create_chapters_by_upload(
 
     Raises:
         400: The upload request cannot be processed.
-        401: Authentication failed or the user cannot add chapters to the novel.
+        401: Authentication failed or the user cannot add chapters to this novel.
         404: The authenticated user or requested novel was not found.
-        409: One or more chapter numbers already exist in the novel.
-        422: The upload document failed schema validation.
+        409: One or more chapter numbers already exist in this novel.
     """
     try:
-        if request.version == "v1":
-            return upload_v1(db, current_user, request)
+        if version == "v1":
+            return upload_v1(db, current_user, novelId, BulkChapterUploadV1.model_validate_json(await file.read()))
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Unexpected: {request.version} is not a valid version for chapter upload.",
+                detail=f"Unexpected: {version} is not a valid version for chapter upload.",
             )
     except NovelNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Novel not found.") from e
@@ -656,9 +658,13 @@ def create_chapters_by_upload(
             status_code=status.HTTP_409_CONFLICT,
             detail="Chapter with this chapter number already exists in this novel.",
         ) from e
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chapter title is too long.") from e
     except InsufficientPermissionsException as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Insufficient permissions to perform this action."
         ) from e
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid request data: {e.errors()}"
+        ) from e
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chapter title is too long.") from e

@@ -1,6 +1,5 @@
 import uuid
 from collections.abc import Sequence
-from typing import Annotated, Literal
 
 from psycopg2 import Error as PgError
 from psycopg2 import errorcodes
@@ -29,21 +28,17 @@ class ChapterUpload(Model):
 
 
 class BulkChapterUploadV1(Model):
-    novel_id: uuid.UUID
     chapters: list[ChapterUpload] = Field(max_length=10000, min_length=1)
-    version: Literal["v1"]
 
 
-BulkChapterUpload = Annotated[BulkChapterUploadV1, Field(discriminator="version")]
-
-
-def upload_v1(db: Session, current_user: User, request: BulkChapterUploadV1) -> Sequence[Chapter]:
+def upload_v1(db: Session, current_user: User, novel_id: uuid.UUID, request: BulkChapterUploadV1) -> Sequence[Chapter]:
     """
     Uploads multiple chapters to a novel in bulk.
 
     Args:
         db (Session): The database session.
         current_user (User): The currently authenticated user.
+        novel_id (uuid.UUID): The ID of the novel to which chapters are being uploaded.
         request (BulkChapterUploadV1): The request object containing the novel ID and chapters to upload.
 
     Raises:
@@ -59,7 +54,7 @@ def upload_v1(db: Session, current_user: User, request: BulkChapterUploadV1) -> 
     )
     data = [
         (
-            request.novel_id,
+            novel_id,
             u.chapter_num,
             u.chapter_title if u.chapter_title is not None else f"Chapter {u.chapter_num}",
             u.chapter_is_public,
@@ -67,7 +62,7 @@ def upload_v1(db: Session, current_user: User, request: BulkChapterUploadV1) -> 
         for u in request.chapters
     ]
     vals = select(values(*cols).data(data).alias("vals"))
-    vals = chapter_mod_access_insert(vals, current_user, request.novel_id)
+    vals = chapter_mod_access_insert(vals, current_user, novel_id)
     stmt = insert(Chapter).from_select(cols, vals).returning(Chapter)
     try:
         result = db.execute(stmt)

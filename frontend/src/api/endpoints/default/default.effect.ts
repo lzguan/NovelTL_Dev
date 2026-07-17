@@ -30,7 +30,7 @@ export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsOneChunkSize
 
 export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsOneForceChunkDefault = false;
 export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsOneModelNameDefault = `cluener`;
-export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsOneSeparatorsDefault = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
+export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsOneSeparatorsDefault: Record<string, 1 | 2 | 3> = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
 export const readAutoLabelRunsAutoLabelRunsGet200ResponseModelParamsTwoModelNameDefault = `do_nothing`;
 
 export const ReadAutoLabelRunsAutoLabelRunsGet200ResponseItem = S.Struct({
@@ -114,7 +114,7 @@ export const createAutolabelsAutoLabelsPostBodyParamsOneChunkSizeMax = 512;
 
 export const createAutolabelsAutoLabelsPostBodyParamsOneForceChunkDefault = false;
 export const createAutolabelsAutoLabelsPostBodyParamsOneModelNameDefault = `cluener`;
-export const createAutolabelsAutoLabelsPostBodyParamsOneSeparatorsDefault = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
+export const createAutolabelsAutoLabelsPostBodyParamsOneSeparatorsDefault: Record<string, 1 | 2 | 3> = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
 export const createAutolabelsAutoLabelsPostBodyParamsTwoModelNameDefault = `do_nothing`;
 
 export const CreateAutolabelsAutoLabelsPostBody = S.Struct({
@@ -139,7 +139,7 @@ export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsOneChunkSize
 
 export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsOneForceChunkDefault = false;
 export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsOneModelNameDefault = `cluener`;
-export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsOneSeparatorsDefault = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
+export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsOneSeparatorsDefault: Record<string, 1 | 2 | 3> = { "\n": 1, "!": 2, ",": 3, ".": 2, ":": 3, ";": 3, "?": 2, "。": 2, "！": 2, "，": 3, "：": 3, "；": 3, "？": 2 };
 export const createAutolabelsAutoLabelsPost200ResponseRunModelParamsTwoModelNameDefault = `do_nothing`;
 
 export const CreateAutolabelsAutoLabelsPost200Response = S.Struct({
@@ -328,26 +328,13 @@ export const ReadChaptersByNovelChaptersGet422Response = S.Struct({
  *
  * Raises:
  *     400: The upload request cannot be processed.
- *     401: Authentication failed or the user cannot add chapters to the novel.
+ *     401: Authentication failed or the user cannot add chapters to this novel.
  *     404: The authenticated user or requested novel was not found.
- *     409: One or more chapter numbers already exist in the novel.
- *     422: The upload document failed schema validation.
+ *     409: One or more chapter numbers already exist in this novel.
  * @summary Create Chapters By Upload
  */
-export const createChaptersByUploadChaptersUploadPostBodyOneChaptersMax = 10000;
-
-export const createChaptersByUploadChaptersUploadPostBodyOneChaptersItemChapterIsPublicDefault = false;
-export const createChaptersByUploadChaptersUploadPostBodyOneChaptersItemChapterTitleOneMax = 255;
-
-
-
 export const CreateChaptersByUploadChaptersUploadPostBody = S.Struct({
-  "chapters": S.Array(S.Struct({
-  "chapterContentText": S.String,
-  "chapterIsPublic": S.optionalWith(S.Boolean, { default: () => createChaptersByUploadChaptersUploadPostBodyOneChaptersItemChapterIsPublicDefault }),
-  "chapterNum": S.Number,
-  "chapterTitle": S.optional(S.Union(S.String.pipe(S.maxLength(createChaptersByUploadChaptersUploadPostBodyOneChaptersItemChapterTitleOneMax)), S.Null))
-})).pipe(S.minItems(1), S.maxItems(createChaptersByUploadChaptersUploadPostBodyOneChaptersMax)),
+  "file": S.instanceOf(File),
   "novelId": S.String.pipe(S.pattern(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)),
   "version": S.Literal("v1")
 })
@@ -1999,4 +1986,3 @@ export const ReadUserUsersUserNameGet422Response = S.Struct({
   "type": S.String
 })))
 })
-

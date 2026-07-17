@@ -8,8 +8,8 @@ import type {
   AutoLabel,
   AutoLabelMetaWithCidOutput,
   AutoLabelRunOutput,
+  BodyCreateChaptersByUploadChaptersUploadPost,
   BodyLoginForAccessTokenTokenPost,
-  BulkChapterUploadV1,
   CacheEntry,
   Chapter,
   ChapterContent,
@@ -495,20 +495,23 @@ export const getCreateChaptersByUploadChaptersUploadPostUrl = () => {
  *
  * Raises:
  *     400: The upload request cannot be processed.
- *     401: Authentication failed or the user cannot add chapters to the novel.
+ *     401: Authentication failed or the user cannot add chapters to this novel.
  *     404: The authenticated user or requested novel was not found.
- *     409: One or more chapter numbers already exist in the novel.
- *     422: The upload document failed schema validation.
+ *     409: One or more chapter numbers already exist in this novel.
  * @summary Create Chapters By Upload
  */
-export const createChaptersByUploadChaptersUploadPost = async (bulkChapterUploadV1: BulkChapterUploadV1, options?: RequestInit): Promise<createChaptersByUploadChaptersUploadPostResponse> => {
+export const createChaptersByUploadChaptersUploadPost = async (bodyCreateChaptersByUploadChaptersUploadPost: BodyCreateChaptersByUploadChaptersUploadPost, options?: RequestInit): Promise<createChaptersByUploadChaptersUploadPostResponse> => {
+    const formData = new FormData();
+formData.append(`file`, bodyCreateChaptersByUploadChaptersUploadPost.file);
+formData.append(`novelId`, bodyCreateChaptersByUploadChaptersUploadPost.novelId);
+formData.append(`version`, bodyCreateChaptersByUploadChaptersUploadPost.version);
 
   return customFetch<createChaptersByUploadChaptersUploadPostResponse>(getCreateChaptersByUploadChaptersUploadPostUrl(),
   {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(bulkChapterUploadV1)
+    method: 'POST'
+    ,
+    body: formData
   }
 );}
 
