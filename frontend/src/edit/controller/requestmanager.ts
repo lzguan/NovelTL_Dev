@@ -188,6 +188,7 @@ export const buildRequestManager = (
 						kinds,
 					);
 					yield* request.onFailure();
+					yield* request.onSettled?.() ?? Effect.succeed(void 0);
 					logger.error(
 						`Request ${request.requestKey} has exceeded the maximum number of retries`,
 						{
@@ -208,6 +209,7 @@ export const buildRequestManager = (
 						kinds,
 					);
 					yield* request.onFailure();
+					yield* request.onSettled?.() ?? Effect.succeed(void 0);
 					logger.error(
 						`Request ${request.requestKey} has exceeded the maximum number of retries`,
 						{
@@ -236,6 +238,7 @@ export const buildRequestManager = (
 					const request = requestQueue.shift()!;
 					madeProgress = true;
 					if (action === "skip") {
+						yield* request.onSettled?.() ?? Effect.succeed(void 0);
 						continue;
 					}
 					const reservationRequest = request.reservationRequest;
@@ -414,6 +417,7 @@ export const buildRequestManager = (
 								idRepo.releaseIdObjStateOnSuccess(reservation),
 							kinds,
 						);
+						yield* request.onSettled?.() ?? Effect.succeed(void 0);
 					}
 				}
 				if (fatalFailedRequests.length > 0) {
@@ -426,6 +430,7 @@ export const buildRequestManager = (
 								idRepo.releaseIdObjStateOnFailure(reservation),
 							kinds,
 						);
+						yield* request.onSettled?.() ?? Effect.succeed(void 0);
 					}
 					yield* raiseTriggerEvent({
 						eventType: "errorOccured",

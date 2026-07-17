@@ -161,16 +161,7 @@ export const buildNovelController = (
 						break;
 					}
 					case "closeChapter": {
-						const chapterDM = novelDM.getChapterDM(event.chapterId);
-						if (!chapterDM) {
-							yield* raiseTriggerEvent(novelDM.getters, {
-								eventType: "errorOccured",
-								from: "dataManager",
-								error: new Error(`Chapter ${event.chapterId} is not loaded`),
-							});
-							break;
-						}
-						yield* dispatch(chapterDM.destroy());
+						yield* dispatch(novelDM.closeChapter(event.chapterId));
 						break;
 					}
 					case "loadLabelData": {

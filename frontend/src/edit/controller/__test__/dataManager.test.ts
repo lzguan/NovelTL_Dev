@@ -560,16 +560,35 @@ describe("buildChapterDataManager", () => {
 		});
 	});
 
-	describe("destroy", () => {
-		it("prevents further operations after destroy", () => {
+	describe("close", () => {
+		it("prevents further operations after close", () => {
 			const { chapterDM, labelGroupId } = Effect.runSync(buildTestChapterDM());
 
-			Effect.runSync(chapterDM.destroy());
+			Effect.runSync(chapterDM.close(() => Effect.succeed(void 0)));
 
 			const result = Effect.runSync(
 				chapterDM.addLabel(labelGroupId, 6, 9, "met").pipe(Effect.either),
 			);
 			expect(result._tag).toBe("Left");
+		});
+
+		it("waits for flushed requests to settle before finishing close", () => {
+			const { chapterDM } = Effect.runSync(buildTestChapterDM());
+			let closed = false;
+
+			Effect.runSync(chapterDM.insertTextAt(0, "Hello "));
+			const events = Effect.runSync(
+				chapterDM.close(() =>
+					Effect.sync(() => {
+						closed = true;
+					}),
+				),
+			);
+
+			expect(events).toHaveLength(1);
+			expect(closed).toBe(false);
+			Effect.runSync(events[0].onSettled?.() ?? Effect.succeed(void 0));
+			expect(closed).toBe(true);
 		});
 	});
 
@@ -842,5 +861,76 @@ describe("buildChapterDataManager", () => {
 			expect(labelOpMock).toHaveBeenCalledTimes(1);
 			expect(reloadMock).toHaveBeenCalledTimes(1);
 		});
+	});
+});
+
+describe("buildNovelDataManager chapter eviction", () => {
+	it("evicts a ready chapter and allows a fresh reopen", async () => {
+		const triggerEvents: TriggerEvent[] = [];
+		const novelDM = Effect.runSync(
+			buildNovelDataManager(
+				() => Effect.succeed(makeNovelDataWithoutLabelGroups()),
+				(_getters, event) =>
+					Effect.sync(() => {
+						triggerEvents.push(event);
+					}),
+				buildIdRepository(),
+			),
+		);
+		const chapterId = Effect.runSync(novelDM.getters.chapterIds())[0];
+		const openEvents = Effect.runSync(
+			novelDM.openChapter(chapterId, [], {
+				now: true,
+				forEditor: true,
+				fromCached: false,
+			}),
+		);
+		await Effect.runPromise(openEvents[0].postSend(makeOpenChapterResponse().data));
+		expect(novelDM.getChapterDM(chapterId)).not.toBeNull();
+
+		const closeEvents = Effect.runSync(novelDM.closeChapter(chapterId));
+
+		expect(closeEvents).toEqual([]);
+		expect(novelDM.getChapterDM(chapterId)).toBeNull();
+		expect(Effect.runSync(novelDM.getters.chapterGetterSlot(chapterId)).status).toBe("idle");
+		expect(triggerEvents).toContainEqual({ eventType: "chapterClosed", chapterId });
+
+		const reopenEvents = Effect.runSync(
+			novelDM.openChapter(chapterId, [], {
+				now: true,
+				forEditor: true,
+				fromCached: true,
+			}),
+		);
+		expect(reopenEvents).toHaveLength(1);
+	});
+
+	it("disposes a chapter load that is closed before sending", () => {
+		const triggerEvents: TriggerEvent[] = [];
+		const novelDM = Effect.runSync(
+			buildNovelDataManager(
+				() => Effect.succeed(makeNovelDataWithoutLabelGroups()),
+				(_getters, event) =>
+					Effect.sync(() => {
+						triggerEvents.push(event);
+					}),
+				buildIdRepository(),
+			),
+		);
+		const chapterId = Effect.runSync(novelDM.getters.chapterIds())[0];
+		const openEvents = Effect.runSync(
+			novelDM.openChapter(chapterId, [], {
+				now: true,
+				forEditor: true,
+				fromCached: false,
+			}),
+		);
+
+		expect(Effect.runSync(novelDM.closeChapter(chapterId))).toEqual([]);
+		expect(openEvents[0].reservationRequest.skip()).toBe(true);
+		Effect.runSync(openEvents[0].onSettled?.() ?? Effect.succeed(void 0));
+
+		expect(Effect.runSync(novelDM.getters.chapterGetterSlot(chapterId)).status).toBe("idle");
+		expect(triggerEvents).toContainEqual({ eventType: "chapterClosed", chapterId });
 	});
 });

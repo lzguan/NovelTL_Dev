@@ -8,6 +8,7 @@ import type {
 	TriggerEvent,
 } from "../controller/types/controllerTypes";
 import type { LGProvId } from "../controller/types/idTypes";
+import type { CProvId } from "../controller/types/idTypes";
 import type { LabelOp } from "../controller/types/dataTypes";
 import { ChapterLoadingException } from "../controller/types/errors";
 import type { EditorData, LoadingPayload } from "../hooks/useEditorState";
@@ -33,12 +34,14 @@ export function createEditorManager({
 	modeRef,
 	setLoading,
 	labelGroupsRef,
+	activeChapterIdRef,
 }: {
 	controllerUserEvent: (event: NovelUserEvent) => void;
 	dataRef: { current: EditorData };
 	modeRef: { current: EditorMode };
 	setLoading: (val: LoadingPayload) => void;
 	labelGroupsRef: { current: Map<LGProvId, LabelGroupView> };
+	activeChapterIdRef: { current: CProvId | null };
 }) {
 	function handleControllerEvent(
 		novelGetters: NovelGetters,
@@ -48,6 +51,7 @@ export function createEditorManager({
 			switch (event.eventType) {
 				case "chapterOpened": {
 					if (!event.flags.forEditor) break;
+					if (activeChapterIdRef.current !== event.chapterId) break;
 					const done = yield* Effect.either(
 						Effect.gen(function* () {
 							const chapterGetter = yield* novelGetters.chapterGetterSlot(

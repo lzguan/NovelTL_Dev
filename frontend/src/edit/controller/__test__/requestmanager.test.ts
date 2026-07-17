@@ -320,6 +320,7 @@ describe("buildRequestManager", () => {
 
 	it("removes an exhausted request before running its failure handler", async () => {
 		let failureCalls = 0;
+		let settledCalls = 0;
 		const requestManager = Effect.runSync(
 			buildRequestManager(buildIdRepository(), () => Effect.succeed(void 0)),
 		);
@@ -338,6 +339,10 @@ describe("buildRequestManager", () => {
 					failureCalls += 1;
 				}),
 			onFatalError: () => Effect.succeed(void 0),
+			onSettled: () =>
+				Effect.sync(() => {
+					settledCalls += 1;
+				}),
 			preSend: () => Effect.succeed(void 0),
 			send: (requestKey) => Effect.fail(new CacheConflictException({ requestKey })),
 			postSend: () => Effect.succeed(void 0),
@@ -347,8 +352,47 @@ describe("buildRequestManager", () => {
 		await expect(Effect.runPromise(requestManager.waitFlush())).rejects.toBeDefined();
 
 		expect(failureCalls).toBe(1);
+		expect(settledCalls).toBe(1);
 		expect(requestManager.isQueueEmpty()).toBe(true);
 		await Effect.runPromise(requestManager.waitFlush());
 		expect(failureCalls).toBe(1);
+		expect(settledCalls).toBe(1);
+	});
+
+	it("settles a skipped request without sending it", async () => {
+		let sendCalls = 0;
+		let settledCalls = 0;
+		const requestManager = Effect.runSync(
+			buildRequestManager(buildIdRepository(), () => Effect.succeed(void 0)),
+		);
+		const request: RequestEvent = {
+			cached: false,
+			variant: "reloadGroup",
+			active: false,
+			retries: 1,
+			reservationRequest: {
+				reserveList: IdempotentCallable(() => emptyReserveList),
+				skip: () => true,
+				wait: () => Effect.succeed(false),
+			},
+			onFailure: () => Effect.succeed(void 0),
+			onFatalError: () => Effect.succeed(void 0),
+			onSettled: () =>
+				Effect.sync(() => {
+					settledCalls += 1;
+				}),
+			preSend: () => Effect.succeed(void 0),
+			send: () =>
+				Effect.sync(() => {
+					sendCalls += 1;
+				}),
+			postSend: () => Effect.succeed(void 0),
+		};
+
+		requestManager.enqueueRequest(request);
+		await Effect.runPromise(requestManager.waitFlush());
+
+		expect(sendCalls).toBe(0);
+		expect(settledCalls).toBe(1);
 	});
 });

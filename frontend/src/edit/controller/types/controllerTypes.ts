@@ -158,6 +158,8 @@ export type TriggerEvent =
 	  }
 	| { eventType: "errorOccured"; from: "dataManager"; error: Error }
 	| { eventType: "chapterOpened"; chapterId: CProvId; flags: { forEditor: boolean } }
+	| { eventType: "chapterClosed"; chapterId: CProvId }
+	| { eventType: "chapterOpenFailed"; chapterId: CProvId }
 	| { eventType: "labelDataReloading"; chapterId: CProvId; labelGroupId: LGProvId }
 	| {
 			eventType: "labelDataLoaded";

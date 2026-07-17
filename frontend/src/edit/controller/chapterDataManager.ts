@@ -172,8 +172,42 @@ export const buildChapterDataManager = (
 			| { tag: "neither" } = { tag: "neither" };
 
 		let destroyed = false;
+		let outstandingRequests = 0;
+		let onDrained: (() => Effect.Effect<void>) | null = null;
 
-		const { decorate, flush: dispatcherFlush } = buildRequestQueueDispatcher<RequestEvent>();
+		const { decorate: decorateQueued, flush: flushQueued } =
+			buildRequestQueueDispatcher<RequestEvent>();
+
+		const finishCloseIfDrained = (): Effect.Effect<void> =>
+			outstandingRequests === 0 && onDrained !== null ? onDrained() : Effect.succeed(void 0);
+
+		const trackRequests = (events: RequestEvent[]): RequestEvent[] =>
+			events.map((event) => {
+				outstandingRequests += 1;
+				let settled = false;
+				return {
+					...event,
+					onSettled: () =>
+						Effect.gen(function* () {
+							if (settled) return;
+							settled = true;
+							yield* event.onSettled?.() ?? Effect.succeed(void 0);
+							outstandingRequests -= 1;
+							yield* finishCloseIfDrained();
+						}),
+				};
+			});
+
+		const decorate = <Params extends unknown[], E>(
+			f: (...params: Params) => Effect.Effect<RequestEvent[], E>,
+		) => {
+			const queued = decorateQueued<Params, E>(f);
+			return (...params: Params): Effect.Effect<RequestEvent[], E> =>
+				queued(...params).pipe(Effect.map(trackRequests));
+		};
+
+		const dispatcherFlush = (): Effect.Effect<RequestEvent[]> =>
+			flushQueued().pipe(Effect.map(trackRequests));
 
 		const buildLabelReservations = (
 			ops: { labelId: LProvId; op: LabelOp }[],
@@ -1322,10 +1356,18 @@ export const buildChapterDataManager = (
 				return requestEvents;
 			});
 
-		const destroy = (): Effect.Effect<RequestEvent[]> => {
-			destroyed = true;
-			return Effect.succeed([]);
-		};
+		const close = (
+			onClosed: () => Effect.Effect<void>,
+		): Effect.Effect<RequestEvent[], UnknownException> =>
+			Effect.gen(function* () {
+				if (destroyed) return [];
+				destroyed = true;
+				onDrained = onClosed;
+				const events = yield* flush();
+				events.push(...(yield* dispatcherFlush()));
+				yield* finishCloseIfDrained();
+				return events;
+			});
 
 		return {
 			addLabel,
@@ -1335,7 +1377,7 @@ export const buildChapterDataManager = (
 			deleteTextAt,
 			flush,
 			reloadGroup,
-			destroy,
+			close,
 			getters: {
 				labelDataSlot: (labelGroupId: LGProvId) => labelDataIndex.get(labelGroupId),
 				text: () => Effect.succeed(text),

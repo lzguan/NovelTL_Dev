@@ -104,6 +104,7 @@ export const buildNovelDataManager = (
 		);
 
 		const { decorate, flush: _flush } = buildRequestQueueDispatcher<RequestEvent>();
+		const closingChapters = new Set<CProvId>();
 
 		const flush: () => Effect.Effect<RequestEvent[], UnknownException> = () =>
 			Effect.gen(function* () {
@@ -140,6 +141,27 @@ export const buildNovelDataManager = (
 			autoLabelRunIds: () => autolabelDM.getters.autoLabelRunIds(),
 			autoLabelRunSlot: (runId: ALRProvId) => autolabelDM.getters.autoLabelRunSlot(runId),
 		};
+
+		const finishChapterClose = (chapterId: CProvId): Effect.Effect<void> =>
+			Effect.gen(function* () {
+				if (!closingChapters.delete(chapterId)) return;
+				yield* chaptersIndex.setData(chapterId, { status: "idle" });
+				yield* raiseTriggerEvent(getters, {
+					eventType: "chapterClosed",
+					chapterId,
+				});
+			}).pipe(Effect.catchAll(() => Effect.succeed(void 0)));
+
+		const finishChapterOpenFailure = (chapterId: CProvId): Effect.Effect<void> =>
+			closingChapters.has(chapterId)
+				? finishChapterClose(chapterId)
+				: Effect.gen(function* () {
+						yield* chaptersIndex.setData(chapterId, { status: "error" });
+						yield* raiseTriggerEvent(getters, {
+							eventType: "chapterOpenFailed",
+							chapterId,
+						});
+					}).pipe(Effect.catchAll(() => Effect.succeed(void 0)));
 
 		const _addLabelGroup = (
 			labelGroupName: string,
@@ -380,33 +402,39 @@ export const buildNovelDataManager = (
 					return yield* Effect.fail(new LoadingException({ id: chapterId }));
 				}
 				yield* chaptersIndex.setData(chapterId, { status: "loading" });
+				let skippedForClose = false;
 				return [
 					{
 						cached: false,
 						variant: "openChapter",
-						reservationRequest: makeReservationRequest(idRepo, {
-							labelGroup: [],
-							label: [],
-							autoLabel: [],
-							autoLabelRun: [],
-							chapter: [
-								{
-									id: chapterId,
-									desiredState: "locked",
-									kind: "chapter",
-								},
-							],
-							chapterContent: [],
-							labelData: [],
-						}),
-						onFailure: () =>
-							chaptersIndex
-								.setData(chapterId, { status: "error" })
-								.pipe(Effect.catchAll(() => Effect.succeed(void 0))),
-						onFatalError: () =>
-							chaptersIndex
-								.setData(chapterId, { status: "error" })
-								.pipe(Effect.catchAll(() => Effect.succeed(void 0))),
+						reservationRequest: makeReservationRequest(
+							idRepo,
+							{
+								labelGroup: [],
+								label: [],
+								autoLabel: [],
+								autoLabelRun: [],
+								chapter: [
+									{
+										id: chapterId,
+										desiredState: "locked",
+										kind: "chapter",
+									},
+								],
+								chapterContent: [],
+								labelData: [],
+							},
+							() => {
+								skippedForClose = closingChapters.has(chapterId);
+								return skippedForClose;
+							},
+						),
+						onFailure: () => finishChapterOpenFailure(chapterId),
+						onFatalError: () => finishChapterOpenFailure(chapterId),
+						onSettled: () =>
+							skippedForClose
+								? finishChapterClose(chapterId)
+								: Effect.succeed(void 0),
 						retries: 3,
 						active: false,
 						preSend: () => Effect.succeed(void 0),
@@ -457,6 +485,10 @@ export const buildNovelDataManager = (
 							}),
 						postSend: (resp: unknown) =>
 							Effect.gen(function* () {
+								if (closingChapters.has(chapterId)) {
+									yield* finishChapterClose(chapterId);
+									return;
+								}
 								const validated = yield* Schema.validate(
 									ReadEditChapterDataEditChapterDataChapterIdPost200Response,
 								)(resp).pipe(
@@ -533,6 +565,23 @@ export const buildNovelDataManager = (
 			return slot.data.chapterData;
 		};
 
+		const closeChapter = (
+			chapterId: CProvId,
+		): Effect.Effect<RequestEvent[], NotFoundException | UnknownException> =>
+			Effect.gen(function* () {
+				if (closingChapters.has(chapterId)) return [];
+				const slot = yield* chaptersIndex.get(chapterId);
+				closingChapters.add(chapterId);
+				if (slot.status === "ready") {
+					return yield* slot.data.chapterData.close(() => finishChapterClose(chapterId));
+				}
+				if (slot.status === "loading") {
+					return yield* _flush();
+				}
+				yield* finishChapterClose(chapterId);
+				return [];
+			});
+
 		const autolabelDM = yield* buildAutolabelDataManager(
 			novelData.novel.novelId,
 			(event) => raiseTriggerEvent(getters, event),
@@ -566,6 +615,7 @@ export const buildNovelDataManager = (
 			addLabelGroup,
 			addChapter,
 			openChapter,
+			closeChapter,
 			flush,
 			getChapterDM,
 			createAutoLabelRun: autolabelDM.createAutoLabelRun,
