@@ -100,7 +100,12 @@ export function EditNovelPage() {
 			},
 		};
 		return { source, sink };
-	}, [managers, editorState.dataRef, trackedLabelGroups.labelGroupsRef, trackedLabelGroups.activeLabelGroupIdRef]);
+	}, [
+		managers,
+		editorState.dataRef,
+		trackedLabelGroups.labelGroupsRef,
+		trackedLabelGroups.activeLabelGroupIdRef,
+	]);
 
 	// Fetch data
 	useEffect(() => {

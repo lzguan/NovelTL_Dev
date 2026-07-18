@@ -31,7 +31,6 @@ function makeChapterFilter(start: string, end: string): ChapterFilter {
 	};
 }
 
-
 export function PromoteAutoLabelPanel({
 	autoLabels,
 	labelGroups,
@@ -51,8 +50,7 @@ export function PromoteAutoLabelPanel({
 	const [end, setEnd] = useState("");
 
 	const selectedRunId = autoLabels.selectedRunId;
-	const canPromote =
-		selectedRunId !== null && activeId !== null && !autoLabels.promoting;
+	const canPromote = selectedRunId !== null && activeId !== null && !autoLabels.promoting;
 
 	return (
 		<section className="flex flex-col gap-2 p-2">
