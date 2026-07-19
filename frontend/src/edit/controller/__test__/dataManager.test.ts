@@ -890,9 +890,7 @@ describe("buildNovelDataManager chapter eviction", () => {
 			{ id: chapterId, kind: "chapter", desiredState: "updating" },
 		]);
 		expect(novelDM.getChapterDM(chapterId)).toBeNull();
-		expect(Effect.runSync(novelDM.getters.chapterGetterSlot(chapterId)).status).toBe(
-			"loading",
-		);
+		expect(Effect.runSync(novelDM.getters.chapterGetterSlot(chapterId)).status).toBe("loading");
 		expect(Effect.runSync(novelDM.closeChapter(chapterId))).toEqual([]);
 		expect(
 			Effect.runSync(
