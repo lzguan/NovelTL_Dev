@@ -53,6 +53,7 @@ export interface ChapterGetters {
 	text: () => Effect.Effect<string>;
 	chapterContentId: () => Effect.Effect<CCProvId>;
 	labelDataSlot: (labelGroupId: LGProvId) => Effect.Effect<LabelDataSlot, NotFoundException>;
+	isDestroyed: () => boolean;
 }
 
 /**
@@ -158,6 +159,8 @@ export type TriggerEvent =
 	  }
 	| { eventType: "errorOccured"; from: "dataManager"; error: Error }
 	| { eventType: "chapterOpened"; chapterId: CProvId; flags: { forEditor: boolean } }
+	| { eventType: "chapterClosed"; chapterId: CProvId }
+	| { eventType: "chapterOpenFailed"; chapterId: CProvId }
 	| { eventType: "labelDataReloading"; chapterId: CProvId; labelGroupId: LGProvId }
 	| {
 			eventType: "labelDataLoaded";

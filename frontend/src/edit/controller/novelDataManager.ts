@@ -113,6 +113,7 @@ export const buildNovelDataManager = (
 						.get(chapterId)
 						.pipe(Effect.mapError((err) => new UnknownException({ orig: err })));
 					if (slot.status === "ready") {
+						if (slot.data.chapterData.getters.isDestroyed()) continue;
 						const flushResult = yield* slot.data.chapterData.flush();
 						events.push(...flushResult);
 					}
@@ -126,16 +127,18 @@ export const buildNovelDataManager = (
 			labelGroupIds: () => labelGroupsIndex.getIds(),
 			chapterIds: () => chaptersIndex.getIds(),
 			chapterGetterSlot: (chapterId: CProvId) =>
-				chaptersIndex.get(chapterId).pipe(
-					Effect.map((slot) => {
-						if (slot.status !== "ready") {
-							return slot;
-						} else {
-							const chapterGetters = slot.data.chapterData.getters;
-							return { ...slot, data: { chapterGetters, status: slot.status } };
-						}
-					}),
-				),
+				Effect.gen(function* () {
+					const slot = yield* chaptersIndex.get(chapterId);
+					if (slot.status !== "ready") {
+						return slot;
+					}
+					if (slot.data.chapterData.getters.isDestroyed()) {
+						const { data: _data, ...unavailable } = slot;
+						return { ...unavailable, status: "loading" as const };
+					}
+					const chapterGetters = slot.data.chapterData.getters;
+					return { ...slot, data: { chapterGetters, status: slot.status } };
+				}),
 			labelGroupSlot: (labelGroupId: LGProvId) => labelGroupsIndex.get(labelGroupId),
 			autoLabelRunIds: () => autolabelDM.getters.autoLabelRunIds(),
 			autoLabelRunSlot: (runId: ALRProvId) => autolabelDM.getters.autoLabelRunSlot(runId),
@@ -374,12 +377,23 @@ export const buildNovelDataManager = (
 			Effect.gen(function* () {
 				const chapter = yield* chaptersIndex.get(chapterId);
 				if (chapter.status === "ready") {
+					if (chapter.data.chapterData.getters.isDestroyed()) {
+						return yield* Effect.fail(new LoadingException({ id: chapterId }));
+					}
 					return yield* Effect.fail(new AlreadyOpenException({ id: chapterId }));
 				}
 				if (chapter.status === "loading") {
 					return yield* Effect.fail(new LoadingException({ id: chapterId }));
 				}
 				yield* chaptersIndex.setData(chapterId, { status: "loading" });
+				const finishChapterOpenFailure = (): Effect.Effect<void> =>
+					Effect.gen(function* () {
+						yield* chaptersIndex.setData(chapterId, { status: "error" });
+						yield* raiseTriggerEvent(getters, {
+							eventType: "chapterOpenFailed",
+							chapterId,
+						});
+					}).pipe(Effect.catchAll(() => Effect.succeed(void 0)));
 				return [
 					{
 						cached: false,
@@ -399,14 +413,8 @@ export const buildNovelDataManager = (
 							chapterContent: [],
 							labelData: [],
 						}),
-						onFailure: () =>
-							chaptersIndex
-								.setData(chapterId, { status: "error" })
-								.pipe(Effect.catchAll(() => Effect.succeed(void 0))),
-						onFatalError: () =>
-							chaptersIndex
-								.setData(chapterId, { status: "error" })
-								.pipe(Effect.catchAll(() => Effect.succeed(void 0))),
+						onFailure: finishChapterOpenFailure,
+						onFatalError: finishChapterOpenFailure,
 						retries: 3,
 						active: false,
 						preSend: () => Effect.succeed(void 0),
@@ -512,7 +520,11 @@ export const buildNovelDataManager = (
 			return Effect.if(
 				Effect.gen(function* () {
 					const chapterSlot = yield* chaptersIndex.get(chapterId);
-					return chapterSlot.status === "ready" && flags.fromCached;
+					return (
+						chapterSlot.status === "ready" &&
+						!chapterSlot.data.chapterData.getters.isDestroyed() &&
+						flags.fromCached
+					);
 				}),
 				{
 					onTrue: () =>
@@ -530,8 +542,76 @@ export const buildNovelDataManager = (
 				chaptersIndex.get(id).pipe(Effect.catchAll(() => Effect.succeed(null))),
 			);
 			if (!slot || slot.status !== "ready" || !slot.data) return null;
+			if (slot.data.chapterData.getters.isDestroyed()) return null;
 			return slot.data.chapterData;
 		};
+
+		const closeChapter = (
+			chapterId: CProvId,
+		): Effect.Effect<RequestEvent[], NotFoundException | UnknownException> =>
+			Effect.gen(function* () {
+				const slot = yield* chaptersIndex.get(chapterId);
+				let chapterDataManager: ChapterDataManager | null = null;
+				const events = yield* _flush();
+				if (slot.status === "ready") {
+					chapterDataManager = slot.data.chapterData;
+					if (chapterDataManager.getters.isDestroyed()) return events;
+					events.push(...(yield* chapterDataManager.destroy()));
+				} else if (slot.status !== "loading") {
+					yield* chaptersIndex.setData(chapterId, { status: "idle" });
+					yield* raiseTriggerEvent(getters, {
+						eventType: "chapterClosed",
+						chapterId,
+					});
+					return events;
+				}
+
+				events.push({
+					cached: false,
+					variant: "closeChapter",
+					reservationRequest: makeReservationRequest(
+						idRepo,
+						{
+							labelGroup: [],
+							label: [],
+							autoLabel: [],
+							autoLabelRun: [],
+							chapter: [
+								{
+									id: chapterId,
+									desiredState: "updating",
+									kind: "chapter",
+								},
+							],
+							chapterContent: [],
+							labelData: [],
+						},
+						() => {
+							const current = Effect.runSync(
+								chaptersIndex
+									.get(chapterId)
+									.pipe(Effect.catchAll(() => Effect.succeed(null))),
+							);
+							return current === null || current.status === "idle";
+						},
+					),
+					onFailure: () => Effect.succeed(void 0),
+					onFatalError: () => Effect.succeed(void 0),
+					retries: 0,
+					active: true,
+					preSend: () =>
+						Effect.gen(function* () {
+							yield* chaptersIndex.setData(chapterId, { status: "idle" });
+							yield* raiseTriggerEvent(getters, {
+								eventType: "chapterClosed",
+								chapterId,
+							});
+						}).pipe(Effect.catchAll(() => Effect.succeed(void 0))),
+					send: () => Effect.succeed(void 0),
+					postSend: () => Effect.succeed(void 0),
+				});
+				return events;
+			});
 
 		const autolabelDM = yield* buildAutolabelDataManager(
 			novelData.novel.novelId,
@@ -566,6 +646,7 @@ export const buildNovelDataManager = (
 			addLabelGroup,
 			addChapter,
 			openChapter,
+			closeChapter,
 			flush,
 			getChapterDM,
 			createAutoLabelRun: autolabelDM.createAutoLabelRun,

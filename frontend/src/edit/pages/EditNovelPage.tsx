@@ -1,4 +1,4 @@
-import { Profiler, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Effect } from "effect";
 import {
 	readAutoLabelRunsAutoLabelRunsGet,
@@ -13,7 +13,7 @@ import { Prov } from "../controller/types/helperTypes";
 import type { ProvChapter } from "../controller/types/idTypes";
 import { generateRandomColor } from "@/edit/lib/text-model/builtin/colors";
 import { useEditorState } from "../hooks/useEditorState";
-import { useChapterList } from "../hooks/useChapterList";
+import { useChapters } from "../hooks/useChapters";
 import { useTrackedLabelGroups } from "../hooks/useTrackedLabelGroups";
 import { useAutoLabelState } from "../hooks/useAutoLabelState";
 import { useAutoLabelPreview } from "../hooks/useAutoLabelPreview";
@@ -32,6 +32,7 @@ import { RightPanel } from "../panels/RightPanel";
 import { ToolbarPanel } from "../panels/ToolbarPanel";
 import type { Role } from "@/api/models/role";
 import { LoaderCircle } from "lucide-react";
+import { ChapterTabs } from "../panels/chapters/ChapterTabs";
 
 function makeProvChapter(chapter: Chapter, chapterId: ProvChapter["chapterId"]): ProvChapter {
 	return Prov({
@@ -52,7 +53,7 @@ export function EditNovelPage() {
 	const [error, setError] = useState<unknown>(null);
 
 	const editorState = useEditorState();
-	const chapterList = useChapterList();
+	const chapterState = useChapters();
 	const trackedLabelGroups = useTrackedLabelGroups();
 	const autoLabels = useAutoLabelState();
 	const autoLabelPreview = useAutoLabelPreview();
@@ -71,6 +72,7 @@ export function EditNovelPage() {
 				const data = editorState.dataRef.current;
 				return data.empty || data.loading ? null : data.segmentManager;
 			},
+			getActiveGroupId: () => trackedLabelGroups.activeLabelGroupIdRef.current,
 			getGroups: () => trackedLabelGroups.labelGroupsRef.current,
 		});
 		const sink: LabelSink = {
@@ -96,7 +98,12 @@ export function EditNovelPage() {
 			},
 		};
 		return { source, sink };
-	}, [managers, editorState.dataRef, trackedLabelGroups.labelGroupsRef]);
+	}, [
+		managers,
+		editorState.dataRef,
+		trackedLabelGroups.labelGroupsRef,
+		trackedLabelGroups.activeLabelGroupIdRef,
+	]);
 
 	// Fetch data
 	useEffect(() => {
@@ -149,7 +156,7 @@ export function EditNovelPage() {
 
 		const chapterMgr = createChapterManager({
 			controllerUserEvent,
-			chapterList,
+			chapters: chapterState,
 			setLoading: editorState.setLoading,
 			labelGroupsRef: trackedLabelGroups.labelGroupsRef,
 		});
@@ -165,6 +172,8 @@ export function EditNovelPage() {
 			modeRef: editorState.modeRef,
 			setLoading: editorState.setLoading,
 			labelGroupsRef: trackedLabelGroups.labelGroupsRef,
+			activeChapterIdRef: chapterState.activeChapterIdRef,
+			activeGroupIdRef: trackedLabelGroups.activeLabelGroupIdRef,
 		});
 		const autoLabelMgr = createAutoLabelManager({
 			controllerUserEvent,
@@ -196,7 +205,7 @@ export function EditNovelPage() {
 			Effect.gen(function* () {
 				const ids = yield* ctrl.getters.chapterIds();
 				for (let i = 0; i < ids.length; i++) {
-					chapterList.addChapter(makeProvChapter(chapters[i], ids[i]));
+					chapterState.addChapter(makeProvChapter(chapters[i], ids[i]));
 				}
 			}),
 		);
@@ -216,7 +225,6 @@ export function EditNovelPage() {
 						}),
 						color: generateRandomColor(),
 						visible: true,
-						active: false,
 						status: "idle",
 					});
 				}
@@ -254,39 +262,40 @@ export function EditNovelPage() {
 		);
 	}
 
-	const currentChapterId = editorState.data.empty
-		? null
-		: editorState.data.loading
-			? null
-			: editorState.data.chapterId;
+	const currentChapterId = chapterState.activeChapterId;
 
 	return (
-		<Profiler
-			id="EditNovelPage"
-			onRender={(_id, phase, duration) => console.log(`${phase}: ${duration}ms`)}
-		>
-			<div className="relative h-full min-h-0">
-				<div className="flex h-full min-h-0 flex-col" inert={workspaceLock !== null}>
-					<ToolbarPanel
-						mode={editorState.mode}
-						loading={!editorState.data.empty && editorState.data.loading}
-						onSetMode={editorState.setMode}
-					/>
-					<div className="flex flex-1 min-h-0 overflow-hidden">
-						<div className="w-56 border-r shrink-0 flex flex-col min-h-0">
-							<LeftPanel
-								chapters={chapterList.chapterList}
-								currentChapterId={currentChapterId}
-								onSwitchChapter={managers.chapterMgr.switchChapter}
-								onAddChapter={managers.chapterMgr.addChapter}
-								labelGroups={trackedLabelGroups.labelGroups}
-								chapterOpen={!editorState.data.empty && !editorState.data.loading}
-								onToggleVisibility={managers.labelGroupMgr.toggleVisibility}
-								onSetActive={managers.labelGroupMgr.setActive}
-								onAddLabelGroup={managers.labelGroupMgr.addLabelGroup}
-								onReloadLabelData={managers.labelGroupMgr.reloadLabelData}
-							/>
-						</div>
+		<div className="relative h-full min-h-0">
+			<div className="flex h-full min-h-0 flex-col" inert={workspaceLock !== null}>
+				<ToolbarPanel
+					mode={editorState.mode}
+					loading={!editorState.data.empty && editorState.data.loading}
+					onSetMode={editorState.setMode}
+				/>
+				<div className="flex flex-1 min-h-0 overflow-hidden">
+					<div className="w-56 border-r shrink-0 flex flex-col min-h-0">
+						<LeftPanel
+							chapters={chapterState.chapterList}
+							currentChapterId={currentChapterId}
+							onSwitchChapter={managers.chapterMgr.switchChapter}
+							onAddChapter={managers.chapterMgr.addChapter}
+							labelGroups={trackedLabelGroups.labelGroups}
+							chapterOpen={!editorState.data.empty && !editorState.data.loading}
+							onToggleVisibility={managers.labelGroupMgr.toggleVisibility}
+							onSetActive={managers.labelGroupMgr.setActive}
+							onAddLabelGroup={managers.labelGroupMgr.addLabelGroup}
+							onReloadLabelData={managers.labelGroupMgr.reloadLabelData}
+							activeId={trackedLabelGroups.activeLabelGroupId}
+						/>
+					</div>
+					<div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+						<ChapterTabs
+							tabs={chapterState.tabs}
+							chapters={chapterState.chapterList}
+							activeChapterId={chapterState.activeChapterId}
+							onActivate={managers.chapterMgr.switchChapter}
+							onClose={managers.chapterMgr.closeChapter}
+						/>
 						<EditorPanel
 							data={editorState.data}
 							mode={editorState.mode}
@@ -295,48 +304,47 @@ export function EditNovelPage() {
 							labeling={labeling}
 							preview={autoLabelPreview.preview}
 						/>
-						<div className="w-80 border-l shrink-0 flex flex-col min-h-0">
-							<RightPanel
-								tabs={[
-									{
-										value: "auto-labels",
-										label: "Auto Labels",
-										content: (
-											<AutoLabelPanel
-												autoLabels={autoLabels}
-												autoLabelManager={managers.autoLabelMgr}
-												chapters={chapterList.chapterList}
-												currentChapterId={currentChapterId}
-												labelGroups={trackedLabelGroups.labelGroups}
-												onSetActiveLabelGroup={
-													managers.labelGroupMgr.setActive
-												}
-												previewEnabled={autoLabelPreview.enabled}
-												previewLoading={autoLabelPreview.loading}
-												onSetPreviewEnabled={
-													managers.autoLabelMgr.setPreviewEnabled
-												}
-											/>
-										),
-									},
-								]}
-							/>
-						</div>
+					</div>
+					<div className="w-80 border-l shrink-0 flex flex-col min-h-0">
+						<RightPanel
+							tabs={[
+								{
+									value: "auto-labels",
+									label: "Auto Labels",
+									content: (
+										<AutoLabelPanel
+											autoLabels={autoLabels}
+											autoLabelManager={managers.autoLabelMgr}
+											chapters={chapterState.chapterList}
+											currentChapterId={currentChapterId}
+											labelGroups={trackedLabelGroups.labelGroups}
+											setActive={managers.labelGroupMgr.setActive}
+											previewEnabled={autoLabelPreview.enabled}
+											previewLoading={autoLabelPreview.loading}
+											onSetPreviewEnabled={
+												managers.autoLabelMgr.setPreviewEnabled
+											}
+											activeId={trackedLabelGroups.activeLabelGroupId}
+										/>
+									),
+								},
+							]}
+						/>
 					</div>
 				</div>
-				{workspaceLock !== null && (
-					<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
-						<div
-							role="status"
-							aria-live="polite"
-							className="flex items-center gap-2 rounded-md border bg-background px-4 py-3 text-sm shadow-lg"
-						>
-							<LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-							<span>{workspaceLock.message}</span>
-						</div>
-					</div>
-				)}
 			</div>
-		</Profiler>
+			{workspaceLock !== null && (
+				<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-[1px]">
+					<div
+						role="status"
+						aria-live="polite"
+						className="flex items-center gap-2 rounded-md border bg-background px-4 py-3 text-sm shadow-lg"
+					>
+						<LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+						<span>{workspaceLock.message}</span>
+					</div>
+				</div>
+			)}
+		</div>
 	);
 }

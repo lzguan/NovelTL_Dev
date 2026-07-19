@@ -351,4 +351,35 @@ describe("buildRequestManager", () => {
 		await Effect.runPromise(requestManager.waitFlush());
 		expect(failureCalls).toBe(1);
 	});
+
+	it("skips a request without sending it", async () => {
+		let sendCalls = 0;
+		const requestManager = Effect.runSync(
+			buildRequestManager(buildIdRepository(), () => Effect.succeed(void 0)),
+		);
+		const request: RequestEvent = {
+			cached: false,
+			variant: "reloadGroup",
+			active: false,
+			retries: 1,
+			reservationRequest: {
+				reserveList: IdempotentCallable(() => emptyReserveList),
+				skip: () => true,
+				wait: () => Effect.succeed(false),
+			},
+			onFailure: () => Effect.succeed(void 0),
+			onFatalError: () => Effect.succeed(void 0),
+			preSend: () => Effect.succeed(void 0),
+			send: () =>
+				Effect.sync(() => {
+					sendCalls += 1;
+				}),
+			postSend: () => Effect.succeed(void 0),
+		};
+
+		requestManager.enqueueRequest(request);
+		await Effect.runPromise(requestManager.waitFlush());
+
+		expect(sendCalls).toBe(0);
+	});
 });

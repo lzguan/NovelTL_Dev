@@ -20,6 +20,7 @@ export type RequestVariant =
 	| "addLabelData"
 	| "reloadGroup"
 	| "openChapter"
+	| "closeChapter"
 	| "createAutoLabelRun"
 	| "refreshAutoLabelRuns"
 	| "reloadAutoLabelRun"
