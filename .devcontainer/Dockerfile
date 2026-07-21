@@ -14,7 +14,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 USER vscode
-COPY --from=ghcr.io/astral-sh/uv:0.10.9 --chown=vscode:vscode /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="/bin/bash" bash -
 RUN pnpm runtime set node ${NODE_VERSION} -g
 
