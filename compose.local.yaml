@@ -21,3 +21,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: backend
+
+  worker:
+    image: noveltl-worker:local
+    pull_policy: build
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: worker
